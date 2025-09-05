@@ -1,14 +1,28 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 
-import { View, Text, Button, TouchableOpacity, ScrollView, StyleSheet, FlatList, ImageBackground } from 'react-native';
+import {
+	View,
+	Text,
+	//Button,
+	TouchableOpacity,
+	ScrollView,
+	StyleSheet,
+	//FlatList,
+	ImageBackground,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Search, Wifi, WifiOff, Power, BatteryCharging } from 'lucide-react-native';
+import {
+	BluetoothSearchingIcon,
+	//Wifi,
+	//WifiOff,
+	//Power,
+	//BatteryCharging,
+} from 'lucide-react-native';
 
 import { useAuth } from '../auth/AuthProvider';
 import { useBle } from '../ble/BleProvider';
 import DeviceBox from '../components/DeviceBox';
-
 
 import { useTheme } from '../theme/ThemeContext';
 
@@ -27,76 +41,144 @@ import { useTheme } from '../theme/ThemeContext';
 //battery: "2A19"
 
 export default function HomeScreen() {
+	const { user, signOut } = useAuth();
+	const { theme } = useTheme();
 
-  const { user, signOut } = useAuth();
-  const { theme } = useTheme();
- 
-  const {
-    scanning,
-    startScan,
-    stopScan,
-    connected,
-    knownServiceUUID,
-    disconnectDevice,
-    isPoweredOn
-  } = useBle();
+	const {
+		scanning,
+		startScan,
+		//stopScan,
+		connected,
+		//knownServiceUUID,
+		//disconnectDevice,
+		isPoweredOn,
+	} = useBle();
 
-  return (
+	return (
+		<View style={{ flex: 1 }}>
+			<ImageBackground
+				source={require('../../assets/padel-tennis-2.png')}
+				style={{ ...StyleSheet.absoluteFillObject }}
+				imageStyle={{ resizeMode: 'cover' }}
+			>
+				<SafeAreaView
+					style={{ flex: 1 }}
+					edges={['top', 'bottom', 'left', 'right']}
+				>
+					<ScrollView
+						style={{
+							flex: 1,
+							paddingVertical: 4,
+							paddingHorizontal: 6,
+						}}
+					>
+						{/* Header */}
+						<View style={{ margin: 10 }}>
+							<Text
+								style={[
+									theme.textStyles.title,
+									{ color: 'white' },
+								]}
+							>
+								BLE Device Connector
+							</Text>
+							<Text
+								style={[
+									theme.textStyles.body,
+									{ color: 'white' },
+								]}
+							>
+								Scan and connect to Bluetooth devices
+							</Text>
+						</View>
 
-<View style={{flex: 1}}>
-<ImageBackground 
-      source={require('../../assets/padel-tennis-2.png')}
-      style={{ ...StyleSheet.absoluteFillObject}}
-      imageStyle={{resizeMode: "cover"}}
-    >
+						{/* Scan Button */}
+						<TouchableOpacity
+							//onPress={() => startScan()}
+							onPress={() =>
+								startScan({ timeoutMs: 1500, maxDevices: 2 })
+							}
+							style={[
+								theme.viewStyles.button,
+								{
+									backgroundColor: scanning
+										? 'grey'
+										: theme.colors.primary,
+									margin: 10,
+								},
+							]}
+							disabled={scanning || !isPoweredOn}
+						>
+							<BluetoothSearchingIcon size={24} color='white' />
+							<Text
+								style={[
+									theme.textStyles.body,
+									{ color: 'white', paddingLeft: 8 },
+								]}
+							>
+								{scanning ? 'Scanning...' : 'Start Scanning'}
+							</Text>
+						</TouchableOpacity>
 
-        <SafeAreaView style={{flex: 1}} edges={['top','bottom','left','right']}>
-            <ScrollView style={{flex: 1, paddingVertical: 4, paddingHorizontal: 6}}>
+						{/* Device Boxes */}
+						<View
+							style={{
+								flexDirection: 'row',
+								justifyContent: 'space-between',
+								margin: 10,
+							}}
+						>
+							{Object.values(connected).map((device) => (
+								<DeviceBox key={device.id} item={device} />
+							))}
+						</View>
 
-                {/* Header */}
-                <View style={{margin: 10}}>
-                    <Text style={[theme.textStyles.title, {color: 'white'}]}>BLE Device Connector</Text>
-                    <Text style={[theme.textStyles.body, {color: 'white'}]} >Scan and connect to Bluetooth devices</Text>
-                </View>
-
-                {/* Scan Button */}
-                <TouchableOpacity
-                    //onPress={() => startScan()}
-                    onPress={() => startScan({timeoutMs: 1500, maxDevices: 2})} 
-                    style={ [theme.viewStyles.button,  {backgroundColor: scanning ? 'grey' : theme.colors.primary, margin: 10}] }
-                    disabled={ scanning || !isPoweredOn }
-                >
-                    <Search size={24} color="white" />
-                    <Text style={[theme.textStyles.body, {color: 'white', paddingLeft: 8}]}>{scanning ? 'Scanning...' : 'Start Scanning' }</Text>
-                </TouchableOpacity>
-
-
-
-                {/* Device Boxes */}                
-                <View style={{flexDirection: "row", justifyContent: "space-between", margin: 10}}>
-                    {Object.values(connected).map((device) => (
-                        <DeviceBox key={device.id} item={device}/>
-                    ))}
-                </View>
-
-                {/* Footer */}
-                <View style={{margin: 10, borderColor: theme.colors.dgrey, borderTopWidth: 1, paddingTop: 10}}>
-                    <Text style={[theme.textStyles.body, {color: 'white'}]}>email: {user?.email ?? 'Anonymous'}</Text>
-                    <Text style={[theme.textStyles.body, {color: 'white'}]}>UID: {user?.uid}</Text>
-                    <View style={{ height: 8 }} />
-                    <TouchableOpacity
-                        onPress={() => signOut()}
-                        style={ [theme.viewStyles.button, {width: '30%'}] }
-                    >
-                        <Text style={[theme.textStyles.body, {color: 'white'}]}>Sign Out</Text>
-                    </TouchableOpacity>
-                </View>
-
-            </ScrollView>
-        </SafeAreaView>
-        </ImageBackground>
-        </View>
-
-  );
+						{/* Footer */}
+						<View
+							style={{
+								margin: 10,
+								borderColor: theme.colors.dgrey,
+								borderTopWidth: 1,
+								paddingTop: 10,
+							}}
+						>
+							<Text
+								style={[
+									theme.textStyles.body,
+									{ color: 'white' },
+								]}
+							>
+								email: {user?.email ?? 'Anonymous'}
+							</Text>
+							<Text
+								style={[
+									theme.textStyles.body,
+									{ color: 'white' },
+								]}
+							>
+								UID: {user?.uid}
+							</Text>
+							<View style={{ height: 8 }} />
+							<TouchableOpacity
+								onPress={() => signOut()}
+								style={[
+									theme.viewStyles.button,
+									{ width: '30%' },
+								]}
+							>
+								<Text
+									style={[
+										theme.textStyles.body,
+										{ color: 'white' },
+									]}
+								>
+									Sign Out
+								</Text>
+							</TouchableOpacity>
+						</View>
+					</ScrollView>
+				</SafeAreaView>
+			</ImageBackground>
+		</View>
+	);
 }
-

@@ -1,0 +1,17 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "React Native (iOS) – Attach to running app",
+      "request": "attach",
+      "type": "reactnative"
+    },
+    {
+      "name": "React Native (iOS) – Run iPhone 18",
+      "request": "launch",
+      "type": "reactnative",
+      "platform": "ios",
+      "target": "iPhone 18"
+    }
+  ]
+}

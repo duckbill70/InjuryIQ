@@ -19,7 +19,9 @@
     "react-native": "0.81.1",
     "react-native-ble-plx": "^3.5.0",
     "react-native-bootsplash": "^6.3.10",
+    "react-native-fs": "^2.20.0",
     "react-native-safe-area-context": "^5.6.1",
+    "react-native-share": "^12.2.0",
     "react-native-svg": "^15.12.1"
   },
   "devDependencies": {

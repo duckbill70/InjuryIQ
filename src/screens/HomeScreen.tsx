@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useCallback } from 'react';
 
 import {
 	View,
@@ -22,6 +22,13 @@ import {
 
 import { useAuth } from '../auth/AuthProvider';
 import { useBle } from '../ble/BleProvider';
+import { DualImuProvider } from '../ble/DualImuProvider';
+import ImuDualControlBox from '../ble/ImuDualControlBox';
+import {
+	createCombinedImuWriter,
+	CombinedWriter,
+	RawPacket,
+} from '../ble/combinedImuWriter';
 import DeviceBox from '../components/DeviceBox';
 
 import { useTheme } from '../theme/ThemeContext';
@@ -53,6 +60,25 @@ export default function HomeScreen() {
 		//disconnectDevice,
 		isPoweredOn,
 	} = useBle();
+
+	const arr = Object.values(connected);
+	const devA = arr[0];
+	const devB = arr[1];
+	const expectedHz = 60;
+
+	const writerRef = useRef<CombinedWriter | null>(null);
+
+	const onBatchA = useCallback(
+		(batch: RawPacket[]) => {
+			//console.log('[Provider] onBatchA len=', batch.length)
+			writerRef.current?.onBatchA(batch)
+		},[],);
+
+	const onBatchB = useCallback(
+		(batch: RawPacket[]) => {
+			//console.log('[Provider] onBatchB len=', batch.length)
+			writerRef.current?.onBatchB(batch)
+		},[],);
 
 	return (
 		<View style={{ flex: 1 }}>
@@ -121,16 +147,59 @@ export default function HomeScreen() {
 						</TouchableOpacity>
 
 						{/* Device Boxes */}
-						<View
-							style={{
-								flexDirection: 'row',
-								justifyContent: 'space-between',
-								margin: 10,
-							}}
-						>
-							{Object.values(connected).map((device) => (
-								<DeviceBox key={device.id} item={device} />
-							))}
+						<View style={{ padding: 8 }}>
+							<DualImuProvider
+								entryA={devA}
+								entryB={devB}
+								expectedHzA={expectedHz}
+								autoStart
+								collect={false} // measure only; control box will toggle capture
+								onBatchA={onBatchA}
+								onBatchB={onBatchB}
+							>
+								<View
+									style={{
+										flexDirection: 'row',
+										justifyContent: 'space-between',
+										padding: 8,
+									}}
+								>
+									{[devA, devB].map((d, i) =>
+										d ? (
+											<DeviceBox key={d.id} item={d} />
+										) : (
+											<Placeholder key={`ph-${i}`} />
+										),
+									)}
+								</View>
+
+								<ImuDualControlBox
+									writerRef={writerRef}
+									expectedHz={expectedHz}
+									//onStartCapture={async () => {
+									//	writerRef.current =
+									//		createCombinedImuWriter({
+									//			sessionName: 'imu_both',
+									//			expectedHz,
+									//			idA: devA?.id,
+									//			idB: devB?.id,
+									//		});
+									//	await writerRef.current.start();
+									//}}
+									//onStopCapture={async () => {
+									//	if (!writerRef.current) return;
+									//	const summary =
+									//		await writerRef.current.stop();
+									//	console.log(
+									//		'Saved to',
+									//		summary.path,
+									//		summary.rows,
+									//		'rows',
+									//	);
+									//	writerRef.current = null;
+									//}}
+								/>
+							</DualImuProvider>
 						</View>
 
 						{/* Footer */}
@@ -180,5 +249,22 @@ export default function HomeScreen() {
 				</SafeAreaView>
 			</ImageBackground>
 		</View>
+	);
+}
+
+function Placeholder() {
+	return (
+		<View
+			style={{
+				flex: 0.48,
+				borderStyle: 'dashed',
+				borderColor: 'white',
+				borderWidth: 1,
+				backgroundColor: 'rgba(90, 200, 250, 0.6)',
+				height: 200,
+				marginHorizontal: 5,
+				borderRadius: 8,
+			}}
+		/>
 	);
 }

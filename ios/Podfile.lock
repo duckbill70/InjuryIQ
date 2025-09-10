@@ -2467,13 +2467,15 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - RNFBApp (23.2.2):
+  - RNFBApp (23.3.0):
     - Firebase/CoreOnly (= 12.2.0)
     - React-Core
-  - RNFBAuth (23.2.2):
+  - RNFBAuth (23.3.0):
     - Firebase/Auth (= 12.2.0)
     - React-Core
     - RNFBApp
+  - RNFS (2.20.0):
+    - React-Core
   - RNGoogleSignin (15.0.0):
     - boost
     - DoubleConversion
@@ -2481,6 +2483,34 @@ PODS:
     - fmt
     - glog
     - GoogleSignIn (~> 8.0)
+    - hermes-engine
+    - RCT-Folly
+    - RCT-Folly/Fabric
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - SocketRocket
+    - Yoga
+  - RNShare (12.2.0):
+    - boost
+    - DoubleConversion
+    - fast_float
+    - fmt
+    - glog
     - hermes-engine
     - RCT-Folly
     - RCT-Folly/Fabric
@@ -2641,7 +2671,9 @@ DEPENDENCIES:
   - RNBootSplash (from `../node_modules/react-native-bootsplash`)
   - "RNFBApp (from `../node_modules/@react-native-firebase/app`)"
   - "RNFBAuth (from `../node_modules/@react-native-firebase/auth`)"
+  - RNFS (from `../node_modules/react-native-fs`)
   - "RNGoogleSignin (from `../node_modules/@react-native-google-signin/google-signin`)"
+  - RNShare (from `../node_modules/react-native-share`)
   - RNSVG (from `../node_modules/react-native-svg`)
   - SocketRocket (~> 0.7.1)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
@@ -2818,8 +2850,12 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-firebase/app"
   RNFBAuth:
     :path: "../node_modules/@react-native-firebase/auth"
+  RNFS:
+    :path: "../node_modules/react-native-fs"
   RNGoogleSignin:
     :path: "../node_modules/@react-native-google-signin/google-signin"
+  RNShare:
+    :path: "../node_modules/react-native-share"
   RNSVG:
     :path: "../node_modules/react-native-svg"
   Yoga:
@@ -2915,9 +2951,11 @@ SPEC CHECKSUMS:
   ReactCommon: e5df435ef0892875b7d503fbe3ec73a1a3712049
   RecaptchaInterop: 11e0b637842dfb48308d242afc3f448062325aba
   RNBootSplash: e4435c7c7f814bcb27dc7a8531e3e80bcfee7dcb
-  RNFBApp: 3e7122d41e6d9df109da5a7dea9c81e378e17e47
-  RNFBAuth: f3bc5874efea5b5edc20f469ac45c1aecd5ed8f8
+  RNFBApp: 377c315d7b1bab48a30545644f7c201b0155d32b
+  RNFBAuth: 3d4cd7c6a7d5527efd141cf350b8cdccab179e7c
+  RNFS: 89de7d7f4c0f6bafa05343c578f61118c8282ed8
   RNGoogleSignin: 39750df541b62de6de41396e63b3ec0b546927e9
+  RNShare: 81b8cfb58b1460c4a197d5379934bdf70980c124
   RNSVG: 94a1be05fab4043354bcf7104f0f9b0e2231ef05
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   Yoga: f95f7e60346fa6828def95fbe5017346ccc8940e

@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useMemo } from 'react';
 import type { ReactNode } from 'react';
 import type { Characteristic, Device } from 'react-native-ble-plx';
-import { useImuIngress } from './useImuIngress';
+import { useImuIngress } from '../ble/useImuIngress';
 
 export type ConnectedDeviceLike = {
   id: string;
@@ -66,7 +66,7 @@ export function DualImuProvider({
     autoStart,
     collect,
     onBatch: onBatchA,
-    batchSize: 8,
+    batchSize: 64,
     statsWindowMs: 2000,
     statsEmitMs: 1000,
     maxBuffer: 10000,
@@ -78,7 +78,7 @@ export function DualImuProvider({
     autoStart,
     collect,
     onBatch: onBatchB,
-    batchSize: 8,
+    batchSize: 64,
     statsWindowMs: 2000,
     statsEmitMs: 1000,
     maxBuffer: 10000,

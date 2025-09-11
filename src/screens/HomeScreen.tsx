@@ -22,13 +22,13 @@ import {
 
 import { useAuth } from '../auth/AuthProvider';
 import { useBle } from '../ble/BleProvider';
-import { DualImuProvider } from '../ble/DualImuProvider';
-import ImuDualControlBox from '../ble/ImuDualControlBox';
+import { DualImuProvider } from '../imu/DualImuProvider';
+import ImuDualControlBox from '../components/ImuDualControlBox';
 import {
 	createCombinedImuWriter,
 	CombinedWriter,
 	RawPacket,
-} from '../ble/combinedImuWriter';
+} from '../imu/combinedImuWriter';
 import DeviceBox from '../components/DeviceBox';
 
 import { useTheme } from '../theme/ThemeContext';
@@ -168,7 +168,7 @@ export default function HomeScreen() {
 										d ? (
 											<DeviceBox key={d.id} item={d} />
 										) : (
-											<Placeholder key={`ph-${i}`} />
+											<Placeholder backgroundColor={'transparent'} key={`ph-${i}`} />
 										),
 									)}
 								</View>
@@ -176,28 +176,6 @@ export default function HomeScreen() {
 								<ImuDualControlBox
 									writerRef={writerRef}
 									expectedHz={expectedHz}
-									//onStartCapture={async () => {
-									//	writerRef.current =
-									//		createCombinedImuWriter({
-									//			sessionName: 'imu_both',
-									//			expectedHz,
-									//			idA: devA?.id,
-									//			idB: devB?.id,
-									//		});
-									//	await writerRef.current.start();
-									//}}
-									//onStopCapture={async () => {
-									//	if (!writerRef.current) return;
-									//	const summary =
-									//		await writerRef.current.stop();
-									//	console.log(
-									//		'Saved to',
-									//		summary.path,
-									//		summary.rows,
-									//		'rows',
-									//	);
-									//	writerRef.current = null;
-									//}}
 								/>
 							</DualImuProvider>
 						</View>
@@ -252,19 +230,21 @@ export default function HomeScreen() {
 	);
 }
 
-function Placeholder() {
-	return (
-		<View
-			style={{
-				flex: 0.48,
-				borderStyle: 'dashed',
-				borderColor: 'white',
-				borderWidth: 1,
-				backgroundColor: 'rgba(90, 200, 250, 0.6)',
-				height: 200,
-				marginHorizontal: 5,
-				borderRadius: 8,
-			}}
-		/>
-	);
+function Placeholder({ backgroundColor = 'transparent' }) {
+  return (
+    <View
+      style={{
+        flex: 0.48,
+        borderStyle: 'solid',
+        borderColor: 'white',
+        borderWidth: 1,
+        backgroundColor,
+        height: 175,
+        marginHorizontal: 5,
+        borderRadius: 8,
+		opacity: 0.8,
+      }}
+    />
+  );
 }
+

@@ -1,6 +1,18 @@
 // combinedImuWriter.ts
 import RNFS from 'react-native-fs';
 import Share from 'react-native-share';
+import DeviceInfo from 'react-native-device-info';
+
+const APP_INFO ={
+    app_name : DeviceInfo.getApplicationName(),
+    bundleId: DeviceInfo.getBundleId(),
+    version: DeviceInfo.getVersion(),
+    build: DeviceInfo.getBuildNumber(),
+}
+
+// --- Sport Type --- //
+export type Sport = 'padel' | 'tennis' | 'running' | 'hiking';
+
 
 /** ================= Low-level NDJSON writer (RNFS appendFile-based) ================= */
 
@@ -153,7 +165,7 @@ export type CombinedWriter = {
   writeHeaderNow(): void;
 
   /** Flush & close the file. Safe to call multiple times. */
-  stop(): Promise<StopResult>;
+  stop(reason?: 'user' | 'timeout' | 'error' | 'appBackground'): Promise<StopResult>;
 };
 
 type FactoryOptions = {
@@ -166,6 +178,11 @@ type FactoryOptions = {
   idB?: string | null;
   /** Optional override of the sessions directory. */
   dirAbs?: string;
+  meta? :{
+    user?: { uid?: string | null; email?: string | null};
+    initialState?: {A: unknown; B: unknown };
+    sport? : Sport | null;
+  }
 };
 
 function isoForFilename(d = new Date()) {
@@ -211,6 +228,18 @@ export function createCombinedImuWriter(opts: FactoryOptions): CombinedWriter {
     started = true;
     headerWritten = false;
 
+    low.append({
+        type: 'header',
+        schema: 'injuryiq.imu.ndjson#v1',
+        createdAt: new Date().toISOString(),
+        app: APP_INFO,
+        user: opts.meta?.user ?? null,
+        devices: { idA, idB },
+        expectedHz,
+        initialSate: opts.meta?.initialState ?? null,
+        sport: opts.meta?.sport ?? null,
+    })
+
     if (__DEV__) {
       console.log('[CombinedWriter] started', {
         path: filePath,
@@ -220,6 +249,7 @@ export function createCombinedImuWriter(opts: FactoryOptions): CombinedWriter {
         stateA,
         stateB,
       });
+      console.log('[CombinedWriter] meta', opts?.meta || null);
     }
   }
 
@@ -242,21 +272,21 @@ export function createCombinedImuWriter(opts: FactoryOptions): CombinedWriter {
   }
 
   function writeHeaderNow() {
-    writeHeaderIfNeeded();
+    //writeHeaderIfNeeded();
   }
 
   function appendRows(src: 'A' | 'B', id: string | null, batch?: RawPacket[] | null) {
     if (!started || !low) return;
     if (!batch?.length) return;
 
-    writeHeaderIfNeeded(); // ensure header precedes first data
+    //writeHeaderIfNeeded(); // ensure header precedes first data
 
     for (let i = 0; i < batch.length; i++) {
       const pkt = batch[i];
       low.append({
         t: pkt.t,
         src,
-        id,
+        //id, - removed as the id for each device is in the header
         imu_b64: pkt.b64,
       });
     }
@@ -280,11 +310,22 @@ export function createCombinedImuWriter(opts: FactoryOptions): CombinedWriter {
     if (__DEV__) console.log('[CombinedWriter] setStateB', v);
   }
 
-  async function stop(): Promise<StopResult> {
+  async function stop(reason: 'user' | 'timeout' | 'error' | 'appBackground' = 'user'): Promise<StopResult> {
     if (!started) {
       if (__DEV__) console.log('[CombinedWriter] stop(): not started');
       return { path: filePath ?? `${dirAbs}/${filename}`, rows: 0, bytes: 0 };
     }
+
+    if (low) {
+        const totals = low.getCounts();
+        low.append({
+            type: 'stop',
+            stoppedAt: new Date().toISOString(),
+            reason,
+            totals,
+        })
+    }
+
     started = false;
     const summary = await low!.stop();
     low = null;

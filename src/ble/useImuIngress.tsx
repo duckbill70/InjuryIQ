@@ -159,7 +159,7 @@ export function useImuIngress(entry: ConnectedDeviceLike | undefined, opts: Ingr
 
     totalPacketsRef.current += 1;
     if (__DEV__ && (totalPacketsRef.current % 100 === 0)) {
-      console.log(`[${tag}] packets received: ${totalPacketsRef.current}`);
+      //console.log(`[${tag}] packets received: ${totalPacketsRef.current}`);
     }
 
     const now = Date.now();

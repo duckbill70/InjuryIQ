@@ -6,11 +6,11 @@ import { useAuth } from '../auth/AuthProvider';
 import { useTheme } from '../theme/ThemeContext';
 import { useDualImu } from '../imu/DualImuProvider';
 import { useStateControl, StateMode, stateModeLabel } from '../ble/useStateControl';
+import { useFatigueValue } from '../ble/useFatigueValue';
+import { useFatigueTrend } from '../ble/useFatigueTrend';
 import { CombinedWriter, createCombinedImuWriter, shareLastSessionFile, Sport } from '../imu/combinedImuWriter';
-//import { createCombinedImuWriter } from '../imu/combinedImuWriter';
-//import { shareLastSessionFile } from '../imu/combinedImuWriter';
 
-import { Play, Square, ArrowLeftRight } from 'lucide-react-native';
+import { Play, Square } from 'lucide-react-native';
 import { SegmentedButtons } from 'react-native-paper';
 import { DataTable } from 'react-native-paper';
 
@@ -44,6 +44,13 @@ export default function ImuDualControlBox({ writerRef, expectedHz = 60 }: { writ
 
 	// sport
 	const [sport, setSport] = useState<Sport>('running');
+
+	//Fatigue
+	// inside component, after you have entryA/entryB
+	const leftFatigue = useFatigueValue(entryA);
+	const leftTrend = useFatigueTrend(entryA);
+	const rightFatigue = useFatigueValue(entryB);
+	const rightTrend = useFatigueTrend(entryB);
 
 	useEffect(() => {
 		if (__DEV__) console.log(`[Sport] Updated : ${sport}`);
@@ -233,10 +240,10 @@ export default function ImuDualControlBox({ writerRef, expectedHz = 60 }: { writ
 					value={sport}
 					onValueChange={setSport}
 					buttons={[
-						{ value: 'hiking', label: 'Hike', disabled: recording, },
-						{ value: 'running', label: 'Run', disabled: recording, },
-						{ value: 'padel', label: 'Padel', disabled: recording, },
-						{ value: 'tennis', label: 'Tennis', disabled: recording, },
+						{ value: 'hiking', label: 'Hike', disabled: recording },
+						{ value: 'running', label: 'Run', disabled: recording },
+						{ value: 'padel', label: 'Padel', disabled: recording },
+						{ value: 'tennis', label: 'Tennis', disabled: recording },
 					]}
 					theme={{
 						colors: {
@@ -252,8 +259,8 @@ export default function ImuDualControlBox({ writerRef, expectedHz = 60 }: { writ
 			</View>
 
 			{/* --- Location Control (ble : state ) */}
-			<View style={[ styles.card, { flexDirection: 'column', backgroundColor: theme?.colors?.black, alignItems: 'center', justifyContent: 'center', paddingVertical: 40 }, ]} >
-				<View style={{ flexDirection: 'row', }} >
+			<View style={[styles.card, { flexDirection: 'column', backgroundColor: theme?.colors?.black, alignItems: 'center', justifyContent: 'center', paddingVertical: 40 }]}>
+				<View style={{ flexDirection: 'row' }}>
 					{/*--- Left Foot ---*/}
 					<TouchableOpacity
 						disabled={recording}
@@ -282,50 +289,57 @@ export default function ImuDualControlBox({ writerRef, expectedHz = 60 }: { writ
 						<FootIcon size={150} color={stateModeToTint(stateB.value, theme?.colors?.muted)} side='right' />
 					</TouchableOpacity>
 				</View>
-
 			</View>
 
 			{/*--- Sats? ---*/}
-			<View style={[ styles.card, { flexDirection: 'column', backgroundColor: theme?.colors?.black, alignItems: 'center', justifyContent: 'center', paddingLeft: 20, paddingRight: 20, paddingTop: 10, paddingBottom: 30 }, ]} >
-					<DataTable>
+			<View style={[styles.card, { flexDirection: 'column', backgroundColor: theme?.colors?.black, alignItems: 'center', justifyContent: 'center', paddingLeft: 20, paddingRight: 20, paddingTop: 10, paddingBottom: 30 }]}>
+				<DataTable>
+					<DataTable.Header>
+						<DataTable.Title>
+							<Text style={[theme?.textStyles?.xsmall, { color: theme?.colors?.white, fontWeight: 'bold' }]}>Device</Text>
+						</DataTable.Title>
+						<DataTable.Title style={{ justifyContent: 'flex-end' }}>
+							<Text style={[theme?.textStyles?.xsmall, { color: theme?.colors?.white, fontWeight: 'bold' }]}>Rate(Hz)</Text>
+						</DataTable.Title>
+						<DataTable.Title style={{ justifyContent: 'flex-end' }}>
+							<Text style={[theme?.textStyles?.xsmall, { color: theme?.colors?.white, fontWeight: 'bold' }]}>Loss(%)</Text>
+						</DataTable.Title>
+						<DataTable.Title style={{ justifyContent: 'flex-end' }}>
+							<Text style={[theme?.textStyles?.xsmall, { color: theme?.colors?.white, fontWeight: 'bold' }]}>Fatigue(%)</Text>
+						</DataTable.Title>
+					</DataTable.Header>
 
-						<DataTable.Header>
-							<DataTable.Title>
-								<Text style={[theme?.textStyles?.xsmall, { color: theme?.colors?.white, fontWeight: 'bold' }]}>Device</Text>
-							</DataTable.Title>
-							<DataTable.Title style={{ justifyContent: 'flex-end' }}>
-								<Text style={[theme?.textStyles?.xsmall, { color: theme?.colors?.white, fontWeight: 'bold' }]}>Rate(Hz)</Text>
-							</DataTable.Title>
-							<DataTable.Title style={{ justifyContent: 'flex-end' }}>
-								<Text style={[theme?.textStyles?.xsmall, { color: theme?.colors?.white, fontWeight: 'bold' }]}>Loss(%)</Text>
-							</DataTable.Title>
-						</DataTable.Header>
+					<DataTable.Row>
+						<DataTable.Cell>
+							<Text style={[theme?.textStyles?.xsmall, { color: theme?.colors?.white }]}>{entryA?.device.name}</Text>
+						</DataTable.Cell>
+						<DataTable.Cell numeric>
+							<Text style={[theme?.textStyles?.xsmall, { color: theme?.colors?.white }]}>{a?.stats.measuredHz != null ? a.stats.measuredHz.toFixed(1) : '—'}</Text>
+						</DataTable.Cell>
+						<DataTable.Cell numeric>
+							<Text style={[theme?.textStyles?.xsmall, { color: theme?.colors?.white }]}>{a?.stats.lossPercent != null ? a.stats.lossPercent.toFixed(1) : '—'}</Text>
+						</DataTable.Cell>
+						<DataTable.Cell numeric>
+							<Text style={[theme?.textStyles?.xsmall, { color: theme?.colors?.white }]}>{leftFatigue.value != null ? leftFatigue.value.toFixed(1) : '—'}</Text>
+						</DataTable.Cell>
+						
+					</DataTable.Row>
 
-						<DataTable.Row>
-							<DataTable.Cell>
-								<Text style={[theme?.textStyles?.xsmall, { color: theme?.colors?.white }]}>{entryA?.device.name}</Text>
-							</DataTable.Cell>
-							<DataTable.Cell numeric>
-								<Text style={[theme?.textStyles?.xsmall, { color: theme?.colors?.white }]}>{a?.stats.measuredHz != null ? a.stats.measuredHz.toFixed(1) : '—'}</Text>
-							</DataTable.Cell>
-							<DataTable.Cell numeric>
-								<Text style={[theme?.textStyles?.xsmall, { color: theme?.colors?.white }]}>{a?.stats.lossPercent != null ? a.stats.lossPercent.toFixed(1) : '—'}</Text>
-							</DataTable.Cell>
-						</DataTable.Row>
-
-						<DataTable.Row>
-							<DataTable.Cell>
-								<Text style={[theme?.textStyles?.xsmall, { color: theme?.colors?.white }]}>{entryB?.device.name}</Text>
-							</DataTable.Cell>
-							<DataTable.Cell numeric>
-								<Text style={[theme?.textStyles?.xsmall, { color: theme?.colors?.white }]}>{b?.stats.measuredHz != null ? b.stats.measuredHz.toFixed(1) : '—'}</Text>
-							</DataTable.Cell>
-							<DataTable.Cell numeric>
-								<Text style={[theme?.textStyles?.xsmall, { color: theme?.colors?.white }]}>{b?.stats.lossPercent != null ? b.stats.lossPercent.toFixed(1) : '—'}</Text>
-							</DataTable.Cell>
-						</DataTable.Row>
-
-					</DataTable>
+					<DataTable.Row>
+						<DataTable.Cell>
+							<Text style={[theme?.textStyles?.xsmall, { color: theme?.colors?.white }]}>{entryB?.device.name}</Text>
+						</DataTable.Cell>
+						<DataTable.Cell numeric>
+							<Text style={[theme?.textStyles?.xsmall, { color: theme?.colors?.white }]}>{b?.stats.measuredHz != null ? b.stats.measuredHz.toFixed(1) : '—'}</Text>
+						</DataTable.Cell>
+						<DataTable.Cell numeric>
+							<Text style={[theme?.textStyles?.xsmall, { color: theme?.colors?.white }]}>{b?.stats.lossPercent != null ? b.stats.lossPercent.toFixed(1) : '—'}</Text>
+						</DataTable.Cell>
+						<DataTable.Cell numeric>
+							<Text style={[theme?.textStyles?.xsmall, { color: theme?.colors?.white }]}>{rightFatigue.value != null ? rightFatigue.value.toFixed(1) : '—'}</Text>
+						</DataTable.Cell>
+					</DataTable.Row>
+				</DataTable>
 			</View>
 
 			<View style={styles.card}>

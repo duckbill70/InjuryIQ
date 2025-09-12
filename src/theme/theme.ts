@@ -67,16 +67,23 @@ export const lightTheme = {
 	} as TextStyles,
 	viewStyles: {
 		card: {
-			backgroundColor: colors.background,
-			borderRadius: 8,
-			padding: 10,
+
+			padding: 12,
+		borderWidth: 1,
+		borderColor: '#e5e7eb',
+		borderRadius: 12,
+		gap: 8,
+		backgroundColor: 'white',
+		opacity: 0.8,
+		margin: 10,
+
+
 			shadowColor: '#000',
 			shadowOffset: { width: 0, height: 1 },
 			shadowOpacity: 0.2,
 			shadowRadius: 3,
 			elevation: 3,
-			borderWidth: 1,
-			borderColor: colors.dgrey,
+
 		},
 		button: {
 			backgroundColor: colors.primary,

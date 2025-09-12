@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { Provider as PaperProvider } from 'react-native-paper';
 
 import { AuthProvider, useAuth } from './src/auth/AuthProvider';
 import { ThemeProvider } from './src/theme/ThemeContext';
@@ -39,7 +40,9 @@ export default function App() {
 			<ThemeProvider>
 				<BleProvider>
 					<SafeAreaProvider>
-						<Gate />
+						<PaperProvider>
+							<Gate />
+						</PaperProvider>
 					</SafeAreaProvider>
 				</BleProvider>
 			</ThemeProvider>

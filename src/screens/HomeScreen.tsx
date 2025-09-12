@@ -14,24 +14,26 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import {
 	BluetoothSearchingIcon,
+	Bluetooth,
+	LogOut,
 	//Wifi,
 	//WifiOff,
 	//Power,
 	//BatteryCharging,
 } from 'lucide-react-native';
 
+import { FileText } from 'lucide-react-native';
+
 import { useAuth } from '../auth/AuthProvider';
 import { useBle } from '../ble/BleProvider';
 import { DualImuProvider } from '../imu/DualImuProvider';
 import ImuDualControlBox from '../components/ImuDualControlBox';
-import {
-	createCombinedImuWriter,
-	CombinedWriter,
-	RawPacket,
-} from '../imu/combinedImuWriter';
+import { createCombinedImuWriter, CombinedWriter, RawPacket } from '../imu/combinedImuWriter';
 import DeviceBox from '../components/DeviceBox';
 
 import { useTheme } from '../theme/ThemeContext';
+
+import FileTable from '../file/FileTable';
 
 //const MY_SERVICE_UUID = '12345678-1234-5678-1234-56789abcdef0';
 
@@ -68,83 +70,53 @@ export default function HomeScreen() {
 
 	const writerRef = useRef<CombinedWriter | null>(null);
 
-	const onBatchA = useCallback(
-		(batch: RawPacket[]) => {
-			//console.log('[Provider] onBatchA len=', batch.length)
-			writerRef.current?.onBatchA(batch)
-		},[],);
+	const onBatchA = useCallback((batch: RawPacket[]) => {
+		//console.log('[Provider] onBatchA len=', batch.length)
+		writerRef.current?.onBatchA(batch);
+	}, []);
 
-	const onBatchB = useCallback(
-		(batch: RawPacket[]) => {
-			//console.log('[Provider] onBatchB len=', batch.length)
-			writerRef.current?.onBatchB(batch)
-		},[],);
+	const onBatchB = useCallback((batch: RawPacket[]) => {
+		//console.log('[Provider] onBatchB len=', batch.length)
+		writerRef.current?.onBatchB(batch);
+	}, []);
 
 	return (
 		<View style={{ flex: 1 }}>
-			<ImageBackground
-				source={require('../../assets/padel-tennis-2.png')}
-				style={{ ...StyleSheet.absoluteFillObject }}
-				imageStyle={{ resizeMode: 'cover' }}
-			>
-				<SafeAreaView
-					style={{ flex: 1 }}
-					edges={['top', 'bottom', 'left', 'right']}
-				>
-					<ScrollView
-						style={{
-							flex: 1,
-							paddingVertical: 4,
-							paddingHorizontal: 6,
-						}}
-					>
-						{/* Header */}
-						<View style={{ margin: 10 }}>
-							<Text
-								style={[
-									theme.textStyles.title,
-									{ color: 'white' },
-								]}
-							>
-								BLE Device Connector
-							</Text>
-							<Text
-								style={[
-									theme.textStyles.body,
-									{ color: 'white' },
-								]}
-							>
-								Scan and connect to Bluetooth devices
-							</Text>
-						</View>
+			<ImageBackground source={require('../../assets/padel-tennis-2.png')} style={{ ...StyleSheet.absoluteFillObject }} imageStyle={{ resizeMode: 'cover' }}>
+				<SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom', 'left', 'right']}>
+					<ScrollView style={{ flex: 1, paddingVertical: 4, paddingHorizontal: 6, }} >
 
-						{/* Scan Button */}
-						<TouchableOpacity
-							//onPress={() => startScan()}
-							onPress={() =>
-								startScan({ timeoutMs: 1500, maxDevices: 2 })
-							}
-							style={[
-								theme.viewStyles.button,
-								{
-									backgroundColor: scanning
-										? 'grey'
-										: theme.colors.primary,
-									margin: 10,
-								},
-							]}
-							disabled={scanning || !isPoweredOn}
-						>
-							<BluetoothSearchingIcon size={24} color='white' />
-							<Text
-								style={[
-									theme.textStyles.body,
-									{ color: 'white', paddingLeft: 8 },
-								]}
+						{/* Header */}
+						<View style={{ flexDirection: 'row', padding: 8, justifyContent:'space-between'}}>
+
+							{/* Scan Button */}
+							<TouchableOpacity
+								onPress={() => startScan({ timeoutMs: 1500, maxDevices: 2 })}
+								style={[theme.viewStyles.button, { backgroundColor: scanning ? 'grey' : theme.colors.primary, margin: 10 }]}
+								disabled={scanning || !isPoweredOn}
 							>
-								{scanning ? 'Scanning...' : 'Start Scanning'}
-							</Text>
-						</TouchableOpacity>
+								{scanning ? <BluetoothSearchingIcon size={24} color='white' /> : <Bluetooth size={24} color='white' />}
+								{/* <Text style={[theme.textStyles.body, { color: 'white', paddingLeft: 8 }]}>{scanning ? 'Scanning...' : 'Scan'}</Text> */}
+							</TouchableOpacity>
+
+							{/* Sessions View */}
+							<TouchableOpacity
+								onPress={() => console.log('Pressed')}
+								style={[theme.viewStyles.button, { backgroundColor: theme.colors.teal, margin: 10 }]}
+							>
+								<FileText size={24} color='white' />
+							</TouchableOpacity>
+
+							{/* Logout */}
+							<TouchableOpacity
+								onPress={() => signOut()}
+								style={[theme.viewStyles.button, { backgroundColor: theme.colors.danger, margin: 10 }]}
+								disabled={scanning || !isPoweredOn}
+							>
+								<LogOut size={24} color='white' />
+							</TouchableOpacity>
+
+						</View>
 
 						{/* Device Boxes */}
 						<View style={{ padding: 8 }}>
@@ -164,20 +136,16 @@ export default function HomeScreen() {
 										padding: 8,
 									}}
 								>
-									{[devA, devB].map((d, i) =>
-										d ? (
-											<DeviceBox key={d.id} item={d} />
-										) : (
-											<Placeholder backgroundColor={'transparent'} key={`ph-${i}`} />
-										),
-									)}
+									{[devA, devB].map((d, i) => (d ? <DeviceBox key={d.id} item={d} /> : <Placeholder backgroundColor={'transparent'} key={`ph-${i}`} />))}
 								</View>
 
-								<ImuDualControlBox
-									writerRef={writerRef}
-									expectedHz={expectedHz}
-								/>
+								<ImuDualControlBox writerRef={writerRef} expectedHz={expectedHz} />
 							</DualImuProvider>
+						</View>
+
+						{/* Header */}
+						<View style={[theme?.viewStyles?.card, { flexDirection: 'column', backgroundColor: theme?.colors?.black, alignItems: 'center', justifyContent: 'center', paddingVertical: 40 }]}>
+							<FileTable />
 						</View>
 
 						{/* Footer */}
@@ -189,39 +157,9 @@ export default function HomeScreen() {
 								paddingTop: 10,
 							}}
 						>
-							<Text
-								style={[
-									theme.textStyles.body,
-									{ color: 'white' },
-								]}
-							>
-								email: {user?.email ?? 'Anonymous'}
-							</Text>
-							<Text
-								style={[
-									theme.textStyles.body,
-									{ color: 'white' },
-								]}
-							>
-								UID: {user?.uid}
-							</Text>
+							<Text style={[theme.textStyles.body, { color: 'white' }]}>email: {user?.email ?? 'Anonymous'}</Text>
+							<Text style={[theme.textStyles.body, { color: 'white' }]}>UID: {user?.uid}</Text>
 							<View style={{ height: 8 }} />
-							<TouchableOpacity
-								onPress={() => signOut()}
-								style={[
-									theme.viewStyles.button,
-									{ width: '30%' },
-								]}
-							>
-								<Text
-									style={[
-										theme.textStyles.body,
-										{ color: 'white' },
-									]}
-								>
-									Sign Out
-								</Text>
-							</TouchableOpacity>
 						</View>
 					</ScrollView>
 				</SafeAreaView>
@@ -231,20 +169,19 @@ export default function HomeScreen() {
 }
 
 function Placeholder({ backgroundColor = 'transparent' }) {
-  return (
-    <View
-      style={{
-        flex: 0.48,
-        borderStyle: 'solid',
-        borderColor: 'white',
-        borderWidth: 1,
-        backgroundColor,
-        height: 175,
-        marginHorizontal: 5,
-        borderRadius: 8,
-		opacity: 0.8,
-      }}
-    />
-  );
+	return (
+		<View
+			style={{
+				flex: 0.48,
+				borderStyle: 'solid',
+				borderColor: 'white',
+				borderWidth: 1,
+				backgroundColor,
+				height: 175,
+				marginHorizontal: 5,
+				borderRadius: 8,
+				opacity: 0.8,
+			}}
+		/>
+	);
 }
-

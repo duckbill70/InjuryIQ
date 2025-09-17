@@ -1,10 +1,12 @@
+// FileTable.tsx
 import React, { useEffect, useMemo, useState } from 'react';
 import { TouchableOpacity, Text, View, StyleSheet } from 'react-native';
 import { DataTable, IconButton } from 'react-native-paper';
 import Share from 'react-native-share';
 import RNFS from 'react-native-fs';
-import { listCreatedFiles, type FileInfo } from './fileUtils';
+import { listCreatedFiles, type FileInfo } from './fileUtils'; // from previous step
 import { useTheme } from '../theme/ThemeContext';
+
 import { getNDJSONDuration } from './getNDJSONDuration';
 
 function bytes(n: number) {
@@ -16,58 +18,6 @@ function bytes(n: number) {
 
 type SortKey = 'name' | 'mtime' | 'size';
 
-function toSentenceCase(str: string) {
-	if (!str) return '';
-	return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
-}
-
-// Async function to extract sport from NDJSON file
-async function getSportFromNDJSON(filePath: string): Promise<string | undefined> {
-	try {
-		const fileContent = await RNFS.readFile(filePath, 'utf8');
-		const firstLine = fileContent.split('\n')[0];
-		const header = JSON.parse(firstLine);
-		return toSentenceCase(header.sport); // e.g., "Padel"
-	} catch (err) {
-		console.warn('Failed to extract sport:', err);
-		return undefined;
-	}
-}
-
-// Child component to fetch and display sport and duration
-function RowInfo({ filePath, file, theme }) {
-	const [sport, setSport] = useState<string>('Loading...');
-	const [duration, setDuration] = useState<string>('Loading...');
-
-	useEffect(() => {
-		let mounted = true;
-		getSportFromNDJSON(filePath).then((result) => {
-			if (mounted) setSport(result ?? 'N/A');
-		});
-		getNDJSONDuration(filePath).then((result) => {
-			if (mounted) {
-				if (result.durationSeconds !== undefined) {
-					setDuration(`${result.formatted}`);
-				} else {
-					setDuration('N/A');
-				}
-			}
-		});
-		return () => {
-			mounted = false;
-		};
-	}, [filePath]);
-
-	return (
-		<View style={{ flexDirection: 'column', padding: 9 }}>
-			<Text style={[theme?.textStyles?.xsmall, { color: theme?.colors?.black, fontWeight: 'bold' }]}>{`${sport}`}</Text>
-			<Text style={[theme?.textStyles?.xsmall, { color: theme?.colors?.muted, fontWeight: 'bold' }]}>{`${duration}`}</Text>
-			<Text style={[theme?.textStyles?.xsmall, { color: theme?.colors?.muted, fontWeight: 'bold' }]}>{file.mtime ? new Date(file.mtime).toLocaleDateString() : ''}</Text>
-			<Text style={[theme?.textStyles?.xsmall, { color: theme?.colors?.muted, fontWeight: 'bold' }]}>{file.mtime ? new Date(file.mtime).toLocaleTimeString() : ''}</Text>
-		</View>
-	);
-}
-
 export default function FileTable() {
 	const [files, setFiles] = useState<FileInfo[]>([]);
 	const [page, setPage] = useState(0);
@@ -75,7 +25,7 @@ export default function FileTable() {
 	const [sortDesc, setSortDesc] = useState(true);
 	const { theme } = useTheme();
 
-	const itemsPerPage = 5;
+	const itemsPerPage = 8;
 
 	useEffect(() => {
 		(async () => {
@@ -119,6 +69,55 @@ export default function FileTable() {
 		}
 	}
 
+	async function getSportFromNDJSON(filePath: string): Promise<string | undefined> {
+		try {
+			const fileContent = await RNFS.readFile(filePath, 'utf8');
+			const firstLine = fileContent.split('\n')[0];
+			const header = JSON.parse(firstLine);
+			if (__DEV__) console.log('[FileTable] - header:', header);
+			return toSentenceCase(header.sport); // e.g., "padel"
+		} catch (err) {
+			console.warn('Failed to extract sport:', err);
+			return undefined;
+		}
+	}
+
+	function toSentenceCase(str: string) {
+		if (!str) return '';
+		return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+	}
+
+	function RowInfo({ filePath, theme }) {
+		const [sport, setSport] = useState<string>('Loading...');
+		const [duration, setDuration] = useState<string>('Loading...');
+
+		useEffect(() => {
+			let mounted = true;
+			getSportFromNDJSON(filePath).then((result) => {
+				if (mounted) setSport(result ?? 'N/A');
+			});
+			getNDJSONDuration(filePath).then((result) => {
+				if (mounted) {
+					if (result.durationSeconds !== undefined) {
+						setDuration(`${result.durationSeconds} seconds`);
+					} else {
+						setDuration('N/A');
+					}
+				}
+			});
+			return () => {
+				mounted = false;
+			};
+		}, [filePath]);
+
+		return (
+			<View style={{ flexDirection: 'column' }}>
+				<Text style={[theme?.textStyles?.xsmall, { color: theme?.colors?.black, fontWeight: 'bold' }]}>{sport}</Text>
+				<Text style={[theme?.textStyles?.xsmall, { color: theme?.colors?.black, fontWeight: 'bold' }]}>{duration}</Text>
+			</View>
+		);
+	}
+
 	return (
 		<View style={[styles.card, { backgroundColor: 'white', opacity: 0.9 }]}>
 			<DataTable>
@@ -138,8 +137,21 @@ export default function FileTable() {
 
 				{pageItems.map((f) => (
 					<DataTable.Row key={f.path}>
+						{/* Tapping the filename shares/exports the file */}
+						{/*  <DataTable.Cell>
+							<TouchableOpacity onPress={() => Share.open({ url: 'file://' + f.path }).catch(() => {})}>
+							
+							<Text style={[theme?.textStyles?.xsmall, { color: theme?.colors?.white, fontWeight: 'bold' }]}>{f.name}</Text>
+							</TouchableOpacity>
+						</DataTable.Cell> */}
+
 						<DataTable.Cell>
-							<RowInfo filePath={f.path} file={f} theme={theme} />
+							<View style={{ flexDirection: 'column' }}>
+								<RowInfo filePath={f.path} />
+								<Text style={[theme?.textStyles?.xsmall, { color: theme?.colors?.black, fontWeight: 'bold' }]}>{getSportFromNDJSON(f.path)}</Text>
+								<Text style={[theme?.textStyles?.xsmall, { color: theme?.colors?.muted, fontWeight: 'bold' }]}>{f.mtime ? new Date(f.mtime).toLocaleDateString() : ''}</Text>
+								<Text style={[theme?.textStyles?.xsmall, { color: theme?.colors?.black, fontWeight: 'bold' }]}>{await getNDJSONDuration(f.path)}</Text>
+							</View>
 						</DataTable.Cell>
 
 						<DataTable.Cell numeric>
@@ -149,7 +161,7 @@ export default function FileTable() {
 						<DataTable.Cell numeric>
 							<View style={{ flexDirection: 'row', alignItems: 'center' }}>
 								<IconButton mode='contained-tonal' icon='share-variant' iconColor='green' onPress={() => Share.open({ url: 'file://' + f.path }).catch(() => {})} size={25} />
-								<IconButton mode='contained-tonal' icon='delete' iconColor='red' onPress={() => handleDelete(f.path)} size={25} style={{ marginLeft: 8 }} />
+								<IconButton mode='contained-tonal' icon='delete' iconColor='red' onPress={() => handleDelete(f.path)} size={25} />
 							</View>
 						</DataTable.Cell>
 					</DataTable.Row>
@@ -157,9 +169,10 @@ export default function FileTable() {
 
 				<DataTable.Pagination
 					theme={{
+						//isV3: true, // MD3 tokens
 						colors: {
-							primary: '#FF8212',
-							onSurfaceVariant: '#FF8212',
+							primary: '#FF8212', // chevrons & focus accents
+							onSurfaceVariant: '#FF8212', // label & dropdown text
 						},
 					}}
 					page={page}
@@ -167,7 +180,7 @@ export default function FileTable() {
 					onPageChange={setPage}
 					label={`${sorted.length ? from + 1 : 0}-${to} of ${sorted.length}`}
 					numberOfItemsPerPage={itemsPerPage}
-					numberOfItemsPerPageList={[itemsPerPage]}
+					numberOfItemsPerPageList={[itemsPerPage]} // locked to 5
 					showFastPaginationControls
 					selectPageDropdownLabel='Rows per page'
 				/>

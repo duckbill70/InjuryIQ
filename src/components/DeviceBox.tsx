@@ -234,11 +234,12 @@ export default function DeviceBox({ item, height = 175 }: Props) {
 				theme.viewStyles.card,
 				{
 					height,
-					flex: 0.48,
+					//flex: 0.48,
+					width: '45%',
 					flexDirection: 'column',
 					justifyContent: 'space-evenly',
 					backgroundColor: theme?.colors?.white,
-					opacity: 0.8,
+					opacity: 0.9,
 					paddingVertical: 8,
 				},
 			]}
@@ -313,9 +314,9 @@ export default function DeviceBox({ item, height = 175 }: Props) {
 						return (
 							<View
 								key={key}
-								style={{ alignItems: 'center', minWidth: 44 }}
+								style={{ alignItems: 'center' }}
 							>
-								<Icon size={18} color={iconColor} />
+								<Icon size={20} color={iconColor} />
 							</View>
 						);
 					})}

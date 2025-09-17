@@ -6,11 +6,14 @@ import { Provider as PaperProvider } from 'react-native-paper';
 import { AuthProvider, useAuth } from './src/auth/AuthProvider';
 import { ThemeProvider } from './src/theme/ThemeContext';
 import { BleProvider } from './src/ble/BleProvider';
+import { SessionProvider } from './src/session/SessionProvider';
 
 import { checkFirebaseInit } from './src/firebase/checkFirebaseInit';
 
+import AppNavigator from './src/screens/AppNavigator';
+
 import AuthScreen from './src/screens/AuthScreen';
-import HomeScreen from './src/screens/HomeScreen';
+//import HomeScreen from './src/screens/HomeScreen';
 
 function Gate() {
 	const { user, loading } = useAuth();
@@ -21,17 +24,14 @@ function Gate() {
 			</View>
 		);
 	}
-	return user ? <HomeScreen /> : <AuthScreen />;
+	return user ? <AppNavigator /> : <AuthScreen />;
 }
 
 export default function App() {
 	useEffect(() => {
 		if (__DEV__) {
 			const app = checkFirebaseInit();
-			if (!app)
-				throw new Error(
-					'Firebase defauly app missing - check GoogleService-Info.plist?',
-				);
+			if (!app) throw new Error('Firebase defauly app missing - check GoogleService-Info.plist?');
 		}
 	}, []);
 
@@ -39,11 +39,13 @@ export default function App() {
 		<AuthProvider>
 			<ThemeProvider>
 				<BleProvider>
-					<SafeAreaProvider>
-						<PaperProvider>
-							<Gate />
-						</PaperProvider>
-					</SafeAreaProvider>
+					<SessionProvider>
+						<SafeAreaProvider>
+							<PaperProvider>
+								<Gate />
+							</PaperProvider>
+						</SafeAreaProvider>
+					</SessionProvider>
 				</BleProvider>
 			</ThemeProvider>
 		</AuthProvider>

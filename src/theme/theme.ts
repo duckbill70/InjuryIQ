@@ -20,19 +20,19 @@ type ImageStyles = {
 
 const colors = {
 	background: '#FFFFFF',
-	text: 		'#1C1C1E',
-	primary:	'#007AFF',
-	dgrey: 		'#f3f4f6',
-	danger: 	'#ef4444',  // red-500
-  	warn:  	 	'#f59e0b',  // amber-500
-  	mid:   	 	'#eab308',  // yellow-500
-  	good:  		'#10b981',  // emerald-500
-  	charge:	 	'#60a5fa',  // blue-400
-  	muted: 		'#9ca3af',  // gray-400 (unknown)
-	border:		'#e5e7eb',
-	teal:		'#008080',
-	black: 		'#000000',
-	white:		'#ffffff'
+	text: '#1C1C1E',
+	primary: '#007AFF',
+	dgrey: '#f3f4f6',
+	danger: '#ef4444', // red-500
+	warn: '#f59e0b', // amber-500
+	mid: '#eab308', // yellow-500
+	good: '#10b981', // emerald-500
+	charge: '#60a5fa', // blue-400
+	muted: '#9ca3af', // gray-400 (unknown)
+	border: '#e5e7eb',
+	teal: '#008080',
+	black: '#000000',
+	white: '#ffffff',
 };
 
 export const lightTheme = {
@@ -67,23 +67,19 @@ export const lightTheme = {
 	} as TextStyles,
 	viewStyles: {
 		card: {
-
 			padding: 12,
-		borderWidth: 1,
-		borderColor: '#e5e7eb',
-		borderRadius: 12,
-		gap: 8,
-		backgroundColor: 'white',
-		opacity: 0.8,
-		margin: 10,
-
-
+			borderWidth: 1,
+			borderColor: '#e5e7eb',
+			borderRadius: 12,
+			gap: 8,
+			backgroundColor: 'white',
+			opacity: 0.8,
+			//margin: 10,
 			shadowColor: '#000',
 			shadowOffset: { width: 0, height: 1 },
 			shadowOpacity: 0.2,
 			shadowRadius: 3,
 			elevation: 3,
-
 		},
 		button: {
 			backgroundColor: colors.primary,

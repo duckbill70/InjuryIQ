@@ -1,28 +1,12 @@
 import React, { useState } from 'react';
-import {
-	View,
-	TextInput,
-	Button,
-	Text,
-	ActivityIndicator,
-	StyleSheet,
-	Image,
-	TouchableOpacity,
-	ImageBackground,
-} from 'react-native';
+import { View, TextInput, Button, Text, ActivityIndicator, StyleSheet, Image, TouchableOpacity, ImageBackground } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../auth/AuthProvider';
 import { useTheme } from '../theme/ThemeContext';
 //import { Color } from 'react-native/types_generated/Libraries/Animated/AnimatedExports';
 
 export default function AuthScreen() {
-	const {
-		signIn,
-		signUp,
-		signInAnonymously,
-		sendPasswordReset,
-		signInWithGoogle,
-	} = useAuth();
+	const { signIn, signUp, signInAnonymously, sendPasswordReset, signInWithGoogle } = useAuth();
 	const { theme } = useTheme();
 
 	const [email, setEmail] = useState('');
@@ -50,28 +34,13 @@ export default function AuthScreen() {
 
 	return (
 		<View style={{ flex: 1 }}>
-			<ImageBackground
-				source={require('../../assets/single-runner.png')}
-				style={{ ...StyleSheet.absoluteFillObject }}
-				imageStyle={{ resizeMode: 'cover' }}
-			>
-				<SafeAreaView
-					style={{ flex: 1 }}
-					edges={['top', 'bottom', 'left', 'right']}
-				>
+			<ImageBackground source={require('../../assets/single-runner.png')} style={{ ...StyleSheet.absoluteFillObject }} imageStyle={{ resizeMode: 'cover' }}>
+				<SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom', 'left', 'right']}>
 					<View style={styles.wrap}>
-						<Text style={[styles.title, { color: 'white' }]}>
-							Sign in to Injury IQ
-						</Text>
+						<Text style={[styles.title, { color: 'white' }]}>Sign in to Injury IQ</Text>
 						<View style={{ height: 8 }} />
 
-						<TouchableOpacity
-							onPress={() => run(() => signInWithGoogle())}
-							style={[
-								theme.viewStyles.button,
-								{ backgroundColor: 'white' },
-							]}
-						>
+						<TouchableOpacity onPress={() => run(() => signInWithGoogle())} style={[theme.viewStyles.button, { backgroundColor: 'white' }]}>
 							<Image
 								source={{
 									uri: 'https://developers.google.com/identity/images/g-logo.png',
@@ -82,59 +51,23 @@ export default function AuthScreen() {
 						</TouchableOpacity>
 						<View style={{ height: 8 }} />
 
-						<TextInput
-							style={styles.input}
-							autoCapitalize='none'
-							autoCorrect={false}
-							placeholder='Email'
-							keyboardType='email-address'
-							value={email}
-							onChangeText={setEmail}
-						/>
-						<TextInput
-							style={styles.input}
-							placeholder='Password'
-							secureTextEntry
-							value={pw}
-							onChangeText={setPw}
-						/>
+						<TextInput style={styles.input} autoCapitalize='none' autoCorrect={false} placeholder='Email' keyboardType='email-address' value={email} onChangeText={setEmail} />
+						<TextInput style={styles.input} placeholder='Password' secureTextEntry value={pw} onChangeText={setPw} />
 						{busy ? (
 							<ActivityIndicator />
 						) : (
 							<>
 								<View style={{ height: 8 }} />
-								<TouchableOpacity
-									onPress={() => run(() => signIn(email, pw))}
-									style={[
-										theme.viewStyles.button,
-										{ backgroundColor: 'white' },
-									]}
-								>
+								<TouchableOpacity onPress={() => run(() => signIn(email, pw))} style={[theme.viewStyles.button, { backgroundColor: 'white' }]}>
 									<Text>Sign In</Text>
 								</TouchableOpacity>
 								<View style={{ height: 8 }} />
 
-								<Button
-									disabled={true}
-									title='Create Account'
-									onPress={() => run(() => signUp(email, pw))}
-								/>
+								<Button disabled={true} title='Create Account' onPress={() => run(() => signUp(email, pw))} />
 								<View style={{ height: 0 }} />
-								<Button
-									disabled={true}
-									title='Forgot Password'
-									onPress={() =>
-										run(() => sendPasswordReset(email))
-									}
-								/>
+								<Button disabled={true} title='Forgot Password' onPress={() => run(() => sendPasswordReset(email))} />
 								<View style={{ height: 0 }} />
-								<Button
-									disabled={true}
-									title='Continue Anonymously'
-									onPress={() =>
-										run(() => signInAnonymously())
-									}
-								/>
+								<Button disabled={true} title='Continue Anonymously' onPress={() => run(() => signInAnonymously())} />
 							</>
 						)}
 						{!!error && <Text style={styles.error}>{error}</Text>}

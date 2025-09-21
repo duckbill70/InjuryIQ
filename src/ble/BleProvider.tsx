@@ -1,48 +1,39 @@
 import React, {
-	createContext,
-	useContext,
-	useEffect,
-	useMemo,
-	useRef,
-	useState,
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
 } from 'react';
 import { Platform } from 'react-native';
 import {
-	BleManager,
-	Device,
-	Characteristic,
-	State,
+  BleManager,
+  Device,
+  Characteristic,
+  State,
 } from 'react-native-ble-plx';
 
-type DiscoveredChars = {
-	serviceUUID: string;
-	characteristics: Characteristic[];
-};
-
 type ConnectedDevice = {
-	id: string;
-	name?: string | null;
-	device: Device;
-	services: string[]; // list of service UUIDs
-	characteristicsByService: Record<string, Characteristic[]>;
+  id: string;
+  name?: string | null;
+  device: Device;
+  services: string[];
+  characteristicsByService: Record<string, Characteristic[]>;
 };
 
 type StartScanOpts = { timeoutMs?: number; maxDevices?: number };
 
 type BleContextValue = {
-	scanning: boolean;
-	knownServiceUUID: string;
-	foundDeviceIds: string[];
-	connected: Record<string, ConnectedDevice>;
-	startScan: (opts?: StartScanOpts) => Promise<void>;
-	stopScan: () => void;
-	disconnectDevice: (id: string) => Promise<void>;
-	isPoweredOn: boolean;
-	/**
-	 * Scan once and resolve with up to N unique devices that advertise the known service.
-	 * No connections are made. The scan is stopped automatically on resolve/reject.
-	 */
-	scanOnce: (opts?: StartScanOpts) => Promise<Device[]>;
+  scanning: boolean;
+  knownServiceUUID: string;
+  foundDeviceIds: string[];
+  connected: Record<string, ConnectedDevice>;
+  startScan: (opts?: StartScanOpts) => Promise<void>;
+  stopScan: () => void;
+  disconnectDevice: (id: string) => Promise<void>;
+  isPoweredOn: boolean;
+  scanOnce: (opts?: StartScanOpts) => Promise<Device[]>;
 };
 
 const BleContext = createContext<BleContextValue | undefined>(undefined);
@@ -52,272 +43,338 @@ const KNOWN_SERVICE_UUID = '12345678-1234-5678-1234-56789abcdef0';
 const DEFAULT_SCAN_TIMEOUT_MS = 15_000; // 15s
 const MAX_TARGET_DEVICES = 2;
 
-export const BleProvider: React.FC<React.PropsWithChildren> = ({
-	children,
-}) => {
-	const managerRef = useRef(new BleManager());
+// ---- Backoff helpers ----
+const MAX_BACKOFF_MS = 30_000;
+const BASE_BACKOFF_MS = 1_000;
 
-	// UI/state
-	const [scanning, setScanning] = useState(false);
-	const [foundDeviceIds, setFoundDeviceIds] = useState<string[]>([]);
-	const [connected, setConnected] = useState<Record<string, ConnectedDevice>>(
-		{},
-	);
-	const [isPoweredOn, setIsPoweredOn] = useState(false);
+function expoBackoff(attempt: number) {
+  const pow = Math.min(attempt, 10); // cap exponent growth
+  const base = Math.min(MAX_BACKOFF_MS, BASE_BACKOFF_MS * Math.pow(2, pow));
+  const jitter = Math.floor(Math.random() * 500); // +0..500ms jitter
+  return base + jitter;
+}
 
-	// De-dupe guard for the live scan path
-	const discoveredIdsRef = useRef<Set<string>>(new Set());
+type RetryState = {
+  attempt: number;
+  timer?: ReturnType<typeof setTimeout> | null;
+  lastError?: any;
+  manual?: boolean; // true if user requested connect flow (we treat disconnects as “unexpected” when manual=false)
+};
 
-	// Keep a ref of connected so callbacks never read stale state
-	const connectedRef = useRef<Record<string, ConnectedDevice>>({});
-	useEffect(() => {
-		connectedRef.current = connected;
-	}, [connected]);
+export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
+  const managerRef = useRef(new BleManager());
 
-	// Logging (dev only)
-	useEffect(() => {
-		if (__DEV__) {
-			console.log('scanning:', scanning);
-			console.log('foundDeviceIds:', foundDeviceIds);
-			console.log('connected keys:', Object.keys(connected));
-		}
-	}, [foundDeviceIds, scanning, connected]);
+  // UI/state
+  const [scanning, setScanning] = useState(false);
+  const [foundDeviceIds, setFoundDeviceIds] = useState<string[]>([]);
+  const [connected, setConnected] = useState<Record<string, ConnectedDevice>>({});
+  const [isPoweredOn, setIsPoweredOn] = useState(false);
 
-	// Track BLE adapter state (important on iOS)
-	useEffect(() => {
-		const sub = managerRef.current.onStateChange((newState: State) => {
-			setIsPoweredOn(newState === State.PoweredOn);
-		}, true);
-		return () => sub.remove();
-	}, []);
+  // Refs for stable access
+  const connectedRef = useRef<Record<string, ConnectedDevice>>({});
+  useEffect(() => {
+    connectedRef.current = connected;
+  }, [connected]);
 
-	// Clean up on unmount
-	useEffect(() => {
-		return () => {
-			try {
-				managerRef.current.destroy();
-			} catch {}
-		};
-	}, []);
+  // Track BLE adapter state
+  useEffect(() => {
+    const sub = managerRef.current.onStateChange((newState: State) => {
+      setIsPoweredOn(newState === State.PoweredOn);
+    }, true);
+    return () => sub.remove();
+  }, []);
 
-	const stopScan = () => {
-		try {
-			managerRef.current.stopDeviceScan();
-		} catch {}
-		setScanning(false);
-	};
+  // Clean up on unmount
+  useEffect(() => {
+    return () => {
+      try {
+        managerRef.current.destroy();
+      } catch {}
+    };
+  }, []);
 
-	const discoverAllForDevice = async (device: Device) => {
-		const manager = managerRef.current;
-		await manager.discoverAllServicesAndCharacteristicsForDevice(device.id);
-		const services = await manager.servicesForDevice(device.id);
+  // Live-scan de-dupe
+  const discoveredIdsRef = useRef<Set<string>>(new Set());
 
-		const characteristicsByService: Record<string, Characteristic[]> = {};
-		for (const svc of services) {
-			const chars = await manager.characteristicsForDevice(
-				device.id,
-				svc.uuid,
-			);
-			characteristicsByService[svc.uuid.toLowerCase()] = chars;
-		}
+  // Per-device reconnect state
+  const retryMapRef = useRef<Record<string, RetryState>>({});
 
-		const connectedEntry: ConnectedDevice = {
-			id: device.id,
-			name: device.name,
-			device,
-			services: services.map((s) => s.uuid.toLowerCase()),
-			characteristicsByService,
-		};
+  const clearRetryTimer = (id: string) => {
+    const r = retryMapRef.current[id];
+    if (r?.timer) {
+      clearTimeout(r.timer);
+      r.timer = null;
+    }
+  };
 
-		setConnected((prev) => ({ ...prev, [device.id]: connectedEntry }));
-	};
+  const scheduleReconnect = (id: string) => {
+    // If the app no longer “wants” this device (not in connected map),
+    // we still attempt reconnect for a short while to be resilient.
+    const st = (retryMapRef.current[id] ??= { attempt: 0, timer: null, manual: false });
 
-	const connectToDevice = async (device: Device) => {
-		const manager = managerRef.current;
+    clearRetryTimer(id);
+    const delay = expoBackoff(st.attempt);
+    st.attempt += 1;
 
-		// Already connected?
-		if (connectedRef.current[device.id]) return;
+    if (__DEV__) console.log(`[BLE] scheduleReconnect(${id}) in ${delay}ms (attempt ${st.attempt})`);
 
-		const connectedDevice = await manager.connectToDevice(device.id, {
-			autoConnect: false,
-		});
+    st.timer = setTimeout(async () => {
+      try {
+        await tryReconnect(id);
+        // success resets attempt
+        const now = retryMapRef.current[id];
+        if (now) now.attempt = 0;
+      } catch (e) {
+        if (__DEV__) console.warn(`[BLE] reconnect failed for ${id}`, e);
+        const now = retryMapRef.current[id];
+        if (now) {
+          now.lastError = e;
+          scheduleReconnect(id); // keep trying with capped backoff
+        }
+      }
+    }, delay);
+  };
 
-		if (Platform.OS === 'android') {
-			try {
-				await connectedDevice.requestMTU(185);
-			} catch {}
-		}
-		await discoverAllForDevice(connectedDevice);
-	};
+  const ensurePoweredOn = async () => {
+    if (!isPoweredOn) {
+      const current = await managerRef.current.state();
+      if (current !== State.PoweredOn) {
+        throw new Error('Bluetooth is not powered on.');
+      }
+    }
+  };
 
-	const ensurePoweredOn = async () => {
-		if (!isPoweredOn) {
-			const current = await managerRef.current.state();
-			if (current !== State.PoweredOn) {
-				throw new Error('Bluetooth is not powered on.');
-			}
-		}
-	};
+  const stopScan = () => {
+    try {
+      managerRef.current.stopDeviceScan();
+    } catch {}
+    setScanning(false);
+  };
 
-	/**
-	 * UI live-scan: updates context state as devices arrive; no connects here.
-	 */
-	const startScan: BleContextValue['startScan'] = async (opts) => {
-		if (scanning) return;
+  const discoverAllForDevice = async (device: Device) => {
+    const manager = managerRef.current;
+    await manager.discoverAllServicesAndCharacteristicsForDevice(device.id);
+    const services = await manager.servicesForDevice(device.id);
 
-		await ensurePoweredOn();
+    const characteristicsByService: Record<string, Characteristic[]> = {};
+    for (const svc of services) {
+      const chars = await manager.characteristicsForDevice(device.id, svc.uuid);
+      characteristicsByService[svc.uuid.toLowerCase()] = chars;
+    }
 
-		const timeoutMs = opts?.timeoutMs ?? DEFAULT_SCAN_TIMEOUT_MS;
-		const maxDevices = opts?.maxDevices ?? MAX_TARGET_DEVICES;
+    const entry: ConnectedDevice = {
+      id: device.id,
+      name: device.name,
+      device,
+      services: services.map((s) => s.uuid.toLowerCase()),
+      characteristicsByService,
+    };
 
-		discoveredIdsRef.current.clear();
-		setFoundDeviceIds([]);
-		setScanning(true);
+    setConnected((prev) => ({ ...prev, [device.id]: entry }));
+  };
 
-		const timeout = setTimeout(() => {
-			stopScan();
-		}, timeoutMs);
+  const registerDisconnectHandler = (id: string) => {
+    // Remove any previous listener by re-registering (library keeps latest)
+    managerRef.current.onDeviceDisconnected(id, (error, dev) => {
+      if (__DEV__) console.warn(`[BLE] onDeviceDisconnected ${id}`, error?.message ?? '');
+      // Remove from connected state so consumers see it as unavailable
+      setConnected((prev) => {
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
+      // Kick off reconnect attempts (unexpected drop)
+      scheduleReconnect(id);
+    });
+  };
 
-		managerRef.current.startDeviceScan(
-			[KNOWN_SERVICE_UUID],
-			{ allowDuplicates: false },
-			(error, device) => {
-				if (error) {
-					clearTimeout(timeout);
-					stopScan();
-					console.warn('Scan error:', error);
-					return;
-				}
-				if (!device) return;
+  const connectToDevice = async (device: Device, opts?: { manual?: boolean }) => {
+    const manager = managerRef.current;
+    if (connectedRef.current[device.id]) return;
 
-				const id = device.id;
+    // mark retry state
+    (retryMapRef.current[device.id] ??= { attempt: 0, timer: null, manual: !!opts?.manual }).manual = !!opts?.manual;
 
-				// De-dupe via ref (avoids stale state races)
-				if (discoveredIdsRef.current.has(id)) return;
-				discoveredIdsRef.current.add(id);
+    const connectedDevice = await manager.connectToDevice(device.id, {
+      autoConnect: false, // we control the backoff ourselves for determinism
+    });
 
-				// Reflect in state for UI
-				setFoundDeviceIds(Array.from(discoveredIdsRef.current));
+    if (Platform.OS === 'android') {
+      try {
+        await connectedDevice.requestMTU(185);
+      } catch {}
+    }
 
-				// If you later re-enable connect during live scan, do it here:
-				connectToDevice(device).catch((e) =>
-					console.warn('Connect failed', e),
-				);
+    registerDisconnectHandler(device.id);
+    await discoverAllForDevice(connectedDevice);
 
-				const reachedTarget =
-					discoveredIdsRef.current.size >= maxDevices;
-				if (reachedTarget) {
-					clearTimeout(timeout);
-					stopScan();
-				}
-			},
-		);
-	};
+    // on success: clear retry state
+    clearRetryTimer(device.id);
+    if (retryMapRef.current[device.id]) retryMapRef.current[device.id].attempt = 0;
+  };
 
-	const disconnectDevice = async (id: string) => {
-		const manager = managerRef.current;
-		try {
-			await manager.cancelDeviceConnection(id);
-		} catch {
-			// ignore if already disconnected
-		} finally {
-			setConnected((prev) => {
-				const next = { ...prev };
-				delete next[id];
-				return next;
-			});
-			setFoundDeviceIds((prev) => prev.filter((x) => x !== id));
-			discoveredIdsRef.current.delete(id);
-		}
-	};
+  // Reconnect by ID (no Device object needed)
+  const tryReconnect = async (id: string) => {
+    await ensurePoweredOn();
+    // If it was reconnected elsewhere already, skip
+    if (connectedRef.current[id]) return;
 
-	/**
-	 * scanOnce: resolves with up to N unique devices that advertise the known service.
-	 * - No connections are made.
-	 * - Stops scanning and cleans up on resolve or timeout/error.
-	 * - Safe against duplicate advertising callbacks.
-	 */
-	const scanOnce: BleContextValue['scanOnce'] = async (opts) => {
-		await ensurePoweredOn();
+    const d = await managerRef.current.connectToDevice(id, { autoConnect: false });
+    if (Platform.OS === 'android') {
+      try {
+        await d.requestMTU(185);
+      } catch {}
+    }
+    registerDisconnectHandler(id);
+    await discoverAllForDevice(d);
+    if (__DEV__) console.log(`[BLE] reconnected ${id}`);
+  };
 
-		const timeoutMs = opts?.timeoutMs ?? DEFAULT_SCAN_TIMEOUT_MS;
-		const maxDevices = opts?.maxDevices ?? MAX_TARGET_DEVICES;
+  /**
+   * UI live-scan: updates context state as devices arrive; no connects here.
+   */
+  const startScan: BleContextValue['startScan'] = async (opts) => {
+    if (scanning) return;
+    await ensurePoweredOn();
 
-		return new Promise<Device[]>((resolve, reject) => {
-			const localSet = new Set<string>();
-			const results: Device[] = [];
-			let settled = false;
+    const timeoutMs = opts?.timeoutMs ?? DEFAULT_SCAN_TIMEOUT_MS;
+    const maxDevices = opts?.maxDevices ?? MAX_TARGET_DEVICES;
 
-			const settle = (ok: boolean, payload?: Device[] | Error) => {
-				if (settled) return;
-				settled = true;
-				try {
-					managerRef.current.stopDeviceScan();
-				} catch {}
-				clearTimeout(timer);
-				if (ok) {
-					resolve(payload as Device[]);
-				} else {
-					reject(payload as Error);
-				}
-			};
+    discoveredIdsRef.current.clear();
+    setFoundDeviceIds([]);
+    setScanning(true);
 
-			const timer = setTimeout(() => {
-				// Time’s up: resolve with whatever we have
-				settle(true, results);
-			}, timeoutMs);
+    const timeout = setTimeout(() => {
+      stopScan();
+    }, timeoutMs);
 
-			try {
-				managerRef.current.startDeviceScan(
-					[KNOWN_SERVICE_UUID],
-					{ allowDuplicates: false },
-					(error, device) => {
-						if (error) {
-							console.warn('scanOnce error:', error);
-							return settle(false, error);
-						}
-						if (!device) return;
+    managerRef.current.startDeviceScan(
+      [KNOWN_SERVICE_UUID],
+      { allowDuplicates: false },
+      (error, device) => {
+        if (error) {
+          clearTimeout(timeout);
+          stopScan();
+          console.warn('Scan error:', error);
+          return;
+        }
+        if (!device) return;
 
-						const id = device.id;
-						if (localSet.has(id)) return;
+        const id = device.id;
+        if (discoveredIdsRef.current.has(id)) return;
+        discoveredIdsRef.current.add(id);
+        setFoundDeviceIds(Array.from(discoveredIdsRef.current));
 
-						localSet.add(id);
-						results.push(device);
+        // OPTIONAL: eager connect as they appear
+        connectToDevice(device, { manual: true }).catch((e) =>
+          console.warn('Connect failed', e),
+        );
 
-						// Keep the UI in sync (optional; comment out if you want this fully detached from UI)
-						setFoundDeviceIds(Array.from(localSet));
+        if (discoveredIdsRef.current.size >= maxDevices) {
+          clearTimeout(timeout);
+          stopScan();
+        }
+      },
+    );
+  };
 
-						if (results.length >= maxDevices) {
-							settle(true, results);
-						}
-					},
-				);
-			} catch (e: any) {
-				settle(false, e);
-			}
-		});
-	};
+  const disconnectDevice = async (id: string) => {
+    const manager = managerRef.current;
+    // If user explicitly disconnects, stop any auto-retries
+    clearRetryTimer(id);
+    delete retryMapRef.current[id];
 
-	const value = useMemo<BleContextValue>(
-		() => ({
-			scanning,
-			knownServiceUUID: KNOWN_SERVICE_UUID,
-			foundDeviceIds,
-			connected,
-			startScan,
-			stopScan,
-			disconnectDevice,
-			isPoweredOn,
-			scanOnce,
-		}),
-		[scanning, foundDeviceIds, connected, isPoweredOn],
-	);
+    try {
+      await manager.cancelDeviceConnection(id);
+    } catch {
+      // ignore if already disconnected
+    } finally {
+      setConnected((prev) => {
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
+      setFoundDeviceIds((prev) => prev.filter((x) => x !== id));
+      discoveredIdsRef.current.delete(id);
+    }
+  };
 
-	return <BleContext.Provider value={value}>{children}</BleContext.Provider>;
+  const scanOnce: BleContextValue['scanOnce'] = async (opts) => {
+    await ensurePoweredOn();
+
+    const timeoutMs = opts?.timeoutMs ?? DEFAULT_SCAN_TIMEOUT_MS;
+    const maxDevices = opts?.maxDevices ?? MAX_TARGET_DEVICES;
+
+    return new Promise<Device[]>((resolve, reject) => {
+      const localSet = new Set<string>();
+      const results: Device[] = [];
+      let settled = false;
+
+      const settle = (ok: boolean, payload?: Device[] | Error) => {
+        if (settled) return;
+        settled = true;
+        try {
+          managerRef.current.stopDeviceScan();
+        } catch {}
+        clearTimeout(timer);
+        if (ok) resolve(payload as Device[]);
+        else reject(payload as Error);
+      };
+
+      const timer = setTimeout(() => settle(true, results), timeoutMs);
+
+      try {
+        managerRef.current.startDeviceScan(
+          [KNOWN_SERVICE_UUID],
+          { allowDuplicates: false },
+          (error, device) => {
+            if (error) {
+              console.warn('scanOnce error:', error);
+              return settle(false, error);
+            }
+            if (!device) return;
+            const id = device.id;
+            if (localSet.has(id)) return;
+            localSet.add(id);
+            results.push(device);
+            setFoundDeviceIds(Array.from(localSet));
+            if (results.length >= maxDevices) settle(true, results);
+          },
+        );
+      } catch (e: any) {
+        settle(false, e);
+      }
+    });
+  };
+
+  useEffect(() => {
+    if (__DEV__) {
+      console.log('scanning:', scanning);
+      console.log('foundDeviceIds:', foundDeviceIds);
+      console.log('connected keys:', Object.keys(connected));
+    }
+  }, [foundDeviceIds, scanning, connected]);
+
+  const value = useMemo<BleContextValue>(
+    () => ({
+      scanning,
+      knownServiceUUID: KNOWN_SERVICE_UUID,
+      foundDeviceIds,
+      connected,
+      startScan,
+      stopScan,
+      disconnectDevice,
+      isPoweredOn,
+      scanOnce,
+    }),
+    [scanning, foundDeviceIds, connected, isPoweredOn],
+  );
+
+  return <BleContext.Provider value={value}>{children}</BleContext.Provider>;
 };
 
 export const useBle = () => {
-	const ctx = useContext(BleContext);
-	if (!ctx) throw new Error('useBle must be used within <BleProvider>');
-	return ctx;
+  const ctx = useContext(BleContext);
+  if (!ctx) throw new Error('useBle must be used within <BleProvider>');
+  return ctx;
 };

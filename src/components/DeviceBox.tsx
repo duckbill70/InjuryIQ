@@ -284,7 +284,7 @@ export default function DeviceBox({ item, height = 175 }: Props) {
 						{supportedBat ? percent ?? '—' : 'N/A'}%
 					</Text>
 				</View>
-				{!!errorBat && (
+				{/* !!errorBat && (
 					<Text
 						style={[
 							theme.textStyles.body2,
@@ -293,7 +293,7 @@ export default function DeviceBox({ item, height = 175 }: Props) {
 					>
 						{errorBat}
 					</Text>
-				)}
+				) */}
 			</View>
 
 			{/* Service Icons */}

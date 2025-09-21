@@ -1,156 +1,236 @@
-import React, { createContext, useContext, useMemo, useRef, useState, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useMemo, useRef, useState, useCallback, ReactNode, useEffect } from 'react';
 import { useBle } from '../ble/BleProvider';
 import { useStateControl } from '../ble/useStateControl';
 import { DualImuProvider, useDualImu } from '../imu/DualImuProvider';
 import { createCombinedImuWriter, type CombinedWriter, type RawPacket } from '../imu/combinedImuWriter';
 import { useAuth } from '../auth/AuthProvider';
 
+/** Matches your existing context shape */
 type SessionCtx = {
-	writerRef: React.MutableRefObject<CombinedWriter | null>;
-	expectedHz: number;
-	entryA?: ReturnType<typeof useDualImu>['entryA'];
-	entryB?: ReturnType<typeof useDualImu>['entryB'];
-	isCollecting: boolean;
-	startRecording: () => Promise<void>;
-	stopRecording: () => Promise<void>;
-	a: ReturnType<typeof useDualImu>['a'];
-	b: ReturnType<typeof useDualImu>['b'];
-    sport: SportType;
-    setSport: (sport: SportType) => void
+  writerRef: React.MutableRefObject<CombinedWriter | null>;
+  expectedHz: number;
+  entryA?: ReturnType<typeof useDualImu>['entryA'];
+  entryB?: ReturnType<typeof useDualImu>['entryB'];
+  isCollecting: boolean;
+  startRecording: () => Promise<void>;
+  stopRecording: () => Promise<void>;
+  a: ReturnType<typeof useDualImu>['a'];
+  b: ReturnType<typeof useDualImu>['b'];
+  sport: SportType;
+  setSport: (sport: SportType) => void;
 };
 
 type SportType = 'hiking' | 'running' | 'tennis' | 'padel';
 
+/** Optional writer extension we’ll call if present */
+type DeviceEvent =
+  | { t: number; which: 'A' | 'B'; event: 'dropped' | 'resumed' }
+  | { t: number; event: 'session_start' | 'session_stop' };
+
+type CombinedWriterWithEvents = CombinedWriter & {
+  onDeviceEvent?: (ev: DeviceEvent) => void;
+};
+
 const SessionContext = createContext<SessionCtx | null>(null);
 export const useSession = () => {
-	const v = useContext(SessionContext);
-	if (!v) throw new Error('useSession must be used within <SessionProvider>');
-	return v;
+  const v = useContext(SessionContext);
+  if (!v) throw new Error('useSession must be used within <SessionProvider>');
+  return v;
 };
 
 export function SessionProvider({ children, expectedHz = 60 }: { children: ReactNode; expectedHz?: number }) {
-	const { connected } = useBle();
-	const { user } = useAuth();
+  const { connected } = useBle();
+  const { user } = useAuth();
 
-	const arr = Object.values(connected);
-	const devA = arr[0];
-	const devB = arr[1];
+  const arr = Object.values(connected);
+  const devA = arr[0];
+  const devB = arr[1];
 
-	const writerRef = useRef<CombinedWriter | null>(null);
+  const writerRef = useRef<CombinedWriter | null>(null);
 
-	const onBatchA = useCallback((batch: RawPacket[]) => writerRef.current?.onBatchA?.(batch), []);
-	const onBatchB = useCallback((batch: RawPacket[]) => writerRef.current?.onBatchB?.(batch), []);
+  // wire through your batch appenders (unchanged)
+  const onBatchA = useCallback((batch: RawPacket[]) => writerRef.current?.onBatchA?.(batch), []);
+  const onBatchB = useCallback((batch: RawPacket[]) => writerRef.current?.onBatchB?.(batch), []);
 
-	return (
-		<DualImuProvider entryA={devA} entryB={devB} expectedHzA={expectedHz} autoStart onBatchA={onBatchA} onBatchB={onBatchB}>
-			<SessionBody expectedHz={expectedHz} writerRef={writerRef} userMeta={{ uid: user?.uid ?? null, email: user?.email ?? null }}>
-				{children}
-			</SessionBody>
-		</DualImuProvider>
-	);
+  return (
+    <DualImuProvider
+      entryA={devA}
+      entryB={devB}
+      expectedHzA={expectedHz}
+      autoStart
+      onBatchA={onBatchA}
+      onBatchB={onBatchB}
+    >
+      <SessionBody
+        expectedHz={expectedHz}
+        writerRef={writerRef}
+        userMeta={{ uid: user?.uid ?? null, email: user?.email ?? null }}
+      >
+        {children}
+      </SessionBody>
+    </DualImuProvider>
+  );
 }
 
 function SessionBody({
-	children,
-	expectedHz,
-	writerRef,
-	userMeta,
+  children,
+  expectedHz,
+  writerRef,
+  userMeta,
 }: {
-	children: ReactNode;
-	expectedHz: number;
-	writerRef: React.MutableRefObject<CombinedWriter | null>;
-	userMeta: { uid: string | null; email: string | null };
+  children: ReactNode;
+  expectedHz: number;
+  writerRef: React.MutableRefObject<CombinedWriter | null>;
+  userMeta: { uid: string | null; email: string | null };
 }) {
-	const { a, b, entryA, entryB, startAll, stopAll, drainAll, setCollectAll, isCollectingAny } = useDualImu();
+  // You already expose these from useDualImu; keeping the same callsite you have today.
+  const { a, b, entryA, entryB, startAll, stopAll, drainAll, setCollectAll, isCollectingAny } = useDualImu();
 
-    // State control hooks per device (LED/state service)
-    const stateA = useStateControl(entryA, { subscribe: true });
-    const stateB = useStateControl(entryB, { subscribe: true });
+  // Per-device state control (unchanged)
+  const stateA = useStateControl(entryA, { subscribe: true });
+  const stateB = useStateControl(entryB, { subscribe: true });
 
-    const { user } = useAuth();
+  const { user } = useAuth();
+  const [sport, setSport] = useState<SportType>('running');
 
-    const [sport, setSport] = useState<SportType>('running'); // default value
+  // Track intent so we only emit events while "recording"
+  const intendedRecordingRef = useRef(false);
 
-	const startRecording = useCallback(async () => {
+  // Convenience emitter (no-op if writer doesn’t implement it)
+  const emitDeviceEvent = useCallback(
+    (which: 'A' | 'B', event: 'dropped' | 'resumed') => {
+      const wr = writerRef.current as CombinedWriterWithEvents | null;
+      wr?.onDeviceEvent?.({ t: Date.now(), which, event });
+    },
+    [writerRef],
+  );
+  const emitSessionEvent = useCallback(
+    (event: 'session_start' | 'session_stop') => {
+      const wr = writerRef.current as CombinedWriterWithEvents | null;
+      wr?.onDeviceEvent?.({ t: Date.now(), event });
+    },
+    [writerRef],
+  );
 
-		if (isCollectingAny) {
-			if (__DEV__) console.log('[CTRL] startRecording(): already recording');
-			return;
-		}
+  const startRecording = useCallback(async () => {
+    if (isCollectingAny || intendedRecordingRef.current) {
+      intendedRecordingRef.current = true;
+      return;
+    }
+    intendedRecordingRef.current = true;
 
-        // Prepare writer first so the BLE callback can append immediately
-		try {
-			writerRef.current = createCombinedImuWriter({
-				sessionName: 'imu_both',
-				expectedHz,
-				idA: entryA?.id,
-				idB: entryB?.id,
-				meta: {
-					user: {
-						uid: user?.uid ?? null,
-						//email: user?.email ?? null,
-					},
-					initialState: {
-						A: stateA.value ?? null,
-						B: stateB.value ?? null,
-					},
-                    sport,
-				},
-			});
-			await writerRef.current.start();
-			if (__DEV__) console.log('[CTRL] writer started at', writerRef.current.path);
-		} catch (err) {
-			if (__DEV__) console.error('[CTRL] writer start failed:', err);
-			writerRef.current = null; // safety
-			return; // bail; no point collecting without a writer
-		}
+    // 1) Start writer first so onBatchX can append immediately
+    try {
+      writerRef.current = createCombinedImuWriter({
+        sessionName: 'imu_both',
+        expectedHz,
+        idA: entryA?.id,
+        idB: entryB?.id,
+        meta: {
+          user: { uid: user?.uid ?? null /*, email: user?.email ?? null */ },
+          initialState: { A: stateA.value ?? null, B: stateB.value ?? null },
+          sport,
+        },
+      });
+      await writerRef.current.start();
+      emitSessionEvent('session_start');
+      if (__DEV__) console.log('[CTRL] writer started at', writerRef.current.path);
+    } catch (err) {
+      if (__DEV__) console.error('[CTRL] writer start failed:', err);
+      writerRef.current = null;
+      intendedRecordingRef.current = false;
+      return;
+    }
 
-		// Make sure both sides are subscribed (safe if already streaming)
-		try {
-			startAll();
-		} catch (err) {
-			if (__DEV__) console.error('[CTRL] startAll() error:', err);
-		}
+    // 2) Subscribe streams (safe if already active)
+    try {
+      startAll();
+    } catch (err) {
+      if (__DEV__) console.error('[CTRL] startAll() error:', err);
+    }
 
-        // Now flip collection on so monitor callbacks will write
-		setCollectAll(true);
-	}, [isCollectingAny, expectedHz, entryA?.id, entryB?.id, a?.value, b?.value, startAll, userMeta, setCollectAll]);
+    // 3) Start collecting
+    setCollectAll(true);
+  }, [isCollectingAny, expectedHz, entryA?.id, entryB?.id, startAll, setCollectAll, user?.uid, stateA.value, stateB.value, sport, emitSessionEvent]);
 
-	const stopRecording = useCallback(async () => {
-		setCollectAll(false);
+  const stopRecording = useCallback(async () => {
+    intendedRecordingRef.current = false;
 
-		try {
-			const { a: tailA, b: tailB } = drainAll();
-			writerRef.current?.onBatchA?.(tailA);
-			writerRef.current?.onBatchB?.(tailB);
-		} catch {}
+    // Stop collecting
+    setCollectAll(false);
 
-		try {
-			stopAll();
-		} catch {}
+    // Drain any tails
+    try {
+      const { a: tailA, b: tailB } = drainAll();
+      writerRef.current?.onBatchA?.(tailA);
+      writerRef.current?.onBatchB?.(tailB);
+    } catch {}
 
-		try {
-			await writerRef.current?.stop?.();
-		} catch {}
-		writerRef.current = null;
-	}, [drainAll, stopAll, setCollectAll]);
+    // Stop streams
+    try {
+      stopAll();
+    } catch {}
 
-	const value: SessionCtx = useMemo(
-		() => ({
-			writerRef,
-			expectedHz,
-			entryA,
-			entryB,
-			isCollecting: isCollectingAny,
-			startRecording,
-			stopRecording,
-			a,
-			b,
-            sport,
-            setSport,
-		}),
-		[writerRef, expectedHz, entryA, entryB, isCollectingAny, startRecording, stopRecording, a, b, sport, setSport],
-	);
+    emitSessionEvent('session_stop');
 
-	return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
+    try {
+      await writerRef.current?.stop?.();
+    } catch {}
+    writerRef.current = null;
+  }, [drainAll, stopAll, setCollectAll, emitSessionEvent]);
+
+  // === New: continue logging from the device that remains, and mark events for the missing one ===
+  const prevARef = useRef<string | null>(null);
+  const prevBRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    const nowA = entryA?.id ?? null;
+    const nowB = entryB?.id ?? null;
+    const prevA = prevARef.current;
+    const prevB = prevBRef.current;
+
+    if (intendedRecordingRef.current) {
+      // A transitions
+      if (prevA && !nowA) {
+        // A dropped → keep B collecting, mark A dropped
+        emitDeviceEvent('A', 'dropped');
+        try { a.setCollect?.(false); } catch {}
+      } else if (!prevA && nowA) {
+        // A resumed → restart A collecting
+        emitDeviceEvent('A', 'resumed');
+        try { a.start?.(); a.setCollect?.(true); } catch {}
+      }
+
+      // B transitions
+      if (prevB && !nowB) {
+        emitDeviceEvent('B', 'dropped');
+        try { b.setCollect?.(false); } catch {}
+      } else if (!prevB && nowB) {
+        emitDeviceEvent('B', 'resumed');
+        try { b.start?.(); b.setCollect?.(true); } catch {}
+      }
+    }
+
+    prevARef.current = nowA;
+    prevBRef.current = nowB;
+  }, [entryA?.id, entryB?.id, a, b, emitDeviceEvent]);
+
+  const value: SessionCtx = useMemo(
+    () => ({
+      writerRef,
+      expectedHz,
+      entryA,
+      entryB,
+      isCollecting: isCollectingAny && intendedRecordingRef.current,
+      startRecording,
+      stopRecording,
+      a,
+      b,
+      sport,
+      setSport,
+    }),
+    [writerRef, expectedHz, entryA, entryB, isCollectingAny, startRecording, stopRecording, a, b, sport, setSport],
+  );
+
+  return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
 }

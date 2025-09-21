@@ -3,15 +3,16 @@ import RNFS from 'react-native-fs';
 import Share from 'react-native-share';
 import DeviceInfo from 'react-native-device-info';
 
-const APP_INFO = {
-  app_name: DeviceInfo.getApplicationName(),
-  bundleId: DeviceInfo.getBundleId(),
-  version: DeviceInfo.getVersion(),
-  build: DeviceInfo.getBuildNumber(),
-};
+const APP_INFO ={
+    app_name : DeviceInfo.getApplicationName(),
+    bundleId: DeviceInfo.getBundleId(),
+    version: DeviceInfo.getVersion(),
+    build: DeviceInfo.getBuildNumber(),
+}
 
 // --- Sport Type --- //
 export type Sport = 'padel' | 'tennis' | 'running' | 'hiking';
+
 
 /** ================= Low-level NDJSON writer (RNFS appendFile-based) ================= */
 
@@ -23,9 +24,9 @@ export type StopResult = { path: string; rows: number; bytes: number };
 /** Cross-platform UTF-8 byte length for React Native (no Node Buffer). */
 function utf8ByteLength(s: string): number {
   try {
-    // @ts-ignore
+    // @ts-expect-error TextEncoder not found
     if (typeof TextEncoder !== 'undefined') {
-      // @ts-ignore
+      // @ts-expect-error Cant find name TextEncoder
       return new TextEncoder().encode(s).length;
     }
   } catch {
@@ -139,7 +140,7 @@ export async function shareLastSessionFile() {
   });
 }
 
-/** ================= Session-level combined writer expected by SessionProvider ================= */
+/** ================= Session-level combined writer expected by ImuDualControlBox ================= */
 
 export type RawPacket = { t: number; b64: string };
 
@@ -177,11 +178,11 @@ type FactoryOptions = {
   idB?: string | null;
   /** Optional override of the sessions directory. */
   dirAbs?: string;
-  meta?: {
-    user?: { uid?: string | null; email?: string | null };
-    initialState?: { A: unknown; B: unknown };
-    sport?: Sport | null;
-  };
+  meta? :{
+    user?: { uid?: string | null; email?: string | null};
+    initialState?: {A: unknown; B: unknown };
+    sport? : Sport | null;
+  }
 };
 
 function isoForFilename(d = new Date()) {
@@ -193,14 +194,10 @@ function defaultSessionsDir() {
 }
 
 /**
- * High-level factory: writes a header, then compact IMU rows (A/B) and event rows.
- * Row examples:
- *   { "type":"header", ... }
- *   { "t": 1737222222222, "src":"A", "imu_b64":"...==" }
- *   { "t": 1737222230000, "type":"device_event", "which":"B", "event":"dropped" }
- *   { "type":"stop", "stoppedAt":"...", "reason":"user", "totals":{...} }
+ * High-level factory your UI uses. It writes a single header line with metadata
+ * (including stateA/stateB) and then writes compact data rows with no state fields.
  */
-export function createCombinedImuWriter(opts: FactoryOptions) {
+export function createCombinedImuWriter(opts: FactoryOptions): CombinedWriter {
   const {
     sessionName,
     expectedHz,
@@ -213,9 +210,10 @@ export function createCombinedImuWriter(opts: FactoryOptions) {
   let started = false;
   let filePath: string | null = null;
 
-  // State snapshots for header
+  // State snapshots captured *once* in the header
   let stateA: unknown = null;
   let stateB: unknown = null;
+  let headerWritten = false;
 
   const filename = `${sessionName}__${isoForFilename()}.ndjson`;
 
@@ -228,49 +226,78 @@ export function createCombinedImuWriter(opts: FactoryOptions) {
     low = writer;
     filePath = info.path;
     started = true;
+    headerWritten = false;
 
-    // Header row (keeps your current meta style)
+    low.append({
+        type: 'header',
+        schema: 'injuryiq.imu.ndjson#v1',
+        createdAt: new Date().toISOString(),
+        app: APP_INFO,
+        user: opts.meta?.user ?? null,
+        devices: { idA, idB },
+        expectedHz,
+        initialSate: opts.meta?.initialState ?? null,
+        sport: opts.meta?.sport ?? null,
+    })
+
+    if (__DEV__) {
+      console.log('[CombinedWriter] started', {
+        path: filePath,
+        idA,
+        idB,
+        expectedHz,
+        stateA,
+        stateB,
+      });
+      console.log('[CombinedWriter] meta', opts?.meta || null);
+    }
+  }
+
+  function writeHeaderIfNeeded() {
+    if (!started || !low || headerWritten) return;
+    // One-time header line with session metadata (and current state snapshots)
     low.append({
       type: 'header',
-      schema: 'injuryiq.imu.ndjson#v1',
-      createdAt: new Date().toISOString(),
-      app: APP_INFO,
-      user: opts.meta?.user ?? null,
-      devices: { idA, idB },
-      expectedHz: expectedHz ?? null,
-      initialState: opts.meta?.initialState ?? null,
-      sport: opts.meta?.sport ?? null,
+      version: 1,
+      created: new Date().toISOString(),
       session: sessionName,
-      file: filename,
+      expectedHz: expectedHz ?? null,
+      idA,
+      idB,
+      stateA,
+      stateB,
     });
-
-    if (__DEV__) console.log('[CombinedWriter] started', { path: filePath, idA, idB, expectedHz });
+    headerWritten = true;
+    if (__DEV__) console.log('[CombinedWriter] header written');
   }
 
   function writeHeaderNow() {
-    // header is already written on start in this design
+    //writeHeaderIfNeeded();
   }
 
-  function appendRows(src: 'A' | 'B', batch?: RawPacket[] | null) {
+  function appendRows(src: 'A' | 'B', id: string | null, batch?: RawPacket[] | null) {
     if (!started || !low) return;
     if (!batch?.length) return;
+
+    //writeHeaderIfNeeded(); // ensure header precedes first data
 
     for (let i = 0; i < batch.length; i++) {
       const pkt = batch[i];
       low.append({
         t: pkt.t,
         src,
+        //id, - removed as the id for each device is in the header
         imu_b64: pkt.b64,
       });
     }
   }
 
   function onBatchA(batch?: RawPacket[] | null) {
-    appendRows('A', batch);
+    appendRows('A', idA, batch);
   }
 
   function onBatchB(batch?: RawPacket[] | null) {
-    appendRows('B', batch);
+    appendRows('B', idB, batch);
   }
 
   function setStateA(v: unknown) {
@@ -283,15 +310,6 @@ export function createCombinedImuWriter(opts: FactoryOptions) {
     if (__DEV__) console.log('[CombinedWriter] setStateB', v);
   }
 
-  /** New: explicit device/session events */
-  function onDeviceEvent(ev: { t: number; which?: 'A' | 'B'; event: string }) {
-    if (!started || !low) return;
-    const row: NdjsonRow = ev.which
-      ? { t: ev.t, type: 'device_event', which: ev.which, event: ev.event }
-      : { t: ev.t, type: 'session_event', event: ev.event };
-    low.append(row);
-  }
-
   async function stop(reason: 'user' | 'timeout' | 'error' | 'appBackground' = 'user'): Promise<StopResult> {
     if (!started) {
       if (__DEV__) console.log('[CombinedWriter] stop(): not started');
@@ -299,14 +317,13 @@ export function createCombinedImuWriter(opts: FactoryOptions) {
     }
 
     if (low) {
-      const totals = low.getCounts();
-      low.append({
-        type: 'stop',
-        stoppedAt: new Date().toISOString(),
-        reason,
-        totals,
-        lastState: { A: stateA ?? null, B: stateB ?? null },
-      });
+        const totals = low.getCounts();
+        low.append({
+            type: 'stop',
+            stoppedAt: new Date().toISOString(),
+            reason,
+            totals,
+        })
     }
 
     started = false;
@@ -328,7 +345,5 @@ export function createCombinedImuWriter(opts: FactoryOptions) {
     setStateB,
     writeHeaderNow,
     stop,
-    // exposed (optional) — SessionProvider will call if present
-    onDeviceEvent,
-  } as CombinedWriter & { onDeviceEvent?: (ev: { t: number; which?: 'A' | 'B'; event: string }) => void };
+  };
 }

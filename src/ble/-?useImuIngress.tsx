@@ -14,15 +14,15 @@ const IMU_CHAR    = 'abcdef01-2345-6789-abcd-ef0123456790';
 type RawPacket = { t: number; b64: string };
 
 export type IngressOptions = {
-  expectedHz: number;
-  autoStart?: boolean;
-  collect?: boolean;
-  batchSize?: number;
-  maxBuffer?: number;
-  statsWindowMs?: number;
-  statsEmitMs?: number;
-  onBatch?: (batch: RawPacket[]) => void;
-  debugTg?: string;
+  expectedHz: number;               // e.g. 60 or 100
+  autoStart?: boolean;              // default: true
+  collect?: boolean;                // default: false (measure only)
+  batchSize?: number;               // default: 64
+  maxBuffer?: number;               // default: 10000 (packets)
+  statsWindowMs?: number;           // default: 2000
+  statsEmitMs?: number;             // default: 1000
+  onBatch?: (batch: RawPacket[]) => void; // when collect=true
+  debugTg?: string;                 // optional log tag
 };
 
 export type IngressState = {
@@ -73,13 +73,14 @@ export function useImuIngress(entry: ConnectedDeviceLike | undefined, opts: Ingr
 
   const tag = opts.debugTg ?? entry?.id ?? 'imu';
 
-  // Resolve characteristic when services appear (including after reconnect).
+  // Resolve the IMU characteristic once the device’s services/characteristics appear.
   const char = useMemo(() => findImuChar(entry), [entry?.id]);
   const charRef = useRef<Characteristic | null>(null);
   useEffect(() => {
     charRef.current = char ?? null;
   }, [char?.uuid, entry?.id]);
 
+  // --- Live refs to avoid stale closures in the BLE monitor callback ---
   const collectingRef = useRef<boolean>(initialCollect);
   useEffect(() => { collectingRef.current = collect; }, [collect]);
 
@@ -90,8 +91,9 @@ export function useImuIngress(entry: ConnectedDeviceLike | undefined, opts: Ingr
   const winRef = useRef<number[]>([]);
   const lastStatsEmitRef = useRef(0);
 
-  const activeUuidRef = useRef<string | null>(null);
-  const unsubscribingRef = useRef(false);
+  // Guards to prevent repeated subscribe/unsubscribe loops:
+  const activeUuidRef = useRef<string | null>(null);     // uuid of currently monitored char
+  const unsubscribingRef = useRef(false);                // true while stop() is executing
 
   const setCollecting = (v: boolean) => {
     if (__DEV__) console.log(`[${tag}] setCollecting(${v})`);
@@ -101,12 +103,15 @@ export function useImuIngress(entry: ConnectedDeviceLike | undefined, opts: Ingr
   const updateStats = (now: number) => {
     const win = winRef.current;
     const windowStart = now - statsWindowMs;
+
     while (win.length && win[0] < windowStart) win.shift();
+
     const receivedInWindow = win.length;
     const windowSec = statsWindowMs / 1000;
     const measuredHz = receivedInWindow / windowSec;
     const lossRatio = expectedHz > 0 ? Math.max(0, 1 - measuredHz / expectedHz) : 0;
     const lossPercent = Math.min(100, Math.max(0, lossRatio * 100));
+
     if (now - lastStatsEmitRef.current >= statsEmitMs) {
       lastStatsEmitRef.current = now;
       setStats({
@@ -127,38 +132,53 @@ export function useImuIngress(entry: ConnectedDeviceLike | undefined, opts: Ingr
     if (__DEV__) console.log(`[${tag}] flush() emitted=${out.length}`);
   }, [onBatch, tag]);
 
+  // Helpful to identify "benign" cancellation errors across libs/platforms
   function isCancellationError(err: unknown): boolean {
-    if (!err) return true;
+    if (!err) return true; // some stacks pass undefined/null on cancel
     const s = String((err as any)?.message ?? (err as any));
-    return /cancel|cancelled|canceled|aborted/i.test(s);
+    return (
+      /cancel/i.test(s) ||
+      /canceled/i.test(s) ||
+      /cancelled/i.test(s) ||
+      /operation was cancelled/i.test(s) ||
+      /aborted/i.test(s)
+    );
   }
 
   const onNotification = useCallback((err: any, ch?: Characteristic | null) => {
     if (err) {
+      // Ignore expected errors caused by unsubscribe/cleanup
       if (unsubscribingRef.current || isCancellationError(err)) {
         if (__DEV__) console.log(`[${tag}] monitor cancelled (expected during stop)`);
         return;
       }
-      if (__DEV__) console.log(`[${tag}] monitor error:`, err);
+      if (__DEV__) console.error(`[${tag}] monitor error:`, err);
       return;
     }
     if (!ch?.value) return;
 
     totalPacketsRef.current += 1;
+    if (__DEV__ && (totalPacketsRef.current % 100 === 0)) {
+      //console.log(`[${tag}] packets received: ${totalPacketsRef.current}`);
+    }
 
     const now = Date.now();
     winRef.current.push(now);
     updateStats(now);
+
     setLast({ t: now, b64: ch.value });
 
     if (collectingRef.current) {
       const buf = bufRef.current;
       buf.push({ t: now, b64: ch.value });
+
       if (buf.length > maxBuffer) buf.splice(0, buf.length - maxBuffer);
+
       if (buf.length >= batchSize) {
         const out = buf.splice(0, buf.length);
         onBatch?.(out);
         appendCountRef.current += out.length;
+        //if (__DEV__) console.log(`[${tag}] onBatch() emitted=${out.length} totalAppended≈${appendCountRef.current}`);
       }
     }
   }, [batchSize, maxBuffer, onBatch, statsWindowMs, statsEmitMs, expectedHz, tag]);
@@ -169,20 +189,29 @@ export function useImuIngress(entry: ConnectedDeviceLike | undefined, opts: Ingr
       if (__DEV__) console.log(`[${tag}] start(): IMU characteristic not found yet`);
       return;
     }
-    if (activeUuidRef.current === c.uuid && subRef.current) {
+
+    // If we are already streaming this exact characteristic, skip.
+    if (isStreaming && activeUuidRef.current === c.uuid) {
       if (__DEV__) console.log(`[${tag}] start(): already streaming`);
       return;
     }
-    // Switch if uuid changed
-    if (subRef.current) {
-      try {
-        unsubscribingRef.current = true;
-        subRef.current.remove();
-      } finally {
-        unsubscribingRef.current = false;
-        subRef.current = null;
+
+    // If streaming a different characteristic (uuid changed), stop first.
+    if (isStreaming && activeUuidRef.current && activeUuidRef.current !== c.uuid) {
+      if (__DEV__) console.log(`[${tag}] start(): switching characteristic ${activeUuidRef.current} → ${c.uuid}`);
+      // perform a synchronous stop (below) before re-subscribing
+      if (subRef.current) {
+        try {
+          unsubscribingRef.current = true;
+          subRef.current.remove();
+        } finally {
+          subRef.current = null;
+          unsubscribingRef.current = false;
+        }
       }
+      setIsStreaming(false);
     }
+
     try {
       if (__DEV__) console.log(`[${tag}] start(): subscribing to IMU notifications`);
       subRef.current = c.monitor(onNotification);
@@ -194,27 +223,30 @@ export function useImuIngress(entry: ConnectedDeviceLike | undefined, opts: Ingr
       activeUuidRef.current = null;
       setIsStreaming(false);
     }
-  }, [onNotification, tag]);
+  }, [isStreaming, onNotification, tag]);
 
   const stop = useCallback(() => {
-    if (!subRef.current) {
+    if (!isStreaming && !subRef.current) {
       if (__DEV__) console.log(`[${tag}] stop(): noop (not streaming)`);
-      setIsStreaming(false);
-      flush();
       return;
     }
+
     if (__DEV__) console.log(`[${tag}] stop(): unsubscribing`);
     try {
       unsubscribingRef.current = true;
-      subRef.current.remove();
-    } catch {} finally {
-      unsubscribingRef.current = false;
+      subRef.current?.remove();
+    } catch {
+      // ignore
+    } finally {
       subRef.current = null;
+      unsubscribingRef.current = false;
       activeUuidRef.current = null;
       setIsStreaming(false);
     }
+
+    // Flush any tail using the *live* collecting ref
     flush();
-  }, [flush, tag]);
+  }, [flush, isStreaming, tag]);
 
   const drain = (): RawPacket[] => {
     const out = bufRef.current.splice(0, bufRef.current.length);
@@ -238,27 +270,38 @@ export function useImuIngress(entry: ConnectedDeviceLike | undefined, opts: Ingr
     if (__DEV__) console.log(`[${tag}] resetStats()`);
   };
 
-  // Auto start/stop on characteristic availability (including after reconnect)
+  // Auto-start/stop per characteristic UUID, but **don’t** churn:
+  // - Start only when we have a characteristic.
+  // - If the effect re-runs with the same uuid, do nothing.
   useEffect(() => {
     if (!autoStart) return;
+
     const uuid = charRef.current?.uuid ?? null;
 
+    // If there is no char yet, ensure we are stopped and exit.
     if (!uuid) {
       if (isStreaming) stop();
       return;
     }
+
+    // If we’re already subscribed to this uuid, don’t restart.
     if (isStreaming && activeUuidRef.current === uuid) {
       return;
     }
+
+    // Otherwise (first time, or uuid changed), start once.
     start();
 
+    // Cleanup only on unmount OR when uuid changes away.
+    // We purposely do not include start/stop in deps to avoid reference churn.
     return () => {
+      // If we are still monitoring this uuid, stop it.
       if (activeUuidRef.current === uuid) {
         stop();
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [entry?.id, char?.uuid, autoStart]);
+  }, [entry?.id, char?.uuid, autoStart]); // keep narrow deps
 
   return {
     isStreaming,

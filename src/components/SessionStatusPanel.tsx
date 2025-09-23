@@ -5,6 +5,7 @@ import { Play, Square } from 'lucide-react-native';
 import { useSession } from '../session/SessionProvider';
 
 import { useTheme } from '../theme/ThemeContext';
+import { StateMode } from '../ble/useStateControl';
 
 function Dot({ on = false }: { on?: boolean }) {
 	return (
@@ -21,7 +22,7 @@ function Dot({ on = false }: { on?: boolean }) {
 
 export default function SessionStatusPanel() {
 	const { theme } = useTheme();
-	const { entryA, entryB, a, b, startRecording, stopRecording, sport } = useSession();
+	const { entryA, entryB, a, b, startRecording, stopRecording, sport, stateA, stateB } = useSession();
 
 	const recording = !!(a?.collect || b?.collect);
 
@@ -53,20 +54,23 @@ export default function SessionStatusPanel() {
 			{/* Devices */}
 			<View style={[styles.rowBetween, { marginTop: 6 }]}>
 				<View style={styles.deviceCol}>
-					<View style={{flexDirection: 'row', alignItems: 'center'}}>
-						<Text style={[theme.textStyles.xsmall, styles.mono, styles.dim, {paddingRight: 4}]}>Device A</Text>
-						<Dot on={recording} />
+					<View style={{flexDirection: 'row', alignItems: 'center', maxWidth: '80%'}}>
+						<Text style={[theme.textStyles.xsmall, styles.mono, styles.dim, {paddingRight: 8}]}>Device A</Text>
+						<Dot on={!!entryA?.id && stateA.value !== StateMode.Off} />
 					</View>
 					<Text style={theme.textStyles.body2}>{entryA?.device.name ?? '—'}</Text>
-					<Text style={[theme.textStyles.xsmall, styles.dim]}>
+					<Text style={[theme.textStyles.xsmall, styles.dim, { minWidth: 120, textAlign: 'left' }]}>
 						{hzA.toFixed(1)} Hz • {lossA.toFixed(1)}% loss
 					</Text>
 				</View>
 
 				<View style={styles.deviceCol}>
-					<Text style={[theme.textStyles.xsmall, styles.mono, styles.dim]}>Device B</Text>
+					<View style={{flexDirection: 'row', alignItems: 'center',  maxWidth: '80%'}}>
+						<Text style={[theme.textStyles.xsmall, styles.mono, styles.dim, {paddingRight: 8}]}>Device B</Text>
+						<Dot on={!!entryB?.id && stateB.value !== StateMode.Off} />
+					</View>
 					<Text style={theme.textStyles.body2}>{entryB?.device.name ?? '—'}</Text>
-					<Text style={[theme.textStyles.xsmall, styles.dim]}>
+					<Text style={[theme.textStyles.xsmall, styles.dim, { minWidth: 120, textAlign: 'left' }]}>
 						{hzB.toFixed(1)} Hz • {lossB.toFixed(1)}% loss
 					</Text>
 				</View>

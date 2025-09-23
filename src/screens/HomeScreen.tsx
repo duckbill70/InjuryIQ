@@ -19,6 +19,7 @@ import { useTheme } from '../theme/ThemeContext';
 import SessionStatusPanel from '../components/SessionStatusPanel';
 import DeviceStatusPanel from '../components/DeviceStatusPanel';
 import SportStatusPanel from '../components/SportStatusPanel';
+import FatiguePanel from '../components/FatiguePanel';
 
 export default function HomeScreen() {
 	const { user, signOut } = useAuth();
@@ -69,6 +70,11 @@ export default function HomeScreen() {
 				{/* Status Manager */}
 				<View style={{ padding: 8, marginHorizontal: 10 }}>
 					<DeviceStatusPanel />
+				</View>
+
+				{/* Fatigue Panel */}
+				<View style={{ padding: 8, marginHorizontal: 10 }}>
+					<FatiguePanel />
 				</View>
 				
 

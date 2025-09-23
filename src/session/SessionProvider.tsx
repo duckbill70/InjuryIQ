@@ -1,9 +1,18 @@
 import React, { createContext, useContext, useMemo, useRef, useState, useCallback, ReactNode, useEffect } from 'react';
 import { useBle } from '../ble/BleProvider';
-import { useStateControl } from '../ble/useStateControl';
+import { useStateControl, StateMode } from '../ble/useStateControl';
 import { DualImuProvider, useDualImu } from '../imu/DualImuProvider';
 import { createCombinedImuWriter, type CombinedWriter, type RawPacket } from '../imu/combinedImuWriter';
 import { useAuth } from '../auth/AuthProvider';
+import { useFatigueValue } from '../ble/useFatigueValue';
+import { useFatigueTrend } from '../ble/useFatigueTrend';
+
+type TrendPoint = { t: number; v: number };
+type FatigueTrendState = {
+  history: TrendPoint[];
+  latest: TrendPoint | null;
+  avg: number | null;
+};
 
 /** Matches your existing context shape */
 type SessionCtx = {
@@ -18,6 +27,12 @@ type SessionCtx = {
   b: ReturnType<typeof useDualImu>['b'];
   sport: SportType;
   setSport: (sport: SportType) => void;
+  fatigueA: number | null;
+  fatigueB: number | null;
+  fatigueTrendA: FatigueTrendState;
+  fatigueTrendB: FatigueTrendState;
+  stateA: ReturnType<typeof useStateControl>;
+  stateB: ReturnType<typeof useStateControl>;
 };
 
 type SportType = 'hiking' | 'running' | 'tennis' | 'padel';
@@ -89,6 +104,19 @@ function SessionBody({
   // Per-device state control (unchanged)
   const stateA = useStateControl(entryA, { subscribe: true });
   const stateB = useStateControl(entryB, { subscribe: true });
+
+  const fatigueA = useFatigueValue(entryA).value;
+  const fatigueB = useFatigueValue(entryB).value;
+
+  // NEW: downsampled, circular history (good for sparklines)
+  const trendA = useFatigueTrend(entryA, { maxPoints: 600, emitEveryMs: 250 });
+  const trendB = useFatigueTrend(entryB, { maxPoints: 600, emitEveryMs: 250 });
+  const connectedA = !!entryA?.id;
+  const connectedB = !!entryB?.id;
+  const isAOn = connectedA && stateA.supported && stateA.value !== StateMode.Off;
+  const isBOn = connectedB && stateB.supported && stateB.value !== StateMode.Off;
+  const safeFatigueTrendA: FatigueTrendState = isAOn ? trendA : { history: [], latest: null, avg: null };
+  const safeFatigueTrendB: FatigueTrendState = isBOn ? trendB : { history: [], latest: null, avg: null };
 
   const { user } = useAuth();
   const [sport, setSport] = useState<SportType>('running');
@@ -228,8 +256,14 @@ function SessionBody({
       b,
       sport,
       setSport,
+      fatigueA,
+      fatigueB,
+      fatigueTrendA: safeFatigueTrendA, // or just: trendA
+      fatigueTrendB: safeFatigueTrendB, // or just: trendB
+      stateA,
+      stateB
     }),
-    [writerRef, expectedHz, entryA, entryB, isCollectingAny, startRecording, stopRecording, a, b, sport, setSport],
+    [writerRef, expectedHz, entryA, entryB, isCollectingAny, startRecording, stopRecording, a, b, sport, setSport, fatigueA, fatigueB, stateA, stateB, safeFatigueTrendA, safeFatigueTrendB],
   );
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;

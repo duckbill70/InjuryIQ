@@ -5,9 +5,6 @@ import { Play, Square } from 'lucide-react-native';
 import { useSession } from '../session/SessionProvider';
 import { useTheme } from '../theme/ThemeContext';
 
-import { useFatigueValue } from '../ble/useFatigueValue';
-import { useFatigueTrend } from '../ble/useFatigueTrend';
-
 function Dot({ on = false }: { on?: boolean }) {
     return (
         <View
@@ -23,20 +20,26 @@ function Dot({ on = false }: { on?: boolean }) {
 
 export default function FatiguePanel() {
     const { theme } = useTheme();
-    const { entryA, entryB, a, b, sport } = useSession();
+    const { entryA, entryB, a, b, sport, fatigueA, fatigueB, fatigueTrendA, fatigueTrendB } = useSession();
 
     const recording = !!(a?.collect || b?.collect);
 
-    const hzA = a?.stats.measuredHz ?? 0;
-    const lossA = a?.stats.lossPercent ?? 0;
-    const hzB = b?.stats.measuredHz ?? 0;
-    const lossB = b?.stats.lossPercent ?? 0;
+    // latest numeric value for quick UI:
+    const latestA = fatigueTrendA.latest?.v ?? null;
+    const latestB = fatigueTrendB.latest?.v ?? null;
 
-    //Fatigue
-    const leftFatigue = useFatigueValue(entryA);
-    const leftTrend = useFatigueTrend(entryA);
-    const rightFatigue = useFatigueValue(entryB);
-    const rightTrend = useFatigueTrend(entryB);
+    // average over the (throttled) window:
+    const avgA = fatigueTrendA.avg ?? null;
+    const avgB = fatigueTrendB.avg ?? null;
+
+    // history array (for a sparkline):
+    const dataA = fatigueTrendA.history; // [{t, v}, ...]
+    const dataB = fatigueTrendB.history; // [{t, v}, ...]
+
+    // simple threshold check
+    const isHighA = latestA != null && latestA >= 80;
+    const isHighB = latestB != null && latestB >= 80;
+
 
     function toSentenceCase(str: string) {
     if (!str) return '';
@@ -57,6 +60,13 @@ export default function FatiguePanel() {
                     <Dot on={recording} />
                     <Text style={[theme.textStyles.xsmall, { marginLeft: 6 }]}>{recording ? 'Collecting' : 'Idle'}</Text>
                 </View>
+            </View>
+
+            {/* Body */}
+            <View style={[styles.rowBetween, {marginTop: 8}]}>
+                <Text style={[theme.textStyles.xsmall, styles.dim, { minWidth: 120, textAlign: 'left' }]}>
+                    {avgA} avg • {latestA} latest
+                </Text>
             </View>
 
         </View>

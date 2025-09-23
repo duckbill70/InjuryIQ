@@ -14,7 +14,7 @@ const modeSequence = [
 	StateMode.Red,
 	StateMode.Green,
 	StateMode.Blue,
-	//StateMode.Off,
+	StateMode.Off,
 ];
 
 function stateModeToTint(mode: number | null | undefined, fallback: string) {

@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Play, Square } from 'lucide-react-native';
 
 import { useSession } from '../session/SessionProvider';
+
 import { useTheme } from '../theme/ThemeContext';
 
 function Dot({ on = false }: { on?: boolean }) {
@@ -52,7 +53,10 @@ export default function SessionStatusPanel() {
 			{/* Devices */}
 			<View style={[styles.rowBetween, { marginTop: 6 }]}>
 				<View style={styles.deviceCol}>
-					<Text style={[theme.textStyles.xsmall, styles.mono, styles.dim]}>Device A</Text>
+					<View style={{flexDirection: 'row', alignItems: 'center'}}>
+						<Text style={[theme.textStyles.xsmall, styles.mono, styles.dim, {paddingRight: 4}]}>Device A</Text>
+						<Dot on={recording} />
+					</View>
 					<Text style={theme.textStyles.body2}>{entryA?.device.name ?? '—'}</Text>
 					<Text style={[theme.textStyles.xsmall, styles.dim]}>
 						{hzA.toFixed(1)} Hz • {lossA.toFixed(1)}% loss

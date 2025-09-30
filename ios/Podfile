@@ -19,6 +19,9 @@ if linkage != nil
   use_frameworks! :linkage => linkage.to_sym
 end
 
+# ios/Podfile
+permissions_path = '../node_modules/react-native-permissions/ios'
+
 target 'InjuryIQ' do
 
   config = use_native_modules!
@@ -52,4 +55,5 @@ target 'InjuryIQ' do
     end
 
   end
+
 end

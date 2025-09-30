@@ -49,7 +49,11 @@
 	<key>NSBluetoothPeripheralUsageDescription</key>
 	<string>This app uses Bluetooth to connect to nearby sensors.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string/>
+	<string>This app uses your location to record GPS position during your training sessions.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>This app uses your location even when running in the background to track your sessions accurately.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>This app uses your location to record GPS position during your training sessions.</string>
 	<key>RCTNewArchEnabled</key>
 	<true/>
 	<key>UIBackgroundModes</key>

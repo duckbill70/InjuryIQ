@@ -1,6 +1,4 @@
-import React, { createContext, useContext, useMemo, useRef, useState, useCallback, ReactNode, useEffect, Platform } from 'react';
-import Geolocation, { GeoPosition, GeoError } from 'react-native-geolocation-service';
-
+import React, { createContext, useContext, useMemo, useRef, useState, useCallback, ReactNode, useEffect } from 'react';
 import { useBle } from '../ble/BleProvider';
 import { useStateControl, StateMode } from '../ble/useStateControl';
 import { DualImuProvider, useDualImu } from '../imu/DualImuProvider';
@@ -8,9 +6,6 @@ import { createCombinedImuWriter, type CombinedWriter, type RawPacket } from '..
 import { useAuth } from '../auth/AuthProvider';
 import { useFatigueValue } from '../ble/useFatigueValue';
 import { useFatigueTrend } from '../ble/useFatigueTrend';
-
-//import { ensurePermission } from './ensurePermission';
-import { ensureGpsAuthorization } from './getPermissions';
 
 type TrendPoint = { t: number; v: number };
 type FatigueTrendState = {
@@ -105,109 +100,8 @@ function SessionBody({ children, expectedHz, writerRef, userMeta }: { children: 
 	const { user } = useAuth();
 	const [sport, setSport] = useState<SportType>('running');
 
-	const [writerReady, setWriterReady] = useState(false);
-
 	// Track intent so we only emit events while "recording"
 	const intendedRecordingRef = useRef(false);
-
-	// Start a GPS watch when we have an active writer (i.e., during recording)
-	useEffect(() => {
-		if (!writerReady) return; // wait until writer is live
-
-		const w = writerRef.current;
-		if (!w) return; // extra guard
-
-		if (__DEV__) console.log('[gps] Start a GPS watch - writer active');
-
-		let watchId: number | null = null;
-		let cancelled = false;
-
-		async function startWatch() {
-			const ok = await ensureGpsAuthorization('whenInUse'); // or 'always' if you truly need it
-			if (__DEV__) console.log('[gps] ensurePermission ->', ok);
-			if (!ok || cancelled) {
-				w.setGps?.(null, 'perm_denied_rngls');
-				return;
-			}
-
-			//const ok = await ensurePermission(w);
-			//const ok = await ensureGpsAuthorization('whenInUse')
-			//if ( __DEV__) console.log('[gps] ensurePermission ->', ok);
-			//if (!ok || cancelled) return;
-
-			// Try a single-shot first to see if we can get an immediate fix
-			Geolocation.getCurrentPosition(
-				(pos: GeoPosition) => {
-					if (__DEV__) console.log('[gps] getCurrentPosition OK', pos.coords);
-					w.setGps?.(
-						{
-							lat: pos.coords.latitude,
-							lon: pos.coords.longitude,
-							acc: pos.coords.accuracy ?? undefined,
-							alt: pos.coords.altitude ?? undefined,
-							altAcc: pos.coords.altitudeAccuracy ?? undefined,
-							speed: pos.coords.speed ?? undefined,
-							heading: pos.coords.heading ?? undefined,
-							ts: pos.timestamp,
-						},
-						'single_shot_ok',
-					);
-				},
-				(err: GeoError) => {
-					console.warn('[gps] getCurrentPosition ERR', err);
-					w.setGps?.(null, `single_shot_err:${err.code}:${err.message}`);
-				},
-				{
-					enableHighAccuracy: true,
-					timeout: 8000,
-					maximumAge: 0,
-				},
-			);
-
-			// Then start continuous watch
-			watchId = Geolocation.watchPosition(
-				(pos: GeoPosition) => {
-					if (__DEV__) console.log('[gps] watch OK', pos.coords);
-					w.setGps?.(
-						{
-							lat: pos.coords.latitude,
-							lon: pos.coords.longitude,
-							acc: pos.coords.accuracy ?? undefined,
-							alt: pos.coords.altitude ?? undefined,
-							altAcc: pos.coords.altitudeAccuracy ?? undefined,
-							speed: pos.coords.speed ?? undefined,
-							heading: pos.coords.heading ?? undefined,
-							ts: pos.timestamp,
-						},
-						'watch_ok',
-					);
-				},
-				(err: GeoError) => {
-					console.warn('[gps] watch ERR', err);
-					w.setGps?.(null, `watch_err:${err.code}:${err.message}`);
-				},
-				{
-					enableHighAccuracy: true,
-					distanceFilter: 0,
-					interval: 1000,
-					fastestInterval: 1000,
-					showsBackgroundLocationIndicator: true, // iOS hint
-					forceRequestLocation: true, // RNGLS option to nudge a reading
-					forceLocationManager: true, // iOS: use CLLocationManager directly
-				},
-			);
-		}
-
-		startWatch();
-
-		return () => {
-			if (__DEV__) console.log('[gps] stop watch (writer not ready)');
-			cancelled = true
-			if (watchId != null) Geolocation.clearWatch(watchId);
-			writerRef.current?.setGps?.(null, 'cleanup_unmount');
-		};
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [writerReady]); // run once per recording session mount
 
 	// Convenience emitter (no-op if writer doesn’t implement it)
 	const emitDeviceEvent = useCallback(
@@ -217,7 +111,6 @@ function SessionBody({ children, expectedHz, writerRef, userMeta }: { children: 
 		},
 		[writerRef],
 	);
-
 	const emitSessionEvent = useCallback(
 		(event: 'session_start' | 'session_stop') => {
 			const wr = writerRef.current as CombinedWriterWithEvents | null;
@@ -226,15 +119,7 @@ function SessionBody({ children, expectedHz, writerRef, userMeta }: { children: 
 		[writerRef],
 	);
 
-	// inside SessionBody in SessionProvider.tsx (after you have `a`, `b`, and writerRef)
-	// a?.stats and b?.stats come from DualImuProvider/useImuIngress
-	useEffect(() => {
-		const w = writerRef.current;
-		if (!w) return;
-		// push latest stats (undefined -> null internally)
-		w.setStatsA(a?.stats);
-		w.setStatsB(b?.stats);
-	}, [a?.stats, b?.stats, writerRef]);
+	
 
 	const startRecording = useCallback(async () => {
 		if (isCollectingAny || intendedRecordingRef.current) {
@@ -257,7 +142,6 @@ function SessionBody({ children, expectedHz, writerRef, userMeta }: { children: 
 				},
 			});
 			await writerRef.current.start();
-			setWriterReady(true);
 			emitSessionEvent('session_start');
 			if (__DEV__) console.log('[CTRL] writer started at', writerRef.current.path);
 		} catch (err) {
@@ -299,7 +183,6 @@ function SessionBody({ children, expectedHz, writerRef, userMeta }: { children: 
 		emitSessionEvent('session_stop');
 
 		try {
-			setWriterReady(false);
 			await writerRef.current?.stop?.();
 		} catch {}
 		writerRef.current = null;

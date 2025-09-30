@@ -1,0 +1,7 @@
+# ios/permissions.yml
+permissions:
+  - LocationWhenInUse
+  # Add this only if you actually ship background GPS:
+  - LocationAlways
+  # Optional:
+  # - LocationAccuracy

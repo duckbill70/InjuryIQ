@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { TouchableOpacity, Text, View, StyleSheet } from 'react-native';
+import { Text, View, StyleSheet } from 'react-native';
 import { DataTable, IconButton } from 'react-native-paper';
 import Share from 'react-native-share';
 import RNFS from 'react-native-fs';

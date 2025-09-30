@@ -28,37 +28,55 @@ export default function HomeScreen() {
 	const { scanning, startScan, isPoweredOn } = useBle();
 	const { entryA, entryB, writerRef, expectedHz } = useSession();
 
-	//<ImageBackground source={require('../../assets/padel-tennis-2.png')} style={{ ...StyleSheet.absoluteFillObject }} imageStyle={{ resizeMode: 'cover' }}>{content}</ImageBackground>
-
 	return (
-		
-			<ScrollView style={{ flex: 1, paddingVertical: 60, paddingHorizontal: 10, backgroundColor: theme?.colors?.teal }}>
-				{/* Session Manager */}
-				<View style={{ marginBottom: 10 }}>
-					<SessionStatusPanel />
+		<ImageBackground source={require('../../assets/padel-tennis-2.png')} style={{ ...StyleSheet.absoluteFillObject }} imageStyle={{ resizeMode: 'cover' }}>
+			<ScrollView style={{ flex: 1, paddingVertical: 60, paddingHorizontal: 6 }}>
+				{/* Header */}
+				<View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 8 }}>
+					{/* Scan Button */}
+					<TouchableOpacity onPress={() => startScan({ timeoutMs: 1500, maxDevices: 2 })} style={[theme.viewStyles.button, { backgroundColor: scanning ? 'grey' : theme.colors.primary, margin: 10 }]} disabled={scanning || !isPoweredOn}>
+						{scanning ? <BluetoothSearchingIcon size={24} color='white' /> : <Bluetooth size={24} color='white' />}
+					</TouchableOpacity>
+
+					{/* Session Recordings */}
+					<TouchableOpacity onPress={() => navigation.navigate('Recordings', { someParam: 'hello' })} style={[theme.viewStyles.button, { margin: 10, backgroundColor: theme?.colors?.danger }]}>
+						<CassetteTape size={24} color='white' />
+					</TouchableOpacity>
+
+					{/* Sign Out */}
+					<TouchableOpacity onPress={() => signOut()} style={[theme.viewStyles.button, { margin: 10 }]}>
+						<LogOut size={24} color='white' />
+					</TouchableOpacity>
 				</View>
 
 				{/* Device Boxes */}
+				<View style={{ padding: 8 }}>
+					<View style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 8, }} >
+						{entryA ? <DeviceBox key={entryA.id} item={entryA} /> : <Placeholder />}
+						{entryB ? <DeviceBox key={entryB.id} item={entryB} /> : <Placeholder />}
+					</View>
+				</View>
 
-				<View style={{ marginBottom: 10, flexDirection: 'row', justifyContent: 'space-between' }}>
-					{entryA ? <DeviceBox key={entryA.id} item={entryA} /> : <Placeholder />}
-					{entryB ? <DeviceBox key={entryB.id} item={entryB} /> : <Placeholder />}
+				{/* Session Manager */}
+				<View style={{ padding: 8, marginHorizontal: 10 }}>
+					<SessionStatusPanel />
 				</View>
 
 				{/* Sport Manager */}
-				<View style={{ marginBottom: 10 }}>
+				<View style={{ padding: 8, marginHorizontal: 10 }}>
 					<SportStatusPanel />
 				</View>
 
 				{/* Status Manager */}
-				<View style={{ marginBottom: 10 }}>
+				<View style={{ padding: 8, marginHorizontal: 10 }}>
 					<DeviceStatusPanel />
 				</View>
 
 				{/* Fatigue Panel */}
-				<View style={{ marginBottom: 10 }}>
+				<View style={{ padding: 8, marginHorizontal: 10 }}>
 					<FatiguePanel />
 				</View>
+
 
 				{/* Footer 
 				<View style={{ margin: 10, borderColor: theme.colors.dgrey, borderTopWidth: 1, paddingTop: 10, }} >
@@ -67,7 +85,7 @@ export default function HomeScreen() {
 					<View style={{ height: 8 }} />
 				</View> */}
 			</ScrollView>
-
+		</ImageBackground>
 	);
 }
 

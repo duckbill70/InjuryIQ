@@ -16,11 +16,7 @@ type BleContextValue = {
 	scanning: boolean;
 	knownServiceUUID: string;
 	foundDeviceIds: string[];
-	connected: Record<string, ConnectedDevice>; // unchanged
-	// NEW: sticky role outputs (use these instead of guessing from Object.values)
-	entryA?: ConnectedDevice;
-	entryB?: ConnectedDevice;
-
+	connected: Record<string, ConnectedDevice>;
 	startScan: (opts?: StartScanOpts) => Promise<void>;
 	stopScan: () => void;
 	disconnectDevice: (id: string) => Promise<void>;
@@ -50,7 +46,7 @@ type RetryState = {
 	attempt: number;
 	timer?: ReturnType<typeof setTimeout> | null;
 	lastError?: any;
-	manual?: boolean;
+	manual?: boolean; // true if user requested connect flow (we treat disconnects as “unexpected” when manual=false)
 };
 
 export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
@@ -91,28 +87,6 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 	// Per-device reconnect state
 	const retryMapRef = useRef<Record<string, RetryState>>({});
 
-	// ---------- NEW: Sticky roles ----------
-	// We remember which device id is A / B and never swap them.
-	const roleAIdRef = useRef<string | null>(null);
-	const roleBIdRef = useRef<string | null>(null);
-
-	const ensureRoleForId = (id: string) => {
-		// If already assigned to A or B, done
-		if (roleAIdRef.current === id || roleBIdRef.current === id) return;
-
-		// Assign first available role
-		if (!roleAIdRef.current) {
-			roleAIdRef.current = id;
-			return;
-		}
-		if (!roleBIdRef.current) {
-			roleBIdRef.current = id;
-			return;
-		}
-		// If both roles are already taken by OTHER ids, we do nothing:
-		// app expects max 2, so any extras are unassigned (not exposed as entryA/B).
-	};
-
 	const clearRetryTimer = (id: string) => {
 		const r = retryMapRef.current[id];
 		if (r?.timer) {
@@ -122,11 +96,9 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 	};
 
 	const scheduleReconnect = (id: string) => {
-		const st = (retryMapRef.current[id] ??= {
-			attempt: 0,
-			timer: null,
-			manual: false,
-		});
+		// If the app no longer “wants” this device (not in connected map),
+		// we still attempt reconnect for a short while to be resilient.
+		const st = (retryMapRef.current[id] ??= { attempt: 0, timer: null, manual: false });
 
 		clearRetryTimer(id);
 		const delay = expoBackoff(st.attempt);
@@ -137,6 +109,7 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 		st.timer = setTimeout(async () => {
 			try {
 				await tryReconnect(id);
+				// success resets attempt
 				const now = retryMapRef.current[id];
 				if (now) now.attempt = 0;
 			} catch (e) {
@@ -144,7 +117,7 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 				const now = retryMapRef.current[id];
 				if (now) {
 					now.lastError = e;
-					scheduleReconnect(id);
+					scheduleReconnect(id); // keep trying with capped backoff
 				}
 			}
 		}, delay);
@@ -185,21 +158,20 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 			characteristicsByService,
 		};
 
-		// Assign/ensure sticky role BEFORE writing to state so entryA/entryB derive correctly
-		ensureRoleForId(device.id);
-
 		setConnected((prev) => ({ ...prev, [device.id]: entry }));
 	};
 
 	const registerDisconnectHandler = (id: string) => {
+		// Remove any previous listener by re-registering (library keeps latest)
 		managerRef.current.onDeviceDisconnected(id, (error, dev) => {
 			if (__DEV__) console.warn(`[BLE] onDeviceDisconnected ${id}`, error?.message ?? '');
-			// NOTE: we remove from connected, BUT we DO NOT clear roleAId/roleBId.
+			// Remove from connected state so consumers see it as unavailable
 			setConnected((prev) => {
 				const next = { ...prev };
 				delete next[id];
 				return next;
 			});
+			// Kick off reconnect attempts (unexpected drop)
 			scheduleReconnect(id);
 		});
 	};
@@ -208,14 +180,11 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 		const manager = managerRef.current;
 		if (connectedRef.current[device.id]) return;
 
-		(retryMapRef.current[device.id] ??= {
-			attempt: 0,
-			timer: null,
-			manual: !!opts?.manual,
-		}).manual = !!opts?.manual;
+		// mark retry state
+		(retryMapRef.current[device.id] ??= { attempt: 0, timer: null, manual: !!opts?.manual }).manual = !!opts?.manual;
 
 		const connectedDevice = await manager.connectToDevice(device.id, {
-			autoConnect: false,
+			autoConnect: false, // we control the backoff ourselves for determinism
 		});
 
 		if (Platform.OS === 'android') {
@@ -227,17 +196,18 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 		registerDisconnectHandler(device.id);
 		await discoverAllForDevice(connectedDevice);
 
+		// on success: clear retry state
 		clearRetryTimer(device.id);
 		if (retryMapRef.current[device.id]) retryMapRef.current[device.id].attempt = 0;
 	};
 
+	// Reconnect by ID (no Device object needed)
 	const tryReconnect = async (id: string) => {
 		await ensurePoweredOn();
+		// If it was reconnected elsewhere already, skip
 		if (connectedRef.current[id]) return;
 
-		const d = await managerRef.current.connectToDevice(id, {
-			autoConnect: false,
-		});
+		const d = await managerRef.current.connectToDevice(id, { autoConnect: false });
 		if (Platform.OS === 'android') {
 			try {
 				await d.requestMTU(185);
@@ -248,6 +218,9 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 		if (__DEV__) console.log(`[BLE] reconnected ${id}`);
 	};
 
+	/**
+	 * UI live-scan: updates context state as devices arrive; no connects here.
+	 */
 	const startScan: BleContextValue['startScan'] = async (opts) => {
 		if (scanning) return;
 		await ensurePoweredOn();
@@ -277,7 +250,7 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 			discoveredIdsRef.current.add(id);
 			setFoundDeviceIds(Array.from(discoveredIdsRef.current));
 
-			// Eager connect
+			// OPTIONAL: eager connect as they appear
 			connectToDevice(device, { manual: true }).catch((e) => console.warn('Connect failed', e));
 
 			if (discoveredIdsRef.current.size >= maxDevices) {
@@ -289,6 +262,7 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 
 	const disconnectDevice = async (id: string) => {
 		const manager = managerRef.current;
+		// If user explicitly disconnects, stop any auto-retries
 		clearRetryTimer(id);
 		delete retryMapRef.current[id];
 
@@ -304,7 +278,6 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 			});
 			setFoundDeviceIds((prev) => prev.filter((x) => x !== id));
 			discoveredIdsRef.current.delete(id);
-			// IMPORTANT: do NOT clear roleAId/roleBId — sticky roles persist
 		}
 	};
 
@@ -352,16 +325,11 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 		});
 	};
 
-	// Derive sticky entries A/B from role ids + current connections
-	const entryA = roleAIdRef.current ? connected[roleAIdRef.current] ?? undefined : undefined;
-	const entryB = roleBIdRef.current ? connected[roleBIdRef.current] ?? undefined : undefined;
-
 	useEffect(() => {
 		if (__DEV__) {
 			console.log('scanning:', scanning);
 			console.log('foundDeviceIds:', foundDeviceIds);
 			console.log('connected keys:', Object.keys(connected));
-			console.log('roles:', { A: roleAIdRef.current, B: roleBIdRef.current });
 		}
 	}, [foundDeviceIds, scanning, connected]);
 
@@ -371,15 +339,13 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 			knownServiceUUID: KNOWN_SERVICE_UUID,
 			foundDeviceIds,
 			connected,
-			entryA,
-			entryB,
 			startScan,
 			stopScan,
 			disconnectDevice,
 			isPoweredOn,
 			scanOnce,
 		}),
-		[scanning, foundDeviceIds, connected, isPoweredOn, entryA, entryB],
+		[scanning, foundDeviceIds, connected, isPoweredOn],
 	);
 
 	return <BleContext.Provider value={value}>{children}</BleContext.Provider>;

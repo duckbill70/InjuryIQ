@@ -1,12 +1,54 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { SegmentedButtons } from 'react-native-paper';
+import { View, StyleSheet, TouchableOpacity, Text, Platform } from 'react-native';
 
 import { useSession } from '../session/SessionProvider';
 import { useTheme } from '../theme/ThemeContext';
 
-export default function SportStatusPanel() {
+import { SportType } from '../session/types';
+
+interface SportSegmentedControlProps {
+	sport: SportType;
+	setSport: (sport: SportType) => void;
+	recording: boolean;
+	btntheme: any; // Replace with your actual theme type if available
+}
+
+const sports: { value: SportType; label: string }[] = [
+	{ value: 'running', label: 'Run' },
+	{ value: 'hiking', label: 'Hike' },
+	{ value: 'padel', label: 'Padel' },
+	{ value: 'tennis', label: 'Tennis' },
+];
+
+function SportSegmentedControl({ sport, setSport, recording, btntheme }: SportSegmentedControlProps) {
+
 	const { theme } = useTheme();
+
+	return (
+		<View style={{ flexDirection: 'row', borderRadius: 8, overflow: 'hidden', gap: 10 }}>
+			{sports.map(({ value, label }) => (
+				<TouchableOpacity
+					key={value}
+					style={[btntheme.btn, {
+						flex: 1,
+						alignItems: 'center',
+						backgroundColor: value === sport ? theme?.colors?.teal : theme?.colors?.muted,
+						borderColor: value === sport ? theme?.colors?.teal : theme?.colors?.muted,
+						opacity: recording ? 0.6 : 1,
+						justifyContent: 'center'
+					}]}
+					onPress={() => setSport(value)}
+					disabled={recording}
+				>
+					<Text style={btntheme.btnLabel}>{label}</Text>
+				</TouchableOpacity>
+			))}
+		</View>
+	);
+}
+
+export default function SportStatusPanel() {
+	//const { theme } = useTheme();
 	const { a, b } = useSession();
 
 	// sport
@@ -17,26 +59,7 @@ export default function SportStatusPanel() {
 	return (
 		<View style={[styles.card, { backgroundColor: 'white', opacity: 0.9 }]}>
 			{/*--- Sport? ---*/}
-			<SegmentedButtons
-				value={sport}
-				onValueChange={setSport}
-				buttons={[
-					{ value: 'hiking', label: 'Hike', disabled: recording },
-					{ value: 'running', label: 'Run', disabled: recording },
-					{ value: 'padel', label: 'Padel', disabled: recording },
-					{ value: 'tennis', label: 'Tennis', disabled: recording },
-				]}
-				theme={{
-					colors: {
-						// selected segment background & label/icon
-						secondaryContainer: theme?.colors?.primary,
-						onSecondaryContainer: theme?.colors?.white,
-						// container/segment outlines
-						outline: theme?.colors?.muted,
-						onSurface: theme?.colors?.muted,
-					},
-				}}
-			/>
+			<SportSegmentedControl sport={sport} setSport={setSport} recording={recording} btntheme={styles} />
 		</View>
 	);
 }

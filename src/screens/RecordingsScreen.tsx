@@ -20,32 +20,22 @@ export default function RecordingsScreen() {
 	const { theme } = useTheme();
 
 	return (
-		<ImageBackground source={require('../../assets/multi-runner.png')} style={{ ...StyleSheet.absoluteFillObject }} imageStyle={{ resizeMode: 'cover' }}>
-			<ScrollView style={{ flex: 1, paddingVertical: 60, paddingHorizontal: 10 }}>
+
+			<ScrollView style={{ flex: 1, paddingVertical: 60, paddingHorizontal: 10, backgroundColor: 'teal' }}>
 				{/* <Text>Other screen!</Text>
 				<Text>Param: {route.params?.someParam}</Text> */}
 
 				{/* Header */}
-				<View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 8 }}>
-					{/* Scan Button */}
-					<TouchableOpacity onPress={() => navigation.goBack()} style={[theme.viewStyles.button, { margin: 10 }]}>
-						<ArrowBigLeft size={24} color='white' />
-					</TouchableOpacity>
-
-					{/* Sign Out */}
-					<TouchableOpacity onPress={() => signOut()} style={[theme.viewStyles.button, { margin: 10 }]}>
-						<LogOut size={24} color='white' />
-					</TouchableOpacity>
+				<View style={{ marginBottom: 10 }}>
+					<SessionStatusPanel />
 				</View>
 
 				{/* File Content */}
-				<FileTable />
-
-				{/* Footer */}
-				<View style={{ marginVertical: 10 }}>
-					<SessionStatusPanel />
+				<View style={{ marginBottom: 10 }}>
+					<FileTable />
 				</View>
+				
 			</ScrollView>
-		</ImageBackground>
+
 	);
 }

@@ -60,7 +60,7 @@ function RowInfo({ filePath, file, theme }) {
 
 	return (
 		<View style={{ flexDirection: 'column', padding: 9 }}>
-			<Text style={[theme?.textStyles?.xsmall, { color: theme?.colors?.black, fontWeight: 'bold' }]}>{`${sport}`}</Text>
+			<Text style={[theme?.textStyles?.body2, { color: theme?.colors?.black, fontWeight: 'bold' }]}>{`${sport}`}</Text>
 			<Text style={[theme?.textStyles?.xsmall, { color: theme?.colors?.muted, fontWeight: 'bold' }]}>{`${duration}`}</Text>
 			<Text style={[theme?.textStyles?.xsmall, { color: theme?.colors?.muted, fontWeight: 'bold' }]}>{file.mtime ? new Date(file.mtime).toLocaleDateString() : ''}</Text>
 			<Text style={[theme?.textStyles?.xsmall, { color: theme?.colors?.muted, fontWeight: 'bold' }]}>{file.mtime ? new Date(file.mtime).toLocaleTimeString() : ''}</Text>
@@ -75,7 +75,7 @@ export default function FileTable() {
 	const [sortDesc, setSortDesc] = useState(true);
 	const { theme } = useTheme();
 
-	const itemsPerPage = 5;
+	const itemsPerPage = 6;
 
 	useEffect(() => {
 		(async () => {
@@ -124,15 +124,15 @@ export default function FileTable() {
 			<DataTable>
 				<DataTable.Header>
 					<DataTable.Title style={{ justifyContent: 'flex-start' }} sortDirection={sortKey === 'mtime' ? (sortDesc ? 'descending' : 'ascending') : undefined} onPress={() => toggleSort('mtime')}>
-						<Text style={[theme?.textStyles?.xsmall, { color: theme?.colors?.black, fontWeight: 'bold' }]}>Modified</Text>
+						<Text style={[theme?.textStyles?.body, { color: theme?.colors?.black, fontWeight: 'bold' }]}>Modified</Text>
 					</DataTable.Title>
 
 					<DataTable.Title numeric sortDirection={sortKey === 'size' ? (sortDesc ? 'descending' : 'ascending') : undefined} onPress={() => toggleSort('size')}>
-						<Text style={[theme?.textStyles?.xsmall, { color: theme?.colors?.black, fontWeight: 'bold' }]}>Size</Text>
+						<Text style={[theme?.textStyles?.body, { color: theme?.colors?.black, fontWeight: 'bold' }]}>Size</Text>
 					</DataTable.Title>
 
 					<DataTable.Title numeric style={{ justifyContent: 'center' }}>
-						<Text style={[theme?.textStyles?.xsmall, { color: theme?.colors?.black, fontWeight: 'bold' }]}>Action</Text>
+						<Text style={[theme?.textStyles?.body, { color: theme?.colors?.black, fontWeight: 'bold' }]}>Action</Text>
 					</DataTable.Title>
 				</DataTable.Header>
 
@@ -143,7 +143,7 @@ export default function FileTable() {
 						</DataTable.Cell>
 
 						<DataTable.Cell numeric>
-							<Text style={[theme?.textStyles?.xsmall, { color: theme?.colors?.black, fontWeight: 'bold' }]}>{bytes(f.size)}</Text>
+							<Text style={[theme?.textStyles?.body2, { color: theme?.colors?.black, fontWeight: 'bold' }]}>{bytes(f.size)}</Text>
 						</DataTable.Cell>
 
 						<DataTable.Cell numeric>
@@ -158,8 +158,8 @@ export default function FileTable() {
 				<DataTable.Pagination
 					theme={{
 						colors: {
-							primary: '#FF8212',
-							onSurfaceVariant: '#FF8212',
+							primary: theme?.colors?.primary, //'#FF8212',
+							onSurfaceVariant: theme?.colors?.primary, //'#FF8212',
 						},
 					}}
 					page={page}

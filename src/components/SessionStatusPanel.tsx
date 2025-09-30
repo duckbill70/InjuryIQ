@@ -1,9 +1,10 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Play, Square } from 'lucide-react-native';
+import { BluetoothSearchingIcon, Bluetooth } from 'lucide-react-native';
 
 import { useSession } from '../session/SessionProvider';
-
+import { useBle } from '../ble/BleProvider';
 import { useTheme } from '../theme/ThemeContext';
 import { StateMode } from '../ble/useStateControl';
 
@@ -23,7 +24,7 @@ function Dot({ on = false }: { on?: boolean }) {
 export default function SessionStatusPanel() {
 	const { theme } = useTheme();
 	const { entryA, entryB, a, b, startRecording, stopRecording, sport, stateA, stateB } = useSession();
-
+	const { scanning, startScan, isPoweredOn } = useBle();
 	const recording = !!(a?.collect || b?.collect);
 
 	const hzA = a?.stats.measuredHz ?? 0;
@@ -77,14 +78,31 @@ export default function SessionStatusPanel() {
 			</View>
 
 			{/* Controls */}
-			<View style={[styles.rowCenter, { marginTop: 10, gap: 12 }]}>
+			<View style={[styles.rowCenter, { marginTop: 10, gap: 12, justifyContent: 'space-between' }]}>
+
+				<TouchableOpacity
+					onPress={() => startScan({ timeoutMs: 1500, maxDevices: 2 })}
+					disabled={scanning || !isPoweredOn}
+					style={[
+						styles.btn,
+						{
+							backgroundColor: scanning ? 'grey' : theme.colors.primary,
+							opacity: scanning ? 0.6 : 1,
+						},
+					]}
+				>
+					{scanning ? <BluetoothSearchingIcon size={18} color='white' /> : <Bluetooth size={18} color='white' />}
+					<Text style={[styles.btnLabel]}>{scanning ? 'Scan' : 'Scan'}</Text>
+				</TouchableOpacity>
+
+				<View style={[styles.rowCenter, {gap: 12, }]}>
 				<TouchableOpacity
 					onPress={startRecording}
 					disabled={recording}
 					style={[
 						styles.btn,
 						{
-							backgroundColor: recording ? theme.colors.muted : theme.colors.primary,
+							backgroundColor: recording ? theme.colors.muted : theme.colors.teal,
 							opacity: recording ? 0.6 : 1,
 						},
 					]}
@@ -107,6 +125,7 @@ export default function SessionStatusPanel() {
 					<Square size={18} color='white' />
 					<Text style={styles.btnLabel}>Stop</Text>
 				</TouchableOpacity>
+				</View>
 			</View>
 		</View>
 	);

@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, ImageBackground, StyleSheet } from 'react-native';
 import type { Device, Characteristic } from 'react-native-ble-plx';
 import { useTheme } from '../theme/ThemeContext';
 import { useRssi } from '../ble/useRssi';

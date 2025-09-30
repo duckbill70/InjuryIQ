@@ -67,7 +67,7 @@ export default function AuthScreen() {
 								<View style={{ height: 0 }} />
 								<Button disabled={true} title='Forgot Password' onPress={() => run(() => sendPasswordReset(email))} />
 								<View style={{ height: 0 }} />
-								<Button disabled={true} title='Continue Anonymously' onPress={() => run(() => signInAnonymously())} />
+								<Button disabled={false} title='Continue Anonymously' onPress={() => run(() => signInAnonymously())} />
 							</>
 						)}
 						{!!error && <Text style={styles.error}>{error}</Text>}

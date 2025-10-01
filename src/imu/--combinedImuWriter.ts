@@ -254,11 +254,6 @@ export type CombinedWriter = {
 
 	/** Flush & close the file. Safe to call multiple times. */
 	stop(reason?: 'user' | 'timeout' | 'error' | 'appBackground'): Promise<StopResult>;
-
-	/** NEW for Pause, Resume */
-	pause(): void;
-	resume(): void;
-	isPaused(): boolean;
 };
 
 type FactoryOptions = {
@@ -305,9 +300,6 @@ export function createCombinedImuWriter(opts: FactoryOptions) {
 	let stateA: unknown = null;
 	let stateB: unknown = null;
 
-	let paused = false;
-	const segments: Array<{type: 'start' | 'pause' | 'resume' | 'stop'; t: number}> = [];
-
 	const filename = `${sessionName}__${isoForFilename()}.ndjson`;
 
 	async function start() {
@@ -339,7 +331,6 @@ export function createCombinedImuWriter(opts: FactoryOptions) {
 				cadence: 1, // Hz
 			},
 		});
-		segments.push({type: 'start', t: Date.now()});
 
 		if (__DEV__) console.log('[CombinedWriter] started', { path: filePath, idA, idB, expectedHz });
 	}
@@ -362,29 +353,11 @@ export function createCombinedImuWriter(opts: FactoryOptions) {
 		}
 	}
 
-	function pause() {
-		if (!paused) {
-			paused = true
-			segments.push({type: 'pause', t: Date.now()})
-		}
-	}
-
-	function resume() {
-		if (paused) {
-			paused = false
-			segments.push({type: 'resume', t: Date.now()})
-		}
-	}
-
-	function isPaused() { return paused };
-
 	function onBatchA(batch?: RawPacket[] | null) {
-		if (paused || !batch?.length) return;
 		appendRows('A', batch);
 	}
 
 	function onBatchB(batch?: RawPacket[] | null) {
-		if (paused || !batch?.length) return;
 		appendRows('B', batch);
 	}
 
@@ -422,8 +395,6 @@ export function createCombinedImuWriter(opts: FactoryOptions) {
 			return { path: filePath ?? `${dirAbs}/${filename}`, rows: 0, bytes: 0 };
 		}
 
-		segments.push({type: 'stop', t: Date.now()});
-
 		if (low) {
 			const totals = low.getCounts();
 			low.append({
@@ -458,9 +429,6 @@ export function createCombinedImuWriter(opts: FactoryOptions) {
 		setGps, // <— exposes the passthrough to low?.setGps
 		writeHeaderNow,
 		stop,
-		pause,
-		resume,
-		isPaused,
 		// exposed (optional) — SessionProvider will call if present
 		onDeviceEvent,
 	} as CombinedWriter & { onDeviceEvent?: (ev: { t: number; which?: 'A' | 'B'; event: string }) => void };

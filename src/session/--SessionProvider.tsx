@@ -25,23 +25,9 @@ type SessionCtx = {
 	expectedHz: number;
 	entryA?: ReturnType<typeof useDualImu>['entryA'];
 	entryB?: ReturnType<typeof useDualImu>['entryB'];
-
-	/** NEW — explicit session flags */
-	sessionActive: boolean; // true between start..stop (even if paused)
-	collecting: boolean; // true when actively writing rows (sessionActive && !isPaused)
-
-	/** Back-compat (was used in UI) */
 	isCollecting: boolean;
-
 	startRecording: () => Promise<void>;
 	stopRecording: () => Promise<void>;
-
-	//NEW - Pause and Resume
-	isPaused: boolean;
-	pauseRecording: () => void;
-	resumeRecording: () => void;
-	togglePause: () => void;
-
 	a: ReturnType<typeof useDualImu>['a'];
 	b: ReturnType<typeof useDualImu>['b'];
 	sport: SportType;
@@ -119,126 +105,109 @@ function SessionBody({ children, expectedHz, writerRef, userMeta }: { children: 
 	const { user } = useAuth();
 	const [sport, setSport] = useState<SportType>('running');
 
-	/** New lifecycle flags */
-	const [sessionActive, setSessionActive] = useState(false);
-	const [paused, setPaused] = useState(false);
-
-	/** Derived collecting flag: writing rows right now */
-	const collecting = sessionActive && !paused;
-
-	/** Some existing UI referenced this; keep for back-compat */
-	const isCollecting = collecting;
-
-	/** Track “intended” recording to drive per-device drop/resume behavior */
-	const intendedRecordingRef = useRef(false);
-
 	const [writerReady, setWriterReady] = useState(false);
 
-	// keep UI in sync if someone introspects writer directly (defensive)
+	// Track intent so we only emit events while "recording"
+	const intendedRecordingRef = useRef(false);
+
+	// Start a GPS watch when we have an active writer (i.e., during recording)
 	useEffect(() => {
-		const id = setInterval(() => {
-			const w = writerRef.current;
-			if (!w) return;
-			const now = !!w.isPaused?.();
-			setPaused((prev) => (prev !== now ? now : prev));
-		}, 500);
-		return () => clearInterval(id);
-	}, [writerRef]);
+		if (!writerReady) return; // wait until writer is live
 
-	/** Push live stats to writer for context/CSV footer */
-	useEffect(() => {
-		const w = writerRef.current as CombinedWriterWithEvents | null;
-		if (!w) return;
-		w.setStatsA?.(a?.stats);
-		w.setStatsB?.(b?.stats);
-	}, [a?.stats, b?.stats, writerRef]);
+		const w = writerRef.current;
+		if (!w) return; // extra guard
 
-	/** GPS handling — tied *strictly* to sessionActive; also pauses with session */
-	const gpsWatchIdRef = useRef<number | null>(null);
+		if (__DEV__) console.log('[gps] Start a GPS watch - writer active');
 
-	const setGps = useCallback(
-		(coords: GeoPosition['coords'] | null, tag?: string) => {
-			const w = writerRef.current as CombinedWriterWithEvents | null;
-			if (!w?.setGps) return;
-			if (!coords) {
-				w.setGps(null, tag);
+		let watchId: number | null = null;
+		let cancelled = false;
+
+		async function startWatch() {
+			const ok = await ensureGpsAuthorization('whenInUse'); // or 'always' if you truly need it
+			if (__DEV__) console.log('[gps] ensurePermission ->', ok);
+			if (!ok || cancelled) {
+				w.setGps?.(null, 'perm_denied_rngls');
 				return;
 			}
-			w.setGps(
-				{
-					lat: coords.latitude,
-					lon: coords.longitude,
-					acc: coords.accuracy ?? undefined,
-					alt: coords.altitude ?? undefined,
-					altAcc: coords.altitudeAccuracy ?? undefined,
-					speed: coords.speed ?? undefined,
-					heading: coords.heading ?? undefined,
-					ts: Date.now(),
+
+			//const ok = await ensurePermission(w);
+			//const ok = await ensureGpsAuthorization('whenInUse')
+			//if ( __DEV__) console.log('[gps] ensurePermission ->', ok);
+			//if (!ok || cancelled) return;
+
+			// Try a single-shot first to see if we can get an immediate fix
+			Geolocation.getCurrentPosition(
+				(pos: GeoPosition) => {
+					if (__DEV__) console.log('[gps] getCurrentPosition OK', pos.coords);
+					w.setGps?.(
+						{
+							lat: pos.coords.latitude,
+							lon: pos.coords.longitude,
+							acc: pos.coords.accuracy ?? undefined,
+							alt: pos.coords.altitude ?? undefined,
+							altAcc: pos.coords.altitudeAccuracy ?? undefined,
+							speed: pos.coords.speed ?? undefined,
+							heading: pos.coords.heading ?? undefined,
+							ts: pos.timestamp,
+						},
+						'single_shot_ok',
+					);
 				},
-				tag,
+				(err: GeoError) => {
+					console.warn('[gps] getCurrentPosition ERR', err);
+					w.setGps?.(null, `single_shot_err:${err.code}:${err.message}`);
+				},
+				{
+					enableHighAccuracy: true,
+					timeout: 8000,
+					maximumAge: 0,
+				},
 			);
-		},
-		[writerRef],
-	);
 
-	const startGpsWatch = useCallback(async () => {
-		if (gpsWatchIdRef.current != null) return;
-		const ok = await ensureGpsAuthorization('whenInUse');
-		if (__DEV__) console.log('[gps] permission ->', ok);
-		if (!ok) {
-			setGps(null, 'perm_denied');
-			return;
+			// Then start continuous watch
+			watchId = Geolocation.watchPosition(
+				(pos: GeoPosition) => {
+					if (__DEV__) console.log('[gps] watch OK', pos.coords);
+					w.setGps?.(
+						{
+							lat: pos.coords.latitude,
+							lon: pos.coords.longitude,
+							acc: pos.coords.accuracy ?? undefined,
+							alt: pos.coords.altitude ?? undefined,
+							altAcc: pos.coords.altitudeAccuracy ?? undefined,
+							speed: pos.coords.speed ?? undefined,
+							heading: pos.coords.heading ?? undefined,
+							ts: pos.timestamp,
+						},
+						'watch_ok',
+					);
+				},
+				(err: GeoError) => {
+					console.warn('[gps] watch ERR', err);
+					w.setGps?.(null, `watch_err:${err.code}:${err.message}`);
+				},
+				{
+					enableHighAccuracy: true,
+					distanceFilter: 0,
+					interval: 1000,
+					fastestInterval: 1000,
+					showsBackgroundLocationIndicator: true, // iOS hint
+					forceRequestLocation: true, // RNGLS option to nudge a reading
+					forceLocationManager: true, // iOS: use CLLocationManager directly
+				},
+			);
 		}
 
-		// Prime with a single shot
-		Geolocation.getCurrentPosition(
-			(pos: GeoPosition) => {
-				if (__DEV__) console.log('[gps] single OK', pos.coords);
-				setGps(pos.coords, 'single_shot_ok');
-			},
-			(err: GeoError) => {
-				console.warn('[gps] single ERR', err);
-				setGps(null, `single_shot_err:${err.code}:${err.message}`);
-			},
-			{ enableHighAccuracy: true, timeout: 8000, maximumAge: 0 },
-		);
+		startWatch();
 
-		const id = Geolocation.watchPosition(
-			(pos: GeoPosition) => {
-				if (__DEV__) console.log('[gps] watch OK', pos.coords);
-				setGps(pos.coords, 'watch_ok');
-			},
-			(err: GeoError) => {
-				console.warn('[gps] watch ERR', err);
-				setGps(null, `watch_err:${err.code}:${err.message}`);
-			},
-			{
-				enableHighAccuracy: true,
-				distanceFilter: 0,
-				interval: 1000,
-				fastestInterval: 1000,
-				showsBackgroundLocationIndicator: true,
-				forceRequestLocation: true,
-				forceLocationManager: true,
-			},
-		) as unknown as number;
-
-		gpsWatchIdRef.current = id;
-	}, [setGps]);
-
-	const stopGpsWatch = useCallback(() => {
-		if (gpsWatchIdRef.current != null) {
-			Geolocation.clearWatch(gpsWatchIdRef.current);
-			gpsWatchIdRef.current = null;
-		}
-		setGps(null, 'gps_stopped');
-		if (__DEV__) console.log('[gps] stopped');
-	}, [setGps]);
-
-	// Clean up GPS on unmount just in case
-	useEffect(() => {
-		return () => stopGpsWatch();
-	}, [stopGpsWatch]);
+		return () => {
+			if (__DEV__) console.log('[gps] stop watch (writer not ready)');
+			cancelled = true
+			if (watchId != null) Geolocation.clearWatch(watchId);
+			writerRef.current?.setGps?.(null, 'cleanup_unmount');
+		};
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [writerReady]); // run once per recording session mount
 
 	// Convenience emitter (no-op if writer doesn’t implement it)
 	const emitDeviceEvent = useCallback(
@@ -289,22 +258,7 @@ function SessionBody({ children, expectedHz, writerRef, userMeta }: { children: 
 			});
 			await writerRef.current.start();
 			setWriterReady(true);
-			// session is active now
-			setSessionActive(true);
-			setPaused(false);
 			emitSessionEvent('session_start');
-
-			// ensure IMU notifications on, then enable batching
-			try {
-				startAll();
-			} catch (e) {
-				__DEV__ && console.warn('startAll err', e);
-			}
-			setCollectAll(true);
-
-			// GPS starts with session
-			startGpsWatch();
-
 			if (__DEV__) console.log('[CTRL] writer started at', writerRef.current.path);
 		} catch (err) {
 			if (__DEV__) console.error('[CTRL] writer start failed:', err);
@@ -322,7 +276,7 @@ function SessionBody({ children, expectedHz, writerRef, userMeta }: { children: 
 
 		// 3) Start collecting
 		setCollectAll(true);
-	}, [isCollectingAny, expectedHz, entryA?.id, entryB?.id, startAll, setCollectAll, user?.uid, stateA.value, stateB.value, sport, emitSessionEvent, startGpsWatch]);
+	}, [isCollectingAny, expectedHz, entryA?.id, entryB?.id, startAll, setCollectAll, user?.uid, stateA.value, stateB.value, sport, emitSessionEvent]);
 
 	const stopRecording = useCallback(async () => {
 		intendedRecordingRef.current = false;
@@ -342,8 +296,6 @@ function SessionBody({ children, expectedHz, writerRef, userMeta }: { children: 
 			stopAll();
 		} catch {}
 
-		stopGpsWatch();
-
 		emitSessionEvent('session_stop');
 
 		try {
@@ -351,39 +303,7 @@ function SessionBody({ children, expectedHz, writerRef, userMeta }: { children: 
 			await writerRef.current?.stop?.();
 		} catch {}
 		writerRef.current = null;
-		setPaused(false);
-	}, [drainAll, stopAll, setCollectAll, emitSessionEvent, stopGpsWatch]);
-
-	// NEW: pause/resume that only affect writing (not subscriptions)
-	const pauseRecording = useCallback(() => {
-		const w = writerRef.current;
-		if (!w || !w.pause) return;
-
-		// stop batching first to avoid any race with onBatch*
-		setCollectAll(false);
-		w.pause();
-		setPaused(true);
-		// Also pause GPS to match your requirement
-		stopGpsWatch();
-		if (__DEV__) console.log('[CTRL] recording paused');
-	}, [writerRef, setCollectAll, stopGpsWatch]);
-
-	const resumeRecording = useCallback(() => {
-		const w = writerRef.current;
-		if (!w || !w.resume) return;
-		// Resume GPS first so subsequent rows have location again
-		startGpsWatch();
-		// resume batching then accept rows
-		setCollectAll(true);
-		w.resume();
-		setPaused(false);
-		if (__DEV__) console.log('[CTRL] recording resumed');
-	}, [writerRef, setCollectAll, startGpsWatch]);
-
-	 const togglePause = useCallback(() => {
-    if (!sessionActive) return;
-    paused ? resumeRecording() : pauseRecording();
-  }, [sessionActive, paused, pauseRecording, resumeRecording]);
+	}, [drainAll, stopAll, setCollectAll, emitSessionEvent]);
 
 	// === New: continue logging from the device that remains, and mark events for the missing one ===
 	const prevARef = useRef<string | null>(null);
@@ -437,22 +357,9 @@ function SessionBody({ children, expectedHz, writerRef, userMeta }: { children: 
 			expectedHz,
 			entryA,
 			entryB,
-			isCollecting: isCollectingAny && intendedRecordingRef.current, // back-compat
-
-			// explicit session flags
-      sessionActive,
-      collecting,
-
-
+			isCollecting: isCollectingAny && intendedRecordingRef.current,
 			startRecording,
 			stopRecording,
-
-			//NEw - Pause & Resume
-			isPaused: paused,
-			pauseRecording,
-			resumeRecording,
-			togglePause,
-
 			a,
 			b,
 			sport,
@@ -464,7 +371,7 @@ function SessionBody({ children, expectedHz, writerRef, userMeta }: { children: 
 			stateA,
 			stateB,
 		}),
-		[writerRef, expectedHz, entryA, entryB, isCollectingAny, startRecording, stopRecording, a, b, sport, setSport, fatigueA, fatigueB, stateA, stateB, safeFatigueTrendA, safeFatigueTrendB, paused, pauseRecording, resumeRecording, togglePause],
+		[writerRef, expectedHz, entryA, entryB, isCollectingAny, startRecording, stopRecording, a, b, sport, setSport, fatigueA, fatigueB, stateA, stateB, safeFatigueTrendA, safeFatigueTrendB],
 	);
 
 	return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;

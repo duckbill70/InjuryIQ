@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Play, Square, Pause as PauseIcon } from 'lucide-react-native';
+import { Play, Square } from 'lucide-react-native';
 import { BluetoothSearchingIcon, Bluetooth } from 'lucide-react-native';
 
 import { useSession } from '../session/SessionProvider';
@@ -23,7 +23,7 @@ function Dot({ on = false }: { on?: boolean }) {
 
 export default function SessionStatusPanel() {
 	const { theme } = useTheme();
-	const { entryA, entryB, a, b, startRecording, stopRecording, sport, stateA, stateB, isPaused, togglePause, sessionActive, collecting } = useSession();
+	const { entryA, entryB, a, b, startRecording, stopRecording, sport, stateA, stateB } = useSession();
 	const { scanning, startScan, isPoweredOn } = useBle();
 	const recording = !!(a?.collect || b?.collect);
 
@@ -33,20 +33,21 @@ export default function SessionStatusPanel() {
 	const lossB = b?.stats.lossPercent ?? 0;
 
 	function toSentenceCase(str: string) {
-		if (!str) return '';
-		return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+	if (!str) return '';
+	return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 	}
+
 
 	return (
 		<View style={[styles.card, { backgroundColor: 'white', opacity: 0.9 }]}>
 			{/* Header */}
 			<View style={styles.rowBetween}>
-				<View style={{ flexDirection: 'row', alignItems: 'center' }}>
-					<Text style={[theme.textStyles.body2, styles.bold]}>Session:</Text>
-					<Text style={[theme.textStyles.body2, styles.bold, { paddingLeft: 2 }]}>{toSentenceCase(sport)}</Text>
+				<View style={{ flexDirection: 'row', alignItems: 'center'}}>
+				<Text style={[theme.textStyles.body2, styles.bold]}>Session:</Text>
+				<Text style={[theme.textStyles.body2, styles.bold, {paddingLeft: 2}]}>{toSentenceCase(sport)}</Text>
 				</View>
 				<View style={styles.rowCenter}>
-					<Dot on={sessionActive} />
+					<Dot on={recording} />
 					<Text style={[theme.textStyles.xsmall, { marginLeft: 6 }]}>{recording ? 'Collecting' : 'Idle'}</Text>
 				</View>
 			</View>
@@ -54,8 +55,8 @@ export default function SessionStatusPanel() {
 			{/* Devices */}
 			<View style={[styles.rowBetween, { marginTop: 6 }]}>
 				<View style={styles.deviceCol}>
-					<View style={{ flexDirection: 'row', alignItems: 'center', maxWidth: '80%' }}>
-						<Text style={[theme.textStyles.xsmall, styles.mono, styles.dim, { paddingRight: 8 }]}>Device A</Text>
+					<View style={{flexDirection: 'row', alignItems: 'center', maxWidth: '80%'}}>
+						<Text style={[theme.textStyles.xsmall, styles.mono, styles.dim, {paddingRight: 8}]}>Device A</Text>
 						<Dot on={!!entryA?.id && stateA.value !== StateMode.Off} />
 					</View>
 					<Text style={theme.textStyles.body2}>{entryA?.device.name ?? '—'}</Text>
@@ -65,8 +66,8 @@ export default function SessionStatusPanel() {
 				</View>
 
 				<View style={styles.deviceCol}>
-					<View style={{ flexDirection: 'row', alignItems: 'center', maxWidth: '80%' }}>
-						<Text style={[theme.textStyles.xsmall, styles.mono, styles.dim, { paddingRight: 8 }]}>Device B</Text>
+					<View style={{flexDirection: 'row', alignItems: 'center',  maxWidth: '80%'}}>
+						<Text style={[theme.textStyles.xsmall, styles.mono, styles.dim, {paddingRight: 8}]}>Device B</Text>
 						<Dot on={!!entryB?.id && stateB.value !== StateMode.Off} />
 					</View>
 					<Text style={theme.textStyles.body2}>{entryB?.device.name ?? '—'}</Text>
@@ -78,6 +79,7 @@ export default function SessionStatusPanel() {
 
 			{/* Controls */}
 			<View style={[styles.rowCenter, { marginTop: 10, gap: 12, justifyContent: 'space-between' }]}>
+
 				<TouchableOpacity
 					onPress={() => startScan({ timeoutMs: 1500, maxDevices: 2 })}
 					disabled={scanning || !isPoweredOn}
@@ -93,55 +95,36 @@ export default function SessionStatusPanel() {
 					<Text style={[styles.btnLabel]}>{scanning ? 'Scan' : 'Scan'}</Text>
 				</TouchableOpacity>
 
-				<View style={[styles.rowCenter, { gap: 12 }]}>
+				<View style={[styles.rowCenter, {gap: 12, }]}>
+				<TouchableOpacity
+					onPress={startRecording}
+					disabled={recording}
+					style={[
+						styles.btn,
+						{
+							backgroundColor: recording ? theme.colors.muted : theme.colors.teal,
+							opacity: recording ? 0.6 : 1,
+						},
+					]}
+				>
+					<Play size={18} color='white' />
+					<Text style={[styles.btnLabel]}>Start</Text>
+				</TouchableOpacity>
 
-					{/* NEW: Start */}
-					<TouchableOpacity
-						onPress={startRecording}
-						disabled={sessionActive}
-						style={[
-							styles.btn,
-							{
-								backgroundColor: sessionActive ? theme.colors.muted : theme.colors.teal,
-								opacity: sessionActive ? 0.6 : 1,
-							},
-						]}
-					>
-						<Play size={18} color='white' />
-						<Text style={[styles.btnLabel]}>Start</Text>
-					</TouchableOpacity>
-
-					{/* NEW: Pause/Resume */}
-					<TouchableOpacity
-						onPress={togglePause}
-						disabled={!sessionActive}
-						style={[
-							styles.btn,
-							{
-								backgroundColor: !sessionActive ? theme.colors.muted : theme.colors.primary,
-								opacity: !sessionActive ? 0.6 : 1,
-							},
-						]}
-					>
-						{isPaused ? <Play size={18} color='white' /> : <PauseIcon size={18} color='white' />}
-						<Text style={styles.btnLabel}>{isPaused ? 'Resume' : 'Pause'}</Text>
-					</TouchableOpacity>
-
-					{/* NEW: Stop */}
-					<TouchableOpacity
-						onPress={stopRecording}
-						disabled={!sessionActive}
-						style={[
-							styles.btn,
-							{
-								backgroundColor: !sessionActive ? theme.colors.muted : '#ef4444',
-								opacity: !sessionActive ? 0.6 : 1,
-							},
-						]}
-					>
-						<Square size={18} color='white' />
-						<Text style={styles.btnLabel}>Stop</Text>
-					</TouchableOpacity>
+				<TouchableOpacity
+					onPress={stopRecording}
+					disabled={!recording}
+					style={[
+						styles.btn,
+						{
+							backgroundColor: !recording ? theme.colors.muted : '#ef4444',
+							opacity: !recording ? 0.6 : 1,
+						},
+					]}
+				>
+					<Square size={18} color='white' />
+					<Text style={styles.btnLabel}>Stop</Text>
+				</TouchableOpacity>
 				</View>
 			</View>
 		</View>

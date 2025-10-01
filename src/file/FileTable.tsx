@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Text, View, StyleSheet } from 'react-native';
+import { useIsFocused } from '@react-navigation/native';
 import { DataTable, IconButton } from 'react-native-paper';
 import Share from 'react-native-share';
 import RNFS from 'react-native-fs';
@@ -73,7 +74,9 @@ export default function FileTable() {
 	const [page, setPage] = useState(0);
 	const [sortKey, setSortKey] = useState<SortKey>('mtime');
 	const [sortDesc, setSortDesc] = useState(true);
+
 	const { theme } = useTheme();
+	const isFocused = useIsFocused();
 
 	const itemsPerPage = 6;
 
@@ -86,6 +89,27 @@ export default function FileTable() {
 			setSortDesc(true);
 		})().catch(console.warn);
 	}, []);
+
+	// 🔹 define load function here
+	async function load() {
+		try {
+			const list = await listCreatedFiles({
+				exts: ['.ndjson'],
+				sort: sortKey,
+				desc: sortDesc,
+			});
+			setFiles(list);
+			setPage(0); // reset pagination when reloading
+		} catch (err) {
+			console.warn('Failed to load files:', err);
+		}
+	}
+
+	useEffect(() => {
+		if (isFocused) {
+			load().catch(console.warn);
+		}
+	}, [isFocused, sortKey, sortDesc]);
 
 	const sorted = useMemo(() => {
 		const mul = sortDesc ? -1 : 1;

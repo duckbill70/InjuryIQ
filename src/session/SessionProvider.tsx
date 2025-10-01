@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useMemo, useRef, useState, useCallback, ReactNode, useEffect, Platform } from 'react';
+import React, { createContext, useContext, useMemo, useRef, useState, useCallback, ReactNode, useEffect } from 'react';
+import { Platform } from 'react-native';
 import Geolocation, { GeoPosition, GeoError } from 'react-native-geolocation-service';
 
 import { useBle } from '../ble/BleProvider';

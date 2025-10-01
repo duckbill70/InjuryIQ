@@ -38,22 +38,24 @@ async function getSportFromNDJSON(filePath: string): Promise<string | undefined>
 // Child component to fetch and display sport and duration
 function RowInfo({ filePath, file, theme }) {
 	const [sport, setSport] = useState<string>('Loading...');
-	const [duration, setDuration] = useState<string>('Loading...');
+	//const [duration, setDuration] = useState<string>('Loading...');
 
 	useEffect(() => {
 		let mounted = true;
 		getSportFromNDJSON(filePath).then((result) => {
 			if (mounted) setSport(result ?? 'N/A');
 		});
-		getNDJSONDuration(filePath).then((result) => {
-			if (mounted) {
-				if (result.durationSeconds !== undefined) {
-					setDuration(`${result.formatted}`);
-				} else {
-					setDuration('N/A');
-				}
-			}
-		});
+		
+		//getNDJSONDuration(filePath).then((result) => {
+		//	if (mounted) {
+		//		if (result.durationSeconds !== undefined) {
+		//			setDuration(`${result.formatted}`);
+		//		} else {
+		//			setDuration('N/A');
+		//		}
+		//	}
+		//});
+		
 		return () => {
 			mounted = false;
 		};
@@ -62,7 +64,7 @@ function RowInfo({ filePath, file, theme }) {
 	return (
 		<View style={{ flexDirection: 'column', padding: 9 }}>
 			<Text style={[theme?.textStyles?.body2, { color: theme?.colors?.black, fontWeight: 'bold' }]}>{`${sport}`}</Text>
-			<Text style={[theme?.textStyles?.xsmall, { color: theme?.colors?.muted, fontWeight: 'bold' }]}>{`${duration}`}</Text>
+			{/* <Text style={[theme?.textStyles?.xsmall, { color: theme?.colors?.muted, fontWeight: 'bold' }]}>{`${duration}`}</Text> */}
 			<Text style={[theme?.textStyles?.xsmall, { color: theme?.colors?.muted, fontWeight: 'bold' }]}>{file.mtime ? new Date(file.mtime).toLocaleDateString() : ''}</Text>
 			<Text style={[theme?.textStyles?.xsmall, { color: theme?.colors?.muted, fontWeight: 'bold' }]}>{file.mtime ? new Date(file.mtime).toLocaleTimeString() : ''}</Text>
 		</View>

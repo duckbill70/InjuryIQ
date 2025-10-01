@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useMemo, useRef, useState, useCallback, ReactNode, useEffect } from 'react';
-import { Platform } from 'react-native';
+//import { Platform } from 'react-native';
 import Geolocation, { GeoPosition, GeoError } from 'react-native-geolocation-service';
 
 import { useBle } from '../ble/BleProvider';
@@ -133,7 +133,7 @@ function SessionBody({ children, expectedHz, writerRef, userMeta }: { children: 
 	/** Track “intended” recording to drive per-device drop/resume behavior */
 	const intendedRecordingRef = useRef(false);
 
-	const [writerReady, setWriterReady] = useState(false);
+	//const [writerReady, setWriterReady] = useState(false);
 
 	// keep UI in sync if someone introspects writer directly (defensive)
 	useEffect(() => {
@@ -260,13 +260,13 @@ function SessionBody({ children, expectedHz, writerRef, userMeta }: { children: 
 
 	// inside SessionBody in SessionProvider.tsx (after you have `a`, `b`, and writerRef)
 	// a?.stats and b?.stats come from DualImuProvider/useImuIngress
-	useEffect(() => {
-		const w = writerRef.current;
-		if (!w) return;
-		// push latest stats (undefined -> null internally)
-		w.setStatsA(a?.stats);
-		w.setStatsB(b?.stats);
-	}, [a?.stats, b?.stats, writerRef]);
+	//useEffect(() => {
+	//	const w = writerRef.current;
+	//	if (!w) return;
+	//	// push latest stats (undefined -> null internally)
+	//	w.setStatsA(a?.stats);
+	//	w.setStatsB(b?.stats);
+	//}, [a?.stats, b?.stats, writerRef]);
 
 	const startRecording = useCallback(async () => {
 		if (sessionActive) return; // already running
@@ -287,7 +287,7 @@ function SessionBody({ children, expectedHz, writerRef, userMeta }: { children: 
 			});
 			await writerRef.current.start();
 
-			setWriterReady(true);
+			//setWriterReady(true);
 			// session is active now
 			setSessionActive(true);
 			setPaused(false);

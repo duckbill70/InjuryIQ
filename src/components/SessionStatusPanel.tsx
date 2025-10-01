@@ -25,7 +25,8 @@ export default function SessionStatusPanel() {
 	const { theme } = useTheme();
 	const { entryA, entryB, a, b, startRecording, stopRecording, sport, stateA, stateB, isPaused, togglePause, sessionActive, collecting } = useSession();
 	const { scanning, startScan, isPoweredOn } = useBle();
-	const recording = !!(a?.collect || b?.collect);
+
+	//const recording = !!(a?.collect || b?.collect);
 
 	const hzA = a?.stats.measuredHz ?? 0;
 	const lossA = a?.stats.lossPercent ?? 0;
@@ -47,7 +48,7 @@ export default function SessionStatusPanel() {
 				</View>
 				<View style={styles.rowCenter}>
 					<Dot on={sessionActive} />
-					<Text style={[theme.textStyles.xsmall, { marginLeft: 6 }]}>{recording ? 'Collecting' : 'Idle'}</Text>
+					<Text style={[theme.textStyles.xsmall, { marginLeft: 6 }]}>{sessionActive ? 'Collecting' : 'Idle'}</Text>
 				</View>
 			</View>
 
@@ -77,7 +78,7 @@ export default function SessionStatusPanel() {
 			</View>
 
 			{/* Controls */}
-			<View style={[styles.rowCenter, { marginTop: 10, gap: 12, justifyContent: 'space-between' }]}>
+			<View style={[styles.rowCenter, { marginTop: 10, gap: 5, justifyContent: 'space-between' }]}>
 				<TouchableOpacity
 					onPress={() => startScan({ timeoutMs: 1500, maxDevices: 2 })}
 					disabled={scanning || !isPoweredOn}
@@ -93,25 +94,43 @@ export default function SessionStatusPanel() {
 					<Text style={[styles.btnLabel]}>{scanning ? 'Scan' : 'Scan'}</Text>
 				</TouchableOpacity>
 
-				<View style={[styles.rowCenter, { gap: 12 }]}>
-
-					{/* NEW: Start */}
+				<View style={[styles.rowCenter, { gap: 5 }]}>
+					{/* NEW: Start & Puse */}
 					<TouchableOpacity
-						onPress={startRecording}
-						disabled={sessionActive}
+						onPress={() => {
+							if (!sessionActive) {
+								startRecording();
+							} else {
+								togglePause();
+							}
+						}}
 						style={[
 							styles.btn,
 							{
-								backgroundColor: sessionActive ? theme.colors.muted : theme.colors.teal,
-								opacity: sessionActive ? 0.6 : 1,
+								backgroundColor: !sessionActive ? theme.colors.teal : isPaused ? theme.colors.amber : theme.colors.teal, // Optional: different color when actively recording
+								opacity: sessionActive && !isPaused ? 1 : 0.9,
 							},
 						]}
 					>
-						<Play size={18} color='white' />
-						<Text style={[styles.btnLabel]}>Start</Text>
+						{!sessionActive ? (
+							<>
+								<Play size={18} color='white' />
+								<Text style={styles.btnLabel}>Start</Text>
+							</>
+						) : isPaused ? (
+							<>
+								<Play size={18} color='white' />
+								<Text style={styles.btnLabel}>Resume</Text>
+							</>
+						) : (
+							<>
+								<PauseIcon size={18} color='white' />
+								<Text style={styles.btnLabel}>Pause</Text>
+							</>
+						)}
 					</TouchableOpacity>
 
-					{/* NEW: Pause/Resume */}
+					{/* NEW: Pause/Resume 
 					<TouchableOpacity
 						onPress={togglePause}
 						disabled={!sessionActive}
@@ -124,8 +143,8 @@ export default function SessionStatusPanel() {
 						]}
 					>
 						{isPaused ? <Play size={18} color='white' /> : <PauseIcon size={18} color='white' />}
-						<Text style={styles.btnLabel}>{isPaused ? 'Resume' : 'Pause'}</Text>
-					</TouchableOpacity>
+						<Text style={styles.btnLabel}>{isPaused ? 'Paused' : 'Pause'}</Text>
+					</TouchableOpacity> */}
 
 					{/* NEW: Stop */}
 					<TouchableOpacity
@@ -156,7 +175,7 @@ const styles = StyleSheet.create({
 		borderColor: '#e5e7eb',
 	},
 	rowBetween: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-	rowCenter: { flexDirection: 'row', alignItems: 'center' },
+	rowCenter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
 	deviceCol: { maxWidth: '48%' },
 	bold: { fontWeight: '700' },
 	dim: { color: '#6b7280' },
@@ -164,10 +183,11 @@ const styles = StyleSheet.create({
 	btn: {
 		flexDirection: 'row',
 		alignItems: 'center',
-		gap: 6,
+		gap: 5,
 		paddingVertical: 8,
-		paddingHorizontal: 12,
+		paddingHorizontal: 8,
 		borderRadius: 10,
+		width: 120,
 	},
 	btnLabel: { color: 'white', fontWeight: '600' },
 });

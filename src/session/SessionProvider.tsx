@@ -58,7 +58,7 @@ type SessionCtx = {
 import { SportType } from './types';
 
 /** Optional writer extension we’ll call if present */
-type DeviceEvent = { t: number; which: 'A' | 'B'; event: 'dropped' | 'resumed' } | { t: number; event: 'session_start' | 'session_stop' };
+type DeviceEvent = { t: number; which: 'A' | 'B'; event: 'dropped' | 'resumed' } | { t: number; event: 'session_start' | 'session_stop' | 'session_paused' | 'session_resumed' };
 
 type CombinedWriterWithEvents = CombinedWriter & {
 	onDeviceEvent?: (ev: DeviceEvent) => void;
@@ -250,7 +250,7 @@ function SessionBody({ children, expectedHz, writerRef, userMeta }: { children: 
 	);
 
 	const emitSessionEvent = useCallback(
-		(event: 'session_start' | 'session_stop') => {
+		(event: 'session_start' | 'session_stop' | 'session_paused' | 'session_resumed') => {
 			const wr = writerRef.current as CombinedWriterWithEvents | null;
 			wr?.onDeviceEvent?.({ t: Date.now(), event });
 		},
@@ -268,10 +268,7 @@ function SessionBody({ children, expectedHz, writerRef, userMeta }: { children: 
 	}, [a?.stats, b?.stats, writerRef]);
 
 	const startRecording = useCallback(async () => {
-		if (isCollectingAny || intendedRecordingRef.current) {
-			intendedRecordingRef.current = true;
-			return;
-		}
+		if (sessionActive) return; // already running
 		intendedRecordingRef.current = true;
 
 		// 1) Start writer first so onBatchX can append immediately
@@ -288,6 +285,7 @@ function SessionBody({ children, expectedHz, writerRef, userMeta }: { children: 
 				},
 			});
 			await writerRef.current.start();
+
 			setWriterReady(true);
 			// session is active now
 			setSessionActive(true);
@@ -302,88 +300,91 @@ function SessionBody({ children, expectedHz, writerRef, userMeta }: { children: 
 			}
 			setCollectAll(true);
 
-			// GPS starts with session
+			// GPS on
 			startGpsWatch();
 
-			if (__DEV__) console.log('[CTRL] writer started at', writerRef.current.path);
+			if (__DEV__) console.log('[CTRL] writer started');
 		} catch (err) {
-			if (__DEV__) console.error('[CTRL] writer start failed:', err);
+			__DEV__ && console.error('[CTRL] writer start failed:', err);
 			writerRef.current = null;
 			intendedRecordingRef.current = false;
-			return;
+			setSessionActive(false);
+			setPaused(false);
 		}
+	}, [sessionActive, expectedHz, entryA?.id, entryB?.id, startAll, setCollectAll, user?.uid, stateA.value, stateB.value, sport, emitSessionEvent, startGpsWatch]);
 
-		// 2) Subscribe streams (safe if already active)
-		try {
-			startAll();
-		} catch (err) {
-			if (__DEV__) console.error('[CTRL] startAll() error:', err);
-		}
-
-		// 3) Start collecting
-		setCollectAll(true);
-	}, [isCollectingAny, expectedHz, entryA?.id, entryB?.id, startAll, setCollectAll, user?.uid, stateA.value, stateB.value, sport, emitSessionEvent, startGpsWatch]);
-
+	/** STOP — make sure to flip sessionActive=false so a new Start is allowed */
 	const stopRecording = useCallback(async () => {
+		if (!sessionActive) return;
 		intendedRecordingRef.current = false;
 
-		// Stop collecting
+		// stop batching immediately
 		setCollectAll(false);
 
-		// Drain any tails
+		// drain tails
 		try {
 			const { a: tailA, b: tailB } = drainAll();
 			writerRef.current?.onBatchA?.(tailA);
 			writerRef.current?.onBatchB?.(tailB);
 		} catch {}
 
-		// Stop streams
+		// stop streaming & GPS
 		try {
 			stopAll();
 		} catch {}
-
 		stopGpsWatch();
 
 		emitSessionEvent('session_stop');
 
+		// finalize writer
 		try {
-			setWriterReady(false);
-			await writerRef.current?.stop?.();
-		} catch {}
+			await (writerRef.current as CombinedWriterWithEvents)?.stop?.();
+		} catch (e) {
+			__DEV__ && console.warn('writer stop error', e);
+		}
 		writerRef.current = null;
+
+		// reset flags — THIS WAS MISSING
+		setSessionActive(false);
 		setPaused(false);
-	}, [drainAll, stopAll, setCollectAll, emitSessionEvent, stopGpsWatch]);
+	}, [sessionActive, setCollectAll, drainAll, stopAll, stopGpsWatch, emitSessionEvent]);
 
-	// NEW: pause/resume that only affect writing (not subscriptions)
+	/** PAUSE */
 	const pauseRecording = useCallback(() => {
-		const w = writerRef.current;
-		if (!w || !w.pause) return;
+		if (!sessionActive) return;
+		const w = writerRef.current as CombinedWriterWithEvents | null;
+		if (!w?.pause) return;
 
-		// stop batching first to avoid any race with onBatch*
 		setCollectAll(false);
 		w.pause();
 		setPaused(true);
-		// Also pause GPS to match your requirement
 		stopGpsWatch();
-		if (__DEV__) console.log('[CTRL] recording paused');
-	}, [writerRef, setCollectAll, stopGpsWatch]);
 
+		emitSessionEvent('session_paused');
+
+		if (__DEV__) console.log('[CTRL] recording paused');
+	}, [sessionActive, setCollectAll, stopGpsWatch]);
+
+	/** RESUME */
 	const resumeRecording = useCallback(() => {
-		const w = writerRef.current;
-		if (!w || !w.resume) return;
-		// Resume GPS first so subsequent rows have location again
+		if (!sessionActive) return;
+		const w = writerRef.current as CombinedWriterWithEvents | null;
+		if (!w?.resume) return;
+
 		startGpsWatch();
-		// resume batching then accept rows
 		setCollectAll(true);
 		w.resume();
 		setPaused(false);
-		if (__DEV__) console.log('[CTRL] recording resumed');
-	}, [writerRef, setCollectAll, startGpsWatch]);
 
-	 const togglePause = useCallback(() => {
-    if (!sessionActive) return;
-    paused ? resumeRecording() : pauseRecording();
-  }, [sessionActive, paused, pauseRecording, resumeRecording]);
+		emitSessionEvent('session_resumed');
+
+		if (__DEV__) console.log('[CTRL] recording resumed');
+	}, [sessionActive, setCollectAll, startGpsWatch]);
+
+	const togglePause = useCallback(() => {
+		if (!sessionActive) return;
+		paused ? resumeRecording() : pauseRecording();
+	}, [sessionActive, paused, pauseRecording, resumeRecording]);
 
 	// === New: continue logging from the device that remains, and mark events for the missing one ===
 	const prevARef = useRef<string | null>(null);
@@ -437,12 +438,11 @@ function SessionBody({ children, expectedHz, writerRef, userMeta }: { children: 
 			expectedHz,
 			entryA,
 			entryB,
-			isCollecting: isCollectingAny && intendedRecordingRef.current, // back-compat
 
 			// explicit session flags
-      sessionActive,
-      collecting,
-
+			sessionActive,
+			collecting,
+			isCollecting, // back-compat
 
 			startRecording,
 			stopRecording,
@@ -464,7 +464,31 @@ function SessionBody({ children, expectedHz, writerRef, userMeta }: { children: 
 			stateA,
 			stateB,
 		}),
-		[writerRef, expectedHz, entryA, entryB, isCollectingAny, startRecording, stopRecording, a, b, sport, setSport, fatigueA, fatigueB, stateA, stateB, safeFatigueTrendA, safeFatigueTrendB, paused, pauseRecording, resumeRecording, togglePause],
+		[
+			writerRef,
+			expectedHz,
+			entryA,
+			entryB,
+			sessionActive,
+			collecting,
+			isCollecting,
+			startRecording,
+			stopRecording,
+			paused,
+			pauseRecording,
+			resumeRecording,
+			togglePause,
+			a,
+			b,
+			sport,
+			setSport,
+			fatigueA,
+			fatigueB,
+			safeFatigueTrendA,
+			safeFatigueTrendB,
+			stateA,
+			stateB,
+		],
 	);
 
 	return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;

@@ -33,6 +33,7 @@ const colors = {
 	teal: '#008080',
 	black: '#000000',
 	white: '#ffffff',
+	amber: '#FFBF00',
 };
 
 export const lightTheme = {

@@ -9,9 +9,10 @@ import { createCombinedImuWriter, type CombinedWriter, type RawPacket } from '..
 import { useAuth } from '../auth/AuthProvider';
 import { useFatigueValue } from '../ble/useFatigueValue';
 import { useFatigueTrend } from '../ble/useFatigueTrend';
-
-//import { ensurePermission } from './ensurePermission';
 import { ensureGpsAuthorization } from './getPermissions';
+
+import { useNotify } from '../notify/useNotify';
+import { useLowRateAlerts } from './useLowRateAlerts';
 
 type TrendPoint = { t: number; v: number };
 type FatigueTrendState = {
@@ -135,6 +136,29 @@ function SessionBody({ children, expectedHz, writerRef, userMeta }: { children: 
 
 	//const [writerReady, setWriterReady] = useState(false);
 
+	//** Notifications */
+	const { notify } = useNotify();
+	const hzA = Math.max(0, a?.stats?.measuredHz ?? 0);
+	const hzB = Math.max(0, b?.stats?.measuredHz ?? 0);
+
+	// 2) call the hook with your live values
+	useLowRateAlerts(
+		{
+			hzA,
+			hzB,
+			expectedHz,
+			sessionActive, // true while a session is running
+			collecting, // true while writing/collecting
+			nameA: entryA?.id ? `A (${entryA.id.slice(-4)})` : 'A',
+			nameB: entryB?.id ? `B (${entryB.id.slice(-4)})` : 'B',
+		},
+		{
+			lowFactor: 0.6, // alert if < 60% of expected
+			minSecondsLow: 3, // must remain low >= 3s to alert
+			cooldownSeconds: 30, // wait 30s before re-alerting
+		},
+	);
+
 	// keep UI in sync if someone introspects writer directly (defensive)
 	useEffect(() => {
 		const id = setInterval(() => {
@@ -254,6 +278,15 @@ function SessionBody({ children, expectedHz, writerRef, userMeta }: { children: 
 		(event: 'session_start' | 'session_stop' | 'session_paused' | 'session_resumed') => {
 			const wr = writerRef.current as CombinedWriterWithEvents | null;
 			wr?.onDeviceEvent?.({ t: Date.now(), event });
+
+			//Notify
+			notify({
+				title: 'InjuryIQ',
+				body: `Session ${event} - ${sport}`,
+				dedupeKey: `session:${event}`,
+				foreground: true, // show even when app is open
+				bypassDedupe: __DEV__ ? true : false, // remove later; ensures it’s not suppressed while testing
+			});
 		},
 		[writerRef],
 	);
@@ -292,6 +325,14 @@ function SessionBody({ children, expectedHz, writerRef, userMeta }: { children: 
 			setSessionActive(true);
 			setPaused(false);
 			emitSessionEvent('session_start');
+
+			//notify({
+			//	title: 'InjuryIQ',
+			//	body: `Session started - ${sport}`,
+			//	dedupeKey: 'session:start',
+			//	foreground: true, // show even when app is open
+			//	bypassDedupe: __DEV__ ? true : false, // remove later; ensures it’s not suppressed while testing
+			//});
 
 			// ensure IMU notifications on, then enable batching
 			try {
@@ -337,6 +378,14 @@ function SessionBody({ children, expectedHz, writerRef, userMeta }: { children: 
 
 		emitSessionEvent('session_stop');
 
+		//notify({
+		//	title: 'InjuryIQ',
+		//	body: `Session stopped - ${sport}`,
+		//	dedupeKey: 'session:stopped',
+		//	foreground: true, // show even when app is open
+		//	bypassDedupe: true, // remove later; ensures it’s not suppressed while testing
+		//});
+
 		// finalize writer
 		try {
 			await (writerRef.current as CombinedWriterWithEvents)?.stop?.();
@@ -363,6 +412,14 @@ function SessionBody({ children, expectedHz, writerRef, userMeta }: { children: 
 
 		emitSessionEvent('session_paused');
 
+		//notify({
+		//	title: 'InjuryIQ',
+		//	body: `Session paused - ${sport}`,
+		//	dedupeKey: 'session:paused',
+		//	foreground: true, // show even when app is open
+		//	bypassDedupe: true, // remove later; ensures it’s not suppressed while testing
+		//});
+
 		if (__DEV__) console.log('[CTRL] recording paused');
 	}, [sessionActive, setCollectAll, stopGpsWatch]);
 
@@ -378,6 +435,13 @@ function SessionBody({ children, expectedHz, writerRef, userMeta }: { children: 
 		setPaused(false);
 
 		emitSessionEvent('session_resumed');
+		//notify({
+		//	title: 'InjuryIQ',
+		//	body: `Session resumed - ${sport}`,
+		//	dedupeKey: 'session:resumed',
+		//	foreground: true, // show even when app is open
+		//	bypassDedupe: true, // remove later; ensures it’s not suppressed while testing
+		//});
 
 		if (__DEV__) console.log('[CTRL] recording resumed');
 	}, [sessionActive, setCollectAll, startGpsWatch]);

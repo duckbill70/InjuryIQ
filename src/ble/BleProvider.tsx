@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Platform } from 'react-native';
 import { BleManager, Device, Characteristic, State } from 'react-native-ble-plx';
+import { useNotify } from '../notify/useNotify';
 
 type ConnectedDevice = {
 	id: string;
@@ -61,6 +62,9 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 	const [foundDeviceIds, setFoundDeviceIds] = useState<string[]>([]);
 	const [connected, setConnected] = useState<Record<string, ConnectedDevice>>({});
 	const [isPoweredOn, setIsPoweredOn] = useState(false);
+
+	//to use Notify
+	const { notify } = useNotify();
 
 	// Refs for stable access
 	const connectedRef = useRef<Record<string, ConnectedDevice>>({});
@@ -193,7 +197,15 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 
 	const registerDisconnectHandler = (id: string) => {
 		managerRef.current.onDeviceDisconnected(id, (error, dev) => {
-			if (__DEV__) console.warn(`[BLE] onDeviceDisconnected ${id}`, error?.message ?? '');
+			const friendlyName = connectedRef.current[id]?.name || id;
+			if (__DEV__) console.warn(`[BLE] onDeviceDisconnected ${friendlyName}`, error?.message ?? '');
+			notify({
+				title: 'InjuryIQ',
+				body: `Device disconnected - ${friendlyName}`,
+				dedupeKey: `ble:disconnected`,
+				foreground: true, // show even when app is open
+				bypassDedupe: __DEV__ ? true : false, // remove later; ensures it’s not suppressed while testing
+			});
 			// NOTE: we remove from connected, BUT we DO NOT clear roleAId/roleBId.
 			setConnected((prev) => {
 				const next = { ...prev };
@@ -245,7 +257,15 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 		}
 		registerDisconnectHandler(id);
 		await discoverAllForDevice(d);
-		if (__DEV__) console.log(`[BLE] reconnected ${id}`);
+		const friendlyName = d.name || id;
+		if (__DEV__) console.log(`[BLE] reconnected ${friendlyName}`);
+		notify({
+			title: 'InjuryIQ',
+			body: `Device reconnected - ${friendlyName}`,
+			dedupeKey: `ble:reconnected`,
+			foreground: true, // show even when app is open
+			bypassDedupe: __DEV__ ? true : false, // remove later; ensures it’s not suppressed while testing
+		});
 	};
 
 	const startScan: BleContextValue['startScan'] = async (opts) => {

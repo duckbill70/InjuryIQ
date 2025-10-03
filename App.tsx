@@ -10,6 +10,8 @@ import { SessionProvider } from './src/session/SessionProvider';
 
 import { checkFirebaseInit } from './src/firebase/checkFirebaseInit';
 
+import { useNotify } from './src/notify/useNotify';
+
 import AppNavigator from './src/screens/AppNavigator';
 
 import AuthScreen from './src/screens/AuthScreen';
@@ -28,6 +30,10 @@ function Gate() {
 }
 
 export default function App() {
+
+	const { ensurePermission} = useNotify({requestOnMount: false})
+	useEffect(() => { ensurePermission(false); }, [ensurePermission]);
+
 	useEffect(() => {
 		if (__DEV__) {
 			const app = checkFirebaseInit();

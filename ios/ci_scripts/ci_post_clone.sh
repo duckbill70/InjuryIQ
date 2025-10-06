@@ -14,4 +14,4 @@ echo "===== Running yarn install ====="
 yarn install
 echo "===== Running pod install ====="
 cd ios
-pod install
+pod install --repo-update  || { echo "pod install failed"; exit 1; }

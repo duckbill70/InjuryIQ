@@ -58,8 +58,8 @@ yarn-error.log
 
 # Ruby / CocoaPods but include the build files
 **/Pods/
-!ios/Pods/Target Support Files/Pods-InjuryIQ/
-!ios/Pods/Target Support Files/Pods-InjuryIQ/**
+#!ios/Pods/Target Support Files/Pods-InjuryIQ/
+#!ios/Pods/Target Support Files/Pods-InjuryIQ/**
 /vendor/bundle/
 
 # Temporary files created by Metro to check the health of the file watcher

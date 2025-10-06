@@ -1,9 +1,0 @@
----
-triple:          'arm64-apple-darwin'
-binary-path:     '/Users/uk-aplatts/Development/InjuryIQ/ios/DerivedData/Build/Intermediates.noindex/ArchiveIntermediates/InjuryIQ/IntermediateBuildFilesPath/UninstalledProducts/iphoneos/RCTRuntime.framework/RCTRuntime'
-relocations:
-  - { offset: 0x33, size: 0x8, addend: 0x0, symName: _RCTRuntimeVersionString, symObjAddr: 0x0, symBinAddr: 0x4118, symSize: 0x0 }
-  - { offset: 0x67, size: 0x8, addend: 0x0, symName: _RCTRuntimeVersionNumber, symObjAddr: 0x28, symBinAddr: 0x4140, symSize: 0x0 }
-  - { offset: 0xA3, size: 0x8, addend: 0x0, symName: _jsrt_create_hermes_factory, symObjAddr: 0x0, symBinAddr: 0x4000, symSize: 0xD8 }
-  - { offset: 0x1CB7, size: 0x8, addend: 0x0, symName: _jsrt_create_hermes_factory, symObjAddr: 0x0, symBinAddr: 0x4000, symSize: 0xD8 }
-...

@@ -6,6 +6,7 @@ require Pod::Executable.execute_command('node', ['-p',
     "react-native/scripts/react_native_pods.rb",
     {paths: [process.argv[1]]},
   )', __dir__]).strip
+#require_relative '../node_modules/react-native/scripts/react_native_pods.rb'
 
 # platform :ios, min_ios_version_supported
 # New Code Added when building initially

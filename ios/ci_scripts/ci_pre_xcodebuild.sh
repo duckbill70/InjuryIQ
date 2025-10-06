@@ -1,15 +1,16 @@
+
 #!/bin/bash
 set -ex
 
 echo "Running pre-xcodebuild script"
 
-# Go to repo root (one level up from ios/ci_scripts)
-cd "/../.."
+# Move to the repo root (assuming script is at ios/ci_scripts)
+cd "$(git rev-parse --show-toplevel)"
 
 # Install JS dependencies
 npm ci || { echo "npm ci failed"; exit 1; }
 
-# Go to ios directory
+# Move to ios directory
 cd ios || { echo "Failed to cd to ios directory"; exit 1; }
 
 # Install CocoaPods dependencies

@@ -18,11 +18,17 @@ jobs:
       - name: Install JS dependencies
         run: npm ci
 
+      - name: Install CocoaPods gem
+        run: sudo gem install cocoapods
+
       - name: Install CocoaPods
         run: |
           cd ios
           pod instal
-  
+
+      - name: List Pod Support Files
+        run: ls -l ios/Pods/Target\ Support\ Files/Pods-InjuryIQ/
+
       - name: Set Default Scheme
         run: |
           scheme_list=$(xcodebuild -list -json | tr -d "\n")

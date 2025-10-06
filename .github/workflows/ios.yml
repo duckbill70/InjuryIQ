@@ -24,7 +24,7 @@ jobs:
       - name: Install CocoaPods
         run: |
           cd ios
-          pod instal
+          pod install
 
       - name: List Pod Support Files
         run: ls -l ios/Pods/Target\ Support\ Files/Pods-InjuryIQ/

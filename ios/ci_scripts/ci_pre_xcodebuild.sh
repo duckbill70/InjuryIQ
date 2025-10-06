@@ -10,7 +10,7 @@ set -ex
 
 echo "Running pre-xcodebuild script"
 
-cd .. || { echo "Failed to cd to ios directory"; exit 1; }
+cd ..
 
 pod install || { echo "pod install failed"; exit 1; }
 

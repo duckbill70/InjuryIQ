@@ -1,0 +1,22 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     '/Users/uk-aplatts/Development/InjuryIQ/ios/DerivedData/Build/Intermediates.noindex/ArchiveIntermediates/InjuryIQ/IntermediateBuildFilesPath/UninstalledProducts/iphoneos/RCTTypeSafety.framework/RCTTypeSafety'
+relocations:
+  - { offset: 0x33, size: 0x8, addend: 0x0, symName: _RCTTypeSafetyVersionString, symObjAddr: 0x0, symBinAddr: 0x44E0, symSize: 0x0 }
+  - { offset: 0x67, size: 0x8, addend: 0x0, symName: _RCTTypeSafetyVersionNumber, symObjAddr: 0x30, symBinAddr: 0x4510, symSize: 0x0 }
+  - { offset: 0xA3, size: 0x8, addend: 0x0, symName: __Z17RCTBridgingToBoolP11objc_object, symObjAddr: 0x0, symBinAddr: 0x4000, symSize: 0x10 }
+  - { offset: 0x141B, size: 0x8, addend: 0x0, symName: __Z17RCTBridgingToBoolP11objc_object, symObjAddr: 0x0, symBinAddr: 0x4000, symSize: 0x10 }
+  - { offset: 0x145B, size: 0x8, addend: 0x0, symName: __Z25RCTBridgingToOptionalBoolP11objc_object, symObjAddr: 0x10, symBinAddr: 0x4010, symSize: 0x7C }
+  - { offset: 0x14B5, size: 0x8, addend: 0x0, symName: __Z19RCTBridgingToStringP11objc_object, symObjAddr: 0x8C, symBinAddr: 0x408C, symSize: 0x80 }
+  - { offset: 0x14FB, size: 0x8, addend: 0x0, symName: __Z27RCTBridgingToOptionalStringP11objc_object, symObjAddr: 0x10C, symBinAddr: 0x410C, symSize: 0x18 }
+  - { offset: 0x1560, size: 0x8, addend: 0x0, symName: __Z27RCTBridgingToOptionalDoubleP11objc_object, symObjAddr: 0x124, symBinAddr: 0x4124, symSize: 0x80 }
+  - { offset: 0x15BA, size: 0x8, addend: 0x0, symName: __Z19RCTBridgingToDoubleP11objc_object, symObjAddr: 0x1A4, symBinAddr: 0x41A4, symSize: 0x10 }
+  - { offset: 0x15D7, size: 0x8, addend: 0x0, symName: __Z18RCTBridgingToArrayP11objc_object, symObjAddr: 0x1B4, symBinAddr: 0x41B4, symSize: 0x24 }
+  - { offset: 0x3A6F, size: 0x8, addend: 0x0, symName: '+[_RCTTypedModuleConstants newWithUnsafeDictionary:]', symObjAddr: 0x0, symBinAddr: 0x41D8, symSize: 0x6C }
+  - { offset: 0x3AEC, size: 0x8, addend: 0x0, symName: '+[_RCTTypedModuleConstants newWithUnsafeDictionary:]', symObjAddr: 0x0, symBinAddr: 0x41D8, symSize: 0x6C }
+  - { offset: 0x3B3E, size: 0x8, addend: 0x0, symName: '-[_RCTTypedModuleConstants initWithObjects:forKeys:count:]', symObjAddr: 0x6C, symBinAddr: 0x4244, symSize: 0x44 }
+  - { offset: 0x3C93, size: 0x8, addend: 0x0, symName: '-[_RCTTypedModuleConstants count]', symObjAddr: 0xB0, symBinAddr: 0x4288, symSize: 0x10 }
+  - { offset: 0x3CC7, size: 0x8, addend: 0x0, symName: '-[_RCTTypedModuleConstants objectForKey:]', symObjAddr: 0xC0, symBinAddr: 0x4298, symSize: 0x24 }
+  - { offset: 0x3D0A, size: 0x8, addend: 0x0, symName: '-[_RCTTypedModuleConstants keyEnumerator]', symObjAddr: 0xE4, symBinAddr: 0x42BC, symSize: 0x10 }
+  - { offset: 0x3D3E, size: 0x8, addend: 0x0, symName: '-[_RCTTypedModuleConstants .cxx_destruct]', symObjAddr: 0xF4, symBinAddr: 0x42CC, symSize: 0x14 }
+...

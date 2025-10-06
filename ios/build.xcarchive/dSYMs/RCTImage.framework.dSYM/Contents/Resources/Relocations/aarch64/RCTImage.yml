@@ -1,0 +1,583 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     '/Users/uk-aplatts/Development/InjuryIQ/ios/DerivedData/Build/Intermediates.noindex/ArchiveIntermediates/InjuryIQ/IntermediateBuildFilesPath/UninstalledProducts/iphoneos/RCTImage.framework/RCTImage'
+relocations:
+  - { offset: 0x33, size: 0x8, addend: 0x0, symName: _RCTImageVersionString, symObjAddr: 0x0, symBinAddr: 0x18830, symSize: 0x0 }
+  - { offset: 0x67, size: 0x8, addend: 0x0, symName: _RCTImageVersionNumber, symObjAddr: 0x28, symBinAddr: 0x18858, symSize: 0x0 }
+  - { offset: 0xF35, size: 0x8, addend: 0x0, symName: '-[RCTGIFCoderFrame index]', symObjAddr: 0x0, symBinAddr: 0x4000, symSize: 0x8 }
+  - { offset: 0xF69, size: 0x8, addend: 0x0, symName: '-[RCTGIFCoderFrame setIndex:]', symObjAddr: 0x8, symBinAddr: 0x4008, symSize: 0x8 }
+  - { offset: 0xFA2, size: 0x8, addend: 0x0, symName: '-[RCTGIFCoderFrame duration]', symObjAddr: 0x10, symBinAddr: 0x4010, symSize: 0x8 }
+  - { offset: 0xFD4, size: 0x8, addend: 0x0, symName: '-[RCTGIFCoderFrame setDuration:]', symObjAddr: 0x18, symBinAddr: 0x4018, symSize: 0x8 }
+  - { offset: 0x100E, size: 0x8, addend: 0x0, symName: '-[RCTAnimatedImage initWithData:scale:]', symObjAddr: 0x20, symBinAddr: 0x4020, symSize: 0x1B4 }
+  - { offset: 0x110A, size: 0x8, addend: 0x0, symName: '-[RCTAnimatedImage scanAndCheckFramesValidWithSource:]', symObjAddr: 0x1D4, symBinAddr: 0x41D4, symSize: 0x124 }
+  - { offset: 0x11E7, size: 0x8, addend: 0x0, symName: '-[RCTAnimatedImage imageLoopCountWithSource:]', symObjAddr: 0x2F8, symBinAddr: 0x42F8, symSize: 0xC0 }
+  - { offset: 0x12A0, size: 0x8, addend: 0x0, symName: '-[RCTAnimatedImage frameDurationAtIndex:source:]', symObjAddr: 0x3B8, symBinAddr: 0x43B8, symSize: 0x138 }
+  - { offset: 0x13A2, size: 0x8, addend: 0x0, symName: '-[RCTAnimatedImage animatedImageLoopCount]', symObjAddr: 0x4F0, symBinAddr: 0x44F0, symSize: 0x10 }
+  - { offset: 0x13D6, size: 0x8, addend: 0x0, symName: '-[RCTAnimatedImage animatedImageFrameCount]', symObjAddr: 0x500, symBinAddr: 0x4500, symSize: 0x10 }
+  - { offset: 0x140A, size: 0x8, addend: 0x0, symName: '-[RCTAnimatedImage animatedImageDurationAtIndex:]', symObjAddr: 0x510, symBinAddr: 0x4510, symSize: 0x70 }
+  - { offset: 0x144D, size: 0x8, addend: 0x0, symName: '-[RCTAnimatedImage animatedImageFrameAtIndex:]', symObjAddr: 0x580, symBinAddr: 0x4580, symSize: 0x88 }
+  - { offset: 0x1505, size: 0x8, addend: 0x0, symName: '-[RCTAnimatedImage didReceiveMemoryWarning:]', symObjAddr: 0x608, symBinAddr: 0x4608, symSize: 0x64 }
+  - { offset: 0x1583, size: 0x8, addend: 0x0, symName: '-[RCTAnimatedImage dealloc]', symObjAddr: 0x66C, symBinAddr: 0x466C, symSize: 0x84 }
+  - { offset: 0x15C0, size: 0x8, addend: 0x0, symName: '-[RCTAnimatedImage .cxx_destruct]', symObjAddr: 0x700, symBinAddr: 0x4700, symSize: 0x14 }
+  - { offset: 0x195B, size: 0x8, addend: 0x0, symName: '+[RCTBundleAssetImageLoader moduleName]', symObjAddr: 0x0, symBinAddr: 0x4714, symSize: 0xC }
+  - { offset: 0x11520, size: 0x8, addend: 0x0, symName: '+[RCTBundleAssetImageLoader moduleName]', symObjAddr: 0x0, symBinAddr: 0x4714, symSize: 0xC }
+  - { offset: 0x11551, size: 0x8, addend: 0x0, symName: '+[RCTBundleAssetImageLoader load]', symObjAddr: 0xC, symBinAddr: 0x4720, symSize: 0x4 }
+  - { offset: 0x11583, size: 0x8, addend: 0x0, symName: '+[RCTBundleAssetImageLoader load]', symObjAddr: 0xC, symBinAddr: 0x4720, symSize: 0x4 }
+  - { offset: 0x115A2, size: 0x8, addend: 0x0, symName: '-[RCTBundleAssetImageLoader canLoadImageURL:]', symObjAddr: 0x10, symBinAddr: 0x4724, symSize: 0x8 }
+  - { offset: 0x11620, size: 0x8, addend: 0x0, symName: '-[RCTBundleAssetImageLoader requiresScheduling]', symObjAddr: 0x18, symBinAddr: 0x472C, symSize: 0x8 }
+  - { offset: 0x11650, size: 0x8, addend: 0x0, symName: '-[RCTBundleAssetImageLoader shouldCacheLoadedImages]', symObjAddr: 0x20, symBinAddr: 0x4734, symSize: 0x8 }
+  - { offset: 0x11680, size: 0x8, addend: 0x0, symName: '-[RCTBundleAssetImageLoader loadImageForURL:size:scale:resizeMode:progressHandler:partialLoadHandler:completionHandler:]', symObjAddr: 0x28, symBinAddr: 0x473C, symSize: 0x158 }
+  - { offset: 0x120DB, size: 0x8, addend: 0x0, symName: '-[RCTBundleAssetImageLoader getTurboModule:]', symObjAddr: 0x180, symBinAddr: 0x4894, symSize: 0x8 }
+  - { offset: 0x1211A, size: 0x8, addend: 0x0, symName: '-[RCTBundleAssetImageLoader getTurboModule:]', symObjAddr: 0x180, symBinAddr: 0x4894, symSize: 0x8 }
+  - { offset: 0x1213E, size: 0x8, addend: 0x0, symName: '-[RCTBundleAssetImageLoader getTurboModule:]', symObjAddr: 0x180, symBinAddr: 0x4894, symSize: 0x8 }
+  - { offset: 0x12161, size: 0x8, addend: 0x0, symName: '-[RCTBundleAssetImageLoader loaderPriority]', symObjAddr: 0x188, symBinAddr: 0x489C, symSize: 0x8 }
+  - { offset: 0x12192, size: 0x8, addend: 0x0, symName: __Z28RCTBundleAssetImageLoaderClsv, symObjAddr: 0x190, symBinAddr: 0x48A4, symSize: 0xC }
+  - { offset: 0x147AE, size: 0x8, addend: 0x0, symName: '+[RCTDisplayWeakRefreshable displayLinkWithWeakRefreshable:]', symObjAddr: 0x0, symBinAddr: 0x48B0, symSize: 0x88 }
+  - { offset: 0x1482E, size: 0x8, addend: 0x0, symName: '+[RCTDisplayWeakRefreshable displayLinkWithWeakRefreshable:]', symObjAddr: 0x0, symBinAddr: 0x48B0, symSize: 0x88 }
+  - { offset: 0x1487C, size: 0x8, addend: 0x0, symName: '-[RCTDisplayWeakRefreshable initWithRefreshable:]', symObjAddr: 0x88, symBinAddr: 0x4938, symSize: 0x74 }
+  - { offset: 0x148BF, size: 0x8, addend: 0x0, symName: '-[RCTDisplayWeakRefreshable displayDidRefresh:]', symObjAddr: 0xFC, symBinAddr: 0x49AC, symSize: 0x60 }
+  - { offset: 0x148FF, size: 0x8, addend: 0x0, symName: '-[RCTDisplayWeakRefreshable refreshable]', symObjAddr: 0x15C, symBinAddr: 0x4A0C, symSize: 0x18 }
+  - { offset: 0x14933, size: 0x8, addend: 0x0, symName: '-[RCTDisplayWeakRefreshable setRefreshable:]', symObjAddr: 0x174, symBinAddr: 0x4A24, symSize: 0xC }
+  - { offset: 0x14971, size: 0x8, addend: 0x0, symName: '-[RCTDisplayWeakRefreshable .cxx_destruct]', symObjAddr: 0x180, symBinAddr: 0x4A30, symSize: 0x8 }
+  - { offset: 0x14C80, size: 0x8, addend: 0x0, symName: '+[RCTGIFImageDecoder moduleName]', symObjAddr: 0x0, symBinAddr: 0x4A38, symSize: 0xC }
+  - { offset: 0x1EBDC, size: 0x8, addend: 0x0, symName: '+[RCTGIFImageDecoder moduleName]', symObjAddr: 0x0, symBinAddr: 0x4A38, symSize: 0xC }
+  - { offset: 0x1EC0D, size: 0x8, addend: 0x0, symName: '+[RCTGIFImageDecoder load]', symObjAddr: 0xC, symBinAddr: 0x4A44, symSize: 0x4 }
+  - { offset: 0x1EC3F, size: 0x8, addend: 0x0, symName: '+[RCTGIFImageDecoder load]', symObjAddr: 0xC, symBinAddr: 0x4A44, symSize: 0x4 }
+  - { offset: 0x1EC5E, size: 0x8, addend: 0x0, symName: '-[RCTGIFImageDecoder canDecodeImageData:]', symObjAddr: 0x10, symBinAddr: 0x4A48, symSize: 0x7C }
+  - { offset: 0x1ECAC, size: 0x8, addend: 0x0, symName: '-[RCTGIFImageDecoder decodeImageData:size:scale:resizeMode:completionHandler:]', symObjAddr: 0x8C, symBinAddr: 0x4AC4, symSize: 0xC8 }
+  - { offset: 0x1ED6A, size: 0x8, addend: 0x0, symName: '___78-[RCTGIFImageDecoder decodeImageData:size:scale:resizeMode:completionHandler:]_block_invoke', symObjAddr: 0x154, symBinAddr: 0x4B8C, symSize: 0x4 }
+  - { offset: 0x1ED91, size: 0x8, addend: 0x0, symName: '___78-[RCTGIFImageDecoder decodeImageData:size:scale:resizeMode:completionHandler:]_block_invoke_2', symObjAddr: 0x158, symBinAddr: 0x4B90, symSize: 0x4 }
+  - { offset: 0x1F2A2, size: 0x8, addend: 0x0, symName: '-[RCTGIFImageDecoder getTurboModule:]', symObjAddr: 0x15C, symBinAddr: 0x4B94, symSize: 0x8 }
+  - { offset: 0x1F2E1, size: 0x8, addend: 0x0, symName: '-[RCTGIFImageDecoder getTurboModule:]', symObjAddr: 0x15C, symBinAddr: 0x4B94, symSize: 0x8 }
+  - { offset: 0x1F305, size: 0x8, addend: 0x0, symName: '-[RCTGIFImageDecoder getTurboModule:]', symObjAddr: 0x15C, symBinAddr: 0x4B94, symSize: 0x8 }
+  - { offset: 0x1F329, size: 0x8, addend: 0x0, symName: _RCTGIFImageDecoderCls, symObjAddr: 0x164, symBinAddr: 0x4B9C, symSize: 0xC }
+  - { offset: 0x213B0, size: 0x8, addend: 0x0, symName: _RCTBlurredImageWithRadius, symObjAddr: 0x0, symBinAddr: 0x4BA8, symSize: 0x404 }
+  - { offset: 0x213D7, size: 0x8, addend: 0x0, symName: _RCTBlurredImageWithRadius, symObjAddr: 0x0, symBinAddr: 0x4BA8, symSize: 0x404 }
+  - { offset: 0x219F2, size: 0x8, addend: 0x0, symName: ___RCTBlurredImageWithRadius_block_invoke, symObjAddr: 0x404, symBinAddr: 0x4FAC, symSize: 0x14 }
+  - { offset: 0x21A37, size: 0x8, addend: 0x0, symName: ___copy_helper_block_ea8_32s, symObjAddr: 0x418, symBinAddr: 0x4FC0, symSize: 0x8 }
+  - { offset: 0x21A5E, size: 0x8, addend: 0x0, symName: ___destroy_helper_block_ea8_32s, symObjAddr: 0x420, symBinAddr: 0x4FC8, symSize: 0x8 }
+  - { offset: 0x245EF, size: 0x8, addend: 0x0, symName: _RCTSetImageCacheLimits, symObjAddr: 0x0, symBinAddr: 0x4FD0, symSize: 0x14 }
+  - { offset: 0x2461E, size: 0x8, addend: 0x0, symName: '-[RCTImageCache dateWithHeaderString:]', symObjAddr: 0x8E0, symBinAddr: 0x58B0, symSize: 0x68 }
+  - { offset: 0x24648, size: 0x8, addend: 0x0, symName: '__ZZ38-[RCTImageCache dateWithHeaderString:]E9formatter', symObjAddr: 0x9AF8, symBinAddr: 0x2BE88, symSize: 0x0 }
+  - { offset: 0x2465E, size: 0x8, addend: 0x0, symName: '__ZZ38-[RCTImageCache dateWithHeaderString:]E9onceToken', symObjAddr: 0x9B00, symBinAddr: 0x2BE90, symSize: 0x0 }
+  - { offset: 0x24BA9, size: 0x8, addend: 0x0, symName: __ZL38RCTMaxCacheableDecodedImageSizeInBytes, symObjAddr: 0xC20, symBinAddr: 0x2B908, symSize: 0x0 }
+  - { offset: 0x24BC3, size: 0x8, addend: 0x0, symName: __ZL27RCTImageCacheTotalCostLimit, symObjAddr: 0xC28, symBinAddr: 0x2B910, symSize: 0x0 }
+  - { offset: 0x24FD7, size: 0x8, addend: 0x0, symName: _RCTSetImageCacheLimits, symObjAddr: 0x0, symBinAddr: 0x4FD0, symSize: 0x14 }
+  - { offset: 0x25009, size: 0x8, addend: 0x0, symName: '-[RCTImageCache init]', symObjAddr: 0x14, symBinAddr: 0x4FE4, symSize: 0x140 }
+  - { offset: 0x2503D, size: 0x8, addend: 0x0, symName: '-[RCTImageCache clearCache]', symObjAddr: 0x154, symBinAddr: 0x5124, symSize: 0x6C }
+  - { offset: 0x2506D, size: 0x8, addend: 0x0, symName: '-[RCTImageCache addImageToCache:forKey:]', symObjAddr: 0x1C0, symBinAddr: 0x5190, symSize: 0x8C }
+  - { offset: 0x25108, size: 0x8, addend: 0x0, symName: '-[RCTImageCache imageForUrl:size:scale:resizeMode:]', symObjAddr: 0x24C, symBinAddr: 0x521C, symSize: 0x148 }
+  - { offset: 0x251D6, size: 0x8, addend: 0x0, symName: '-[RCTImageCache addImageToCache:URL:size:scale:resizeMode:response:]', symObjAddr: 0x394, symBinAddr: 0x5364, symSize: 0x54C }
+  - { offset: 0x253C3, size: 0x8, addend: 0x0, symName: '-[RCTImageCache dateWithHeaderString:].cold.1', symObjAddr: 0xA40, symBinAddr: 0x14C50, symSize: 0x14 }
+  - { offset: 0x253DF, size: 0x8, addend: 0x0, symName: '-[RCTImageCache dateWithHeaderString:].cold.1', symObjAddr: 0xA40, symBinAddr: 0x14C50, symSize: 0x14 }
+  - { offset: 0x253F1, size: 0x8, addend: 0x0, symName: '___38-[RCTImageCache dateWithHeaderString:]_block_invoke', symObjAddr: 0x948, symBinAddr: 0x5918, symSize: 0xBC }
+  - { offset: 0x25418, size: 0x8, addend: 0x0, symName: '-[RCTImageCache .cxx_destruct]', symObjAddr: 0xA04, symBinAddr: 0x59D4, symSize: 0x3C }
+  - { offset: 0x256BD, size: 0x8, addend: 0x0, symName: '+[RCTImageEditingManager moduleName]', symObjAddr: 0x0, symBinAddr: 0x5A10, symSize: 0xC }
+  - { offset: 0x256DD, size: 0x8, addend: 0x0, symName: '+[RCTImageEditingManager __rct_export__450]', symObjAddr: 0x10, symBinAddr: 0x5A20, symSize: 0xC }
+  - { offset: 0x25707, size: 0x8, addend: 0x0, symName: '__ZZ43+[RCTImageEditingManager __rct_export__450]E6config', symObjAddr: 0x13B8, symBinAddr: 0x2B978, symSize: 0x0 }
+  - { offset: 0x2E517, size: 0x8, addend: 0x0, symName: __ZNSt3__115allocate_sharedB8ne200100IN8facebook5react24NativeImageEditorSpecJSIENS_9allocatorIS3_EEJRKNS2_15ObjCTurboModule10InitParamsEELi0EEENS_10shared_ptrIT_EERKT0_DpOT1_, symObjAddr: 0xD04, symBinAddr: 0x6714, symSize: 0x58 }
+  - { offset: 0x31636, size: 0x8, addend: 0x0, symName: '+[RCTImageEditingManager moduleName]', symObjAddr: 0x0, symBinAddr: 0x5A10, symSize: 0xC }
+  - { offset: 0x31667, size: 0x8, addend: 0x0, symName: '+[RCTImageEditingManager load]', symObjAddr: 0xC, symBinAddr: 0x5A1C, symSize: 0x4 }
+  - { offset: 0x31699, size: 0x8, addend: 0x0, symName: '+[RCTImageEditingManager load]', symObjAddr: 0xC, symBinAddr: 0x5A1C, symSize: 0x4 }
+  - { offset: 0x31924, size: 0x8, addend: 0x0, symName: '-[RCTImageEditingManager cropImage:cropData:successCallback:errorCallback:]', symObjAddr: 0x1C, symBinAddr: 0x5A2C, symSize: 0x4C4 }
+  - { offset: 0x31F43, size: 0x8, addend: 0x0, symName: '___75-[RCTImageEditingManager cropImage:cropData:successCallback:errorCallback:]_block_invoke', symObjAddr: 0x4E0, symBinAddr: 0x5EF0, symSize: 0x544 }
+  - { offset: 0x32718, size: 0x8, addend: 0x0, symName: '___75-[RCTImageEditingManager cropImage:cropData:successCallback:errorCallback:]_block_invoke_2', symObjAddr: 0xA24, symBinAddr: 0x6434, symSize: 0x17C }
+  - { offset: 0x32818, size: 0x8, addend: 0x0, symName: ___copy_helper_block_ea8_32b40b, symObjAddr: 0xBA0, symBinAddr: 0x65B0, symSize: 0x3C }
+  - { offset: 0x32841, size: 0x8, addend: 0x0, symName: ___destroy_helper_block_ea8_32s40s, symObjAddr: 0xBDC, symBinAddr: 0x65EC, symSize: 0x28 }
+  - { offset: 0x32860, size: 0x8, addend: 0x0, symName: ___copy_helper_block_ea8_32s40b48b88c36_ZTSN2JS17NativeImageEditor7OptionsE, symObjAddr: 0xC04, symBinAddr: 0x6614, symSize: 0x54 }
+  - { offset: 0x328E1, size: 0x8, addend: 0x0, symName: ___destroy_helper_block_ea8_32s40s48s88c36_ZTSN2JS17NativeImageEditor7OptionsE, symObjAddr: 0xC58, symBinAddr: 0x6668, symSize: 0x38 }
+  - { offset: 0x329FF, size: 0x8, addend: 0x0, symName: '-[RCTImageEditingManager getTurboModule:]', symObjAddr: 0xC90, symBinAddr: 0x66A0, symSize: 0x3C }
+  - { offset: 0x32ACB, size: 0x8, addend: 0x0, symName: '-[RCTImageEditingManager moduleRegistry]', symObjAddr: 0xCCC, symBinAddr: 0x66DC, symSize: 0x18 }
+  - { offset: 0x32AFF, size: 0x8, addend: 0x0, symName: '-[RCTImageEditingManager setModuleRegistry:]', symObjAddr: 0xCE4, symBinAddr: 0x66F4, symSize: 0xC }
+  - { offset: 0x32B3D, size: 0x8, addend: 0x0, symName: '-[RCTImageEditingManager .cxx_destruct]', symObjAddr: 0xCF0, symBinAddr: 0x6700, symSize: 0x8 }
+  - { offset: 0x32B6E, size: 0x8, addend: 0x0, symName: _RCTImageEditingManagerCls, symObjAddr: 0xCF8, symBinAddr: 0x6708, symSize: 0xC }
+  - { offset: 0x32DBF, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react24NativeImageEditorSpecJSIENS_9allocatorIS3_EEEC2B8ne200100IJRKNS2_15ObjCTurboModule10InitParamsEES5_Li0EEES5_DpOT_, symObjAddr: 0xD5C, symBinAddr: 0x676C, symSize: 0x4C }
+  - { offset: 0x32F88, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react24NativeImageEditorSpecJSIENS_9allocatorIS3_EEED1Ev, symObjAddr: 0xDA8, symBinAddr: 0x67B8, symSize: 0x14 }
+  - { offset: 0x32FAC, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react24NativeImageEditorSpecJSIENS_9allocatorIS3_EEED1Ev, symObjAddr: 0xDA8, symBinAddr: 0x67B8, symSize: 0x14 }
+  - { offset: 0x32FE2, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react24NativeImageEditorSpecJSIENS_9allocatorIS3_EEED0Ev, symObjAddr: 0xDBC, symBinAddr: 0x67CC, symSize: 0x24 }
+  - { offset: 0x330B3, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react24NativeImageEditorSpecJSIENS_9allocatorIS3_EEE16__on_zero_sharedEv, symObjAddr: 0xDE0, symBinAddr: 0x67F0, symSize: 0xC }
+  - { offset: 0x330DC, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react24NativeImageEditorSpecJSIENS_9allocatorIS3_EEE16__on_zero_sharedEv, symObjAddr: 0xDE0, symBinAddr: 0x67F0, symSize: 0xC }
+  - { offset: 0x330FB, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react24NativeImageEditorSpecJSIENS_9allocatorIS3_EEE16__on_zero_sharedEv, symObjAddr: 0xDE0, symBinAddr: 0x67F0, symSize: 0xC }
+  - { offset: 0x3311A, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react24NativeImageEditorSpecJSIENS_9allocatorIS3_EEE16__on_zero_sharedEv, symObjAddr: 0xDE0, symBinAddr: 0x67F0, symSize: 0xC }
+  - { offset: 0x33146, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react24NativeImageEditorSpecJSIENS_9allocatorIS3_EEE21__on_zero_shared_weakEv, symObjAddr: 0xDEC, symBinAddr: 0x67FC, symSize: 0x4 }
+  - { offset: 0x33178, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react24NativeImageEditorSpecJSIENS_9allocatorIS3_EEE21__on_zero_shared_weakEv, symObjAddr: 0xDEC, symBinAddr: 0x67FC, symSize: 0x4 }
+  - { offset: 0x3319C, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react24NativeImageEditorSpecJSIENS_9allocatorIS3_EEE21__on_zero_shared_weakEv, symObjAddr: 0xDEC, symBinAddr: 0x67FC, symSize: 0x4 }
+  - { offset: 0x331C1, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react24NativeImageEditorSpecJSIENS_9allocatorIS3_EEE21__on_zero_shared_weakEv, symObjAddr: 0xDEC, symBinAddr: 0x67FC, symSize: 0x4 }
+  - { offset: 0x331F9, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react24NativeImageEditorSpecJSIENS_9allocatorIS3_EEE21__on_zero_shared_weakEv, symObjAddr: 0xDEC, symBinAddr: 0x67FC, symSize: 0x4 }
+  - { offset: 0x3533F, size: 0x8, addend: 0x0, symName: '-[UIImage(React) reactDecodedImageBytes]', symObjAddr: 0x0, symBinAddr: 0x6800, symSize: 0x128 }
+  - { offset: 0x35360, size: 0x8, addend: 0x0, symName: '-[RCTImageLoader canHandleRequest:]', symObjAddr: 0x55DC, symBinAddr: 0xBDA4, symSize: 0x1E4 }
+  - { offset: 0x3538C, size: 0x8, addend: 0x0, symName: '__ZZ35-[RCTImageLoader canHandleRequest:]E10videoRegex', symObjAddr: 0x941F0, symBinAddr: 0x2BE98, symSize: 0x0 }
+  - { offset: 0x353A3, size: 0x8, addend: 0x0, symName: '__ZZ35-[RCTImageLoader canHandleRequest:]E9onceToken', symObjAddr: 0x941F8, symBinAddr: 0x2BEA0, symSize: 0x0 }
+  - { offset: 0x354E9, size: 0x8, addend: 0x0, symName: '+[RCTImageLoader __rct_export__12350]', symObjAddr: 0x5C98, symBinAddr: 0xC460, symSize: 0xC }
+  - { offset: 0x35515, size: 0x8, addend: 0x0, symName: '__ZZ37+[RCTImageLoader __rct_export__12350]E6config', symObjAddr: 0xB9E8, symBinAddr: 0x2BB10, symSize: 0x0 }
+  - { offset: 0x3553E, size: 0x8, addend: 0x0, symName: '+[RCTImageLoader __rct_export__12551]', symObjAddr: 0x5FD8, symBinAddr: 0xC7A0, symSize: 0xC }
+  - { offset: 0x3556A, size: 0x8, addend: 0x0, symName: '__ZZ37+[RCTImageLoader __rct_export__12551]E6config', symObjAddr: 0xBA00, symBinAddr: 0x2BB28, symSize: 0x0 }
+  - { offset: 0x35587, size: 0x8, addend: 0x0, symName: '+[RCTImageLoader __rct_export__12752]', symObjAddr: 0x63C0, symBinAddr: 0xCB4C, symSize: 0xC }
+  - { offset: 0x355B3, size: 0x8, addend: 0x0, symName: '__ZZ37+[RCTImageLoader __rct_export__12752]E6config', symObjAddr: 0xBA18, symBinAddr: 0x2BB40, symSize: 0x0 }
+  - { offset: 0x355D0, size: 0x8, addend: 0x0, symName: '+[RCTImageLoader __rct_export__12853]', symObjAddr: 0x63E0, symBinAddr: 0xCB6C, symSize: 0xC }
+  - { offset: 0x355FC, size: 0x8, addend: 0x0, symName: '__ZZ37+[RCTImageLoader __rct_export__12853]E6config', symObjAddr: 0xBA30, symBinAddr: 0x2BB58, symSize: 0x0 }
+  - { offset: 0x35619, size: 0x8, addend: 0x0, symName: '+[RCTImageLoader __rct_export__13124]', symObjAddr: 0x6634, symBinAddr: 0xCDC0, symSize: 0xC }
+  - { offset: 0x35645, size: 0x8, addend: 0x0, symName: '__ZZ37+[RCTImageLoader __rct_export__13124]E6config', symObjAddr: 0xBA48, symBinAddr: 0x2BB70, symSize: 0x0 }
+  - { offset: 0x3FD05, size: 0x8, addend: 0x0, symName: __ZNSt3__115allocate_sharedB8ne200100IN8facebook5react27NativeImageLoaderIOSSpecJSIENS_9allocatorIS3_EEJRKNS2_15ObjCTurboModule10InitParamsEELi0EEENS_10shared_ptrIT_EERKT0_DpOT1_, symObjAddr: 0x6AF8, symBinAddr: 0xD284, symSize: 0x58 }
+  - { offset: 0x400BF, size: 0x8, addend: 0x0, symName: __ZNSt3__120__throw_length_errorB8ne200100EPKc, symObjAddr: 0x692C, symBinAddr: 0xD0B8, symSize: 0x50 }
+  - { offset: 0x41372, size: 0x8, addend: 0x0, symName: __ZL19currentRequestCount, symObjAddr: 0x94200, symBinAddr: 0x2BEA8, symSize: 0x0 }
+  - { offset: 0x434CC, size: 0x8, addend: 0x0, symName: '-[UIImage(React) reactDecodedImageBytes]', symObjAddr: 0x0, symBinAddr: 0x6800, symSize: 0x128 }
+  - { offset: 0x4355F, size: 0x8, addend: 0x0, symName: '-[UIImage(React) setReactDecodedImageBytes:]', symObjAddr: 0x128, symBinAddr: 0x6928, symSize: 0x6C }
+  - { offset: 0x435E6, size: 0x8, addend: 0x0, symName: '+[RCTImageLoader moduleName]', symObjAddr: 0x194, symBinAddr: 0x6994, symSize: 0xC }
+  - { offset: 0x43617, size: 0x8, addend: 0x0, symName: '+[RCTImageLoader load]', symObjAddr: 0x1A0, symBinAddr: 0x69A0, symSize: 0x4 }
+  - { offset: 0x43649, size: 0x8, addend: 0x0, symName: '+[RCTImageLoader load]', symObjAddr: 0x1A0, symBinAddr: 0x69A0, symSize: 0x4 }
+  - { offset: 0x43668, size: 0x8, addend: 0x0, symName: '-[RCTImageLoader init]', symObjAddr: 0x1A4, symBinAddr: 0x69A4, symSize: 0x8 }
+  - { offset: 0x4369A, size: 0x8, addend: 0x0, symName: '+[RCTImageLoader requiresMainQueueSetup]', symObjAddr: 0x1AC, symBinAddr: 0x69AC, symSize: 0x8 }
+  - { offset: 0x43724, size: 0x8, addend: 0x0, symName: '-[RCTImageLoader initWithRedirectDelegate:]', symObjAddr: 0x1B4, symBinAddr: 0x69B4, symSize: 0x7C }
+  - { offset: 0x437E8, size: 0x8, addend: 0x0, symName: '-[RCTImageLoader initWithRedirectDelegate:loadersProvider:decodersProvider:]', symObjAddr: 0x230, symBinAddr: 0x6A30, symSize: 0x98 }
+  - { offset: 0x4392A, size: 0x8, addend: 0x0, symName: '-[RCTImageLoader setUp]', symObjAddr: 0x2C8, symBinAddr: 0x6AC8, symSize: 0x88 }
+  - { offset: 0x43AE1, size: 0x8, addend: 0x0, symName: '-[RCTImageLoader handlerPriority]', symObjAddr: 0x350, symBinAddr: 0x6B50, symSize: 0x8 }
+  - { offset: 0x43B11, size: 0x8, addend: 0x0, symName: '-[RCTImageLoader imageCache]', symObjAddr: 0x358, symBinAddr: 0x6B58, symSize: 0x40 }
+  - { offset: 0x43B45, size: 0x8, addend: 0x0, symName: '-[RCTImageLoader setImageCache:]', symObjAddr: 0x398, symBinAddr: 0x6B98, symSize: 0x60 }
+  - { offset: 0x43C6D, size: 0x8, addend: 0x0, symName: '-[RCTImageLoader imageURLLoaderForURL:]', symObjAddr: 0x3F8, symBinAddr: 0x6BF8, symSize: 0x220 }
+  - { offset: 0x43DDD, size: 0x8, addend: 0x0, symName: '___39-[RCTImageLoader imageURLLoaderForURL:]_block_invoke', symObjAddr: 0x618, symBinAddr: 0x6E18, symSize: 0xB0 }
+  - { offset: 0x43E51, size: 0x8, addend: 0x0, symName: '-[RCTImageLoader imageDataDecoderForData:]', symObjAddr: 0x6C8, symBinAddr: 0x6EC8, symSize: 0x1F4 }
+  - { offset: 0x43F2D, size: 0x8, addend: 0x0, symName: '___42-[RCTImageLoader imageDataDecoderForData:]_block_invoke', symObjAddr: 0x8BC, symBinAddr: 0x70BC, symSize: 0xB0 }
+  - { offset: 0x43FA4, size: 0x8, addend: 0x0, symName: '-[RCTImageLoader loadImageWithURLRequest:callback:]', symObjAddr: 0x96C, symBinAddr: 0x716C, symSize: 0x20 }
+  - { offset: 0x43FFC, size: 0x8, addend: 0x0, symName: '-[RCTImageLoader loadImageWithURLRequest:priority:callback:]', symObjAddr: 0x98C, symBinAddr: 0x718C, symSize: 0x48 }
+  - { offset: 0x44065, size: 0x8, addend: 0x0, symName: '-[RCTImageLoader loadImageWithURLRequest:size:scale:clipped:resizeMode:progressBlock:partialLoadBlock:completionBlock:]', symObjAddr: 0x9D4, symBinAddr: 0x71D4, symSize: 0x34 }
+  - { offset: 0x4422E, size: 0x8, addend: 0x0, symName: '-[RCTImageLoader loadImageWithURLRequest:size:scale:clipped:resizeMode:priority:progressBlock:partialLoadBlock:completionBlock:]', symObjAddr: 0xA08, symBinAddr: 0x7208, symSize: 0x1B4 }
+  - { offset: 0x4448B, size: 0x8, addend: 0x0, symName: __ZN8facebook5react25ImageURLLoaderAttributionD1Ev, symObjAddr: 0xBE0, symBinAddr: 0x73D8, symSize: 0x38 }
+  - { offset: 0x445E4, size: 0x8, addend: 0x0, symName: '___128-[RCTImageLoader loadImageWithURLRequest:size:scale:clipped:resizeMode:priority:progressBlock:partialLoadBlock:completionBlock:]_block_invoke', symObjAddr: 0xBBC, symBinAddr: 0x73BC, symSize: 0xC }
+  - { offset: 0x44668, size: 0x8, addend: 0x0, symName: ___copy_helper_block_ea8_32b, symObjAddr: 0xBC8, symBinAddr: 0x73C8, symSize: 0x10 }
+  - { offset: 0x44691, size: 0x8, addend: 0x0, symName: '___128-[RCTImageLoader loadImageWithURLRequest:size:scale:clipped:resizeMode:priority:progressBlock:partialLoadBlock:completionBlock:]_block_invoke.121', symObjAddr: 0xC18, symBinAddr: 0x7410, symSize: 0x8 }
+  - { offset: 0x446CF, size: 0x8, addend: 0x0, symName: '-[RCTImageLoader dequeueTasks]', symObjAddr: 0xC28, symBinAddr: 0x7418, symSize: 0x58 }
+  - { offset: 0x44727, size: 0x8, addend: 0x0, symName: '___30-[RCTImageLoader dequeueTasks]_block_invoke', symObjAddr: 0xC80, symBinAddr: 0x7470, symSize: 0x3A4 }
+  - { offset: 0x44D7A, size: 0x8, addend: 0x0, symName: '-[RCTImageLoader _loadImageOrDataWithURLRequest:size:scale:resizeMode:priority:attribution:progressBlock:partialLoadBlock:completionBlock:]', symObjAddr: 0x1024, symBinAddr: 0x7814, symSize: 0xBEC }
+  - { offset: 0x45B99, size: 0x8, addend: 0x0, symName: __ZNSt3__112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE25__init_copy_ctor_externalEPKcm, symObjAddr: 0x6898, symBinAddr: 0xD024, symSize: 0x80 }
+  - { offset: 0x45D84, size: 0x8, addend: 0x0, symName: __ZNSt3__112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE20__throw_length_errorB8ne200100Ev, symObjAddr: 0x6918, symBinAddr: 0xD0A4, symSize: 0x14 }
+  - { offset: 0x45D8F, size: 0x8, addend: 0x0, symName: __ZL25RCTLoadImageURLFromLoaderPU28objcproto17RCTImageURLLoader11objc_objectP5NSURL6CGSized13RCTResizeModeU13block_pointerFvxxEU13block_pointerFvP7UIImageEU13block_pointerFvP7NSErrorS8_P11objc_objectE, symObjAddr: 0x2180, symBinAddr: 0x8970, symSize: 0x1CC }
+  - { offset: 0x45E33, size: 0x8, addend: 0x0, symName: __ZNSt3__110shared_ptrINS_6atomicIiEEED2B8ne200100Ev, symObjAddr: 0x6AA0, symBinAddr: 0xD22C, symSize: 0x58 }
+  - { offset: 0x45EC4, size: 0x8, addend: 0x0, symName: ___Block_byref_object_copy_, symObjAddr: 0x1C10, symBinAddr: 0x8400, symSize: 0x28 }
+  - { offset: 0x45EED, size: 0x8, addend: 0x0, symName: ___Block_byref_object_dispose_, symObjAddr: 0x1C38, symBinAddr: 0x8428, symSize: 0x8 }
+  - { offset: 0x45F0C, size: 0x8, addend: 0x0, symName: ___Block_byref_object_copy_.136, symObjAddr: 0x1C40, symBinAddr: 0x8430, symSize: 0x10 }
+  - { offset: 0x45F31, size: 0x8, addend: 0x0, symName: ___Block_byref_object_dispose_.137, symObjAddr: 0x1C50, symBinAddr: 0x8440, symSize: 0x8 }
+  - { offset: 0x45FDC, size: 0x8, addend: 0x0, symName: '___139-[RCTImageLoader _loadImageOrDataWithURLRequest:size:scale:resizeMode:priority:attribution:progressBlock:partialLoadBlock:completionBlock:]_block_invoke', symObjAddr: 0x1C58, symBinAddr: 0x8448, symSize: 0x384 }
+  - { offset: 0x46349, size: 0x8, addend: 0x0, symName: '___139-[RCTImageLoader _loadImageOrDataWithURLRequest:size:scale:resizeMode:priority:attribution:progressBlock:partialLoadBlock:completionBlock:]_block_invoke_2', symObjAddr: 0x1FDC, symBinAddr: 0x87CC, symSize: 0x2C }
+  - { offset: 0x463F0, size: 0x8, addend: 0x0, symName: '___139-[RCTImageLoader _loadImageOrDataWithURLRequest:size:scale:resizeMode:priority:attribution:progressBlock:partialLoadBlock:completionBlock:]_block_invoke_2', symObjAddr: 0x1FDC, symBinAddr: 0x87CC, symSize: 0x2C }
+  - { offset: 0x46485, size: 0x8, addend: 0x0, symName: ___copy_helper_block_ea8_32s40s48s56s64b72c40_ZTSNSt3__110shared_ptrINS_6atomicIiEEEE, symObjAddr: 0x2008, symBinAddr: 0x87F8, symSize: 0x70 }
+  - { offset: 0x46565, size: 0x8, addend: 0x0, symName: ___destroy_helper_block_ea8_32s40s48s56s64s72c40_ZTSNSt3__110shared_ptrINS_6atomicIiEEEE, symObjAddr: 0x2078, symBinAddr: 0x8868, symSize: 0x48 }
+  - { offset: 0x465A5, size: 0x8, addend: 0x0, symName: ___copy_helper_block_ea8_32b40r48r56c40_ZTSNSt3__110shared_ptrINS_6atomicIiEEEE, symObjAddr: 0x20C0, symBinAddr: 0x88B0, symSize: 0x70 }
+  - { offset: 0x46681, size: 0x8, addend: 0x0, symName: ___destroy_helper_block_ea8_32s40r48r56c40_ZTSNSt3__110shared_ptrINS_6atomicIiEEEE, symObjAddr: 0x2130, symBinAddr: 0x8920, symSize: 0x40 }
+  - { offset: 0x466C1, size: 0x8, addend: 0x0, symName: '___139-[RCTImageLoader _loadImageOrDataWithURLRequest:size:scale:resizeMode:priority:attribution:progressBlock:partialLoadBlock:completionBlock:]_block_invoke.158', symObjAddr: 0x2170, symBinAddr: 0x8960, symSize: 0x10 }
+  - { offset: 0x46753, size: 0x8, addend: 0x0, symName: '___139-[RCTImageLoader _loadImageOrDataWithURLRequest:size:scale:resizeMode:priority:attribution:progressBlock:partialLoadBlock:completionBlock:]_block_invoke_2.159', symObjAddr: 0x234C, symBinAddr: 0x8B3C, symSize: 0x10 }
+  - { offset: 0x467E5, size: 0x8, addend: 0x0, symName: '___139-[RCTImageLoader _loadImageOrDataWithURLRequest:size:scale:resizeMode:priority:attribution:progressBlock:partialLoadBlock:completionBlock:]_block_invoke_3', symObjAddr: 0x235C, symBinAddr: 0x8B4C, symSize: 0x3F0 }
+  - { offset: 0x46A75, size: 0x8, addend: 0x0, symName: '___139-[RCTImageLoader _loadImageOrDataWithURLRequest:size:scale:resizeMode:priority:attribution:progressBlock:partialLoadBlock:completionBlock:]_block_invoke_4', symObjAddr: 0x274C, symBinAddr: 0x8F3C, symSize: 0x10 }
+  - { offset: 0x46B07, size: 0x8, addend: 0x0, symName: '___139-[RCTImageLoader _loadImageOrDataWithURLRequest:size:scale:resizeMode:priority:attribution:progressBlock:partialLoadBlock:completionBlock:]_block_invoke_5', symObjAddr: 0x275C, symBinAddr: 0x8F4C, symSize: 0x10 }
+  - { offset: 0x46B99, size: 0x8, addend: 0x0, symName: '___139-[RCTImageLoader _loadImageOrDataWithURLRequest:size:scale:resizeMode:priority:attribution:progressBlock:partialLoadBlock:completionBlock:]_block_invoke_6', symObjAddr: 0x276C, symBinAddr: 0x8F5C, symSize: 0x14 }
+  - { offset: 0x46C2D, size: 0x8, addend: 0x0, symName: ___copy_helper_block_ea8_32s40s48s56b64b72b80r88r96w104c40_ZTSNSt3__110shared_ptrINS_6atomicIiEEEE160c48_ZTSN8facebook5react25ImageURLLoaderAttributionE, symObjAddr: 0x2780, symBinAddr: 0x8F70, symSize: 0x16C }
+  - { offset: 0x46DF1, size: 0x8, addend: 0x0, symName: ___destroy_helper_block_ea8_32s40s48s56s64s72s80r88r96w104c40_ZTSNSt3__110shared_ptrINS_6atomicIiEEEE160c48_ZTSN8facebook5react25ImageURLLoaderAttributionE, symObjAddr: 0x28EC, symBinAddr: 0x90DC, symSize: 0x88 }
+  - { offset: 0x46FC3, size: 0x8, addend: 0x0, symName: '___139-[RCTImageLoader _loadImageOrDataWithURLRequest:size:scale:resizeMode:priority:attribution:progressBlock:partialLoadBlock:completionBlock:]_block_invoke.163', symObjAddr: 0x2974, symBinAddr: 0x9164, symSize: 0xC0 }
+  - { offset: 0x470FC, size: 0x8, addend: 0x0, symName: ___copy_helper_block_ea8_32r40r48c40_ZTSNSt3__110shared_ptrINS_6atomicIiEEEE, symObjAddr: 0x2A34, symBinAddr: 0x9224, symSize: 0x60 }
+  - { offset: 0x471D8, size: 0x8, addend: 0x0, symName: ___destroy_helper_block_ea8_32r40r48c40_ZTSNSt3__110shared_ptrINS_6atomicIiEEEE, symObjAddr: 0x2A94, symBinAddr: 0x9284, symSize: 0x38 }
+  - { offset: 0x47218, size: 0x8, addend: 0x0, symName: '-[RCTImageLoader _loadURLRequest:progressBlock:completionBlock:]', symObjAddr: 0x2ACC, symBinAddr: 0x92BC, symSize: 0x300 }
+  - { offset: 0x472CA, size: 0x8, addend: 0x0, symName: '___64-[RCTImageLoader _loadURLRequest:progressBlock:completionBlock:]_block_invoke', symObjAddr: 0x2DCC, symBinAddr: 0x95BC, symSize: 0x294 }
+  - { offset: 0x4744C, size: 0x8, addend: 0x0, symName: '___64-[RCTImageLoader _loadURLRequest:progressBlock:completionBlock:]_block_invoke.174', symObjAddr: 0x3060, symBinAddr: 0x9850, symSize: 0x16C }
+  - { offset: 0x4755A, size: 0x8, addend: 0x0, symName: '___64-[RCTImageLoader _loadURLRequest:progressBlock:completionBlock:]_block_invoke_2', symObjAddr: 0x31CC, symBinAddr: 0x99BC, symSize: 0x34 }
+  - { offset: 0x475DD, size: 0x8, addend: 0x0, symName: ___copy_helper_block_ea8_32s40s48s56b, symObjAddr: 0x3200, symBinAddr: 0x99F0, symSize: 0x44 }
+  - { offset: 0x47606, size: 0x8, addend: 0x0, symName: ___destroy_helper_block_ea8_32s40s48s56s, symObjAddr: 0x3244, symBinAddr: 0x9A34, symSize: 0x38 }
+  - { offset: 0x47625, size: 0x8, addend: 0x0, symName: ___copy_helper_block_ea8_32b40b48w, symObjAddr: 0x327C, symBinAddr: 0x9A6C, symSize: 0x48 }
+  - { offset: 0x4764E, size: 0x8, addend: 0x0, symName: ___destroy_helper_block_ea8_32s40s48w, symObjAddr: 0x32C4, symBinAddr: 0x9AB4, symSize: 0x30 }
+  - { offset: 0x4766D, size: 0x8, addend: 0x0, symName: '___64-[RCTImageLoader _loadURLRequest:progressBlock:completionBlock:]_block_invoke.175', symObjAddr: 0x32F4, symBinAddr: 0x9AE4, symSize: 0x14 }
+  - { offset: 0x476D5, size: 0x8, addend: 0x0, symName: '___64-[RCTImageLoader _loadURLRequest:progressBlock:completionBlock:]_block_invoke.177', symObjAddr: 0x3308, symBinAddr: 0x9AF8, symSize: 0x9C }
+  - { offset: 0x47757, size: 0x8, addend: 0x0, symName: '___64-[RCTImageLoader _loadURLRequest:progressBlock:completionBlock:]_block_invoke_2.178', symObjAddr: 0x33A4, symBinAddr: 0x9B94, symSize: 0x3C }
+  - { offset: 0x47795, size: 0x8, addend: 0x0, symName: ___copy_helper_block_ea8_32r, symObjAddr: 0x33E0, symBinAddr: 0x9BD0, symSize: 0x10 }
+  - { offset: 0x477BE, size: 0x8, addend: 0x0, symName: ___destroy_helper_block_ea8_32r, symObjAddr: 0x33F0, symBinAddr: 0x9BE0, symSize: 0xC }
+  - { offset: 0x477DD, size: 0x8, addend: 0x0, symName: ___copy_helper_block_ea8_32r40w, symObjAddr: 0x33FC, symBinAddr: 0x9BEC, symSize: 0x38 }
+  - { offset: 0x47806, size: 0x8, addend: 0x0, symName: ___destroy_helper_block_ea8_32r40w, symObjAddr: 0x3434, symBinAddr: 0x9C24, symSize: 0x2C }
+  - { offset: 0x47825, size: 0x8, addend: 0x0, symName: '-[RCTImageLoader loadImageWithURLRequest:size:scale:clipped:resizeMode:priority:attribution:progressBlock:partialLoadBlock:completionBlock:]', symObjAddr: 0x3460, symBinAddr: 0x9C50, symSize: 0x4B8 }
+  - { offset: 0x47FC6, size: 0x8, addend: 0x0, symName: '___140-[RCTImageLoader loadImageWithURLRequest:size:scale:clipped:resizeMode:priority:attribution:progressBlock:partialLoadBlock:completionBlock:]_block_invoke', symObjAddr: 0x3918, symBinAddr: 0xA108, symSize: 0xC0 }
+  - { offset: 0x480FF, size: 0x8, addend: 0x0, symName: '___140-[RCTImageLoader loadImageWithURLRequest:size:scale:clipped:resizeMode:priority:attribution:progressBlock:partialLoadBlock:completionBlock:]_block_invoke_2', symObjAddr: 0x39D8, symBinAddr: 0xA1C8, symSize: 0x270 }
+  - { offset: 0x4830B, size: 0x8, addend: 0x0, symName: '___140-[RCTImageLoader loadImageWithURLRequest:size:scale:clipped:resizeMode:priority:attribution:progressBlock:partialLoadBlock:completionBlock:]_block_invoke_3', symObjAddr: 0x3C48, symBinAddr: 0xA438, symSize: 0x13C }
+  - { offset: 0x48424, size: 0x8, addend: 0x0, symName: ___copy_helper_block_ea8_32s40s48s56b64r72r, symObjAddr: 0x3D84, symBinAddr: 0xA574, symSize: 0x64 }
+  - { offset: 0x4844D, size: 0x8, addend: 0x0, symName: ___destroy_helper_block_ea8_32s40s48s56s64r72r, symObjAddr: 0x3DE8, symBinAddr: 0xA5D8, symSize: 0x50 }
+  - { offset: 0x4846C, size: 0x8, addend: 0x0, symName: ___copy_helper_block_ea8_32s40b48r56r64w72c40_ZTSNSt3__110shared_ptrINS_6atomicIiEEEE, symObjAddr: 0x3E38, symBinAddr: 0xA628, symSize: 0x84 }
+  - { offset: 0x4854C, size: 0x8, addend: 0x0, symName: ___destroy_helper_block_ea8_32s40s48r56r64w72c40_ZTSNSt3__110shared_ptrINS_6atomicIiEEEE, symObjAddr: 0x3EBC, symBinAddr: 0xA6AC, symSize: 0x50 }
+  - { offset: 0x4858C, size: 0x8, addend: 0x0, symName: '-[RCTImageLoader shouldEnablePerfLoggingForRequestUrl:]', symObjAddr: 0x3F0C, symBinAddr: 0xA6FC, symSize: 0x60 }
+  - { offset: 0x485E4, size: 0x8, addend: 0x0, symName: '-[RCTImageLoader trackURLImageVisibilityForRequest:imageView:]', symObjAddr: 0x3F6C, symBinAddr: 0xA75C, symSize: 0xD8 }
+  - { offset: 0x48649, size: 0x8, addend: 0x0, symName: '-[RCTImageLoader trackURLImageRequestDidDestroy:]', symObjAddr: 0x4044, symBinAddr: 0xA834, symSize: 0xAC }
+  - { offset: 0x4869D, size: 0x8, addend: 0x0, symName: '-[RCTImageLoader trackURLImageDidDestroy:]', symObjAddr: 0x40F0, symBinAddr: 0xA8E0, symSize: 0xAC }
+  - { offset: 0x486F1, size: 0x8, addend: 0x0, symName: '-[RCTImageLoader decodeImageData:size:scale:clipped:resizeMode:completionBlock:]', symObjAddr: 0x419C, symBinAddr: 0xA98C, symSize: 0x44C }
+  - { offset: 0x48FE8, size: 0x8, addend: 0x0, symName: '___80-[RCTImageLoader decodeImageData:size:scale:clipped:resizeMode:completionBlock:]_block_invoke', symObjAddr: 0x45E8, symBinAddr: 0xADD8, symSize: 0x4 }
+  - { offset: 0x49011, size: 0x8, addend: 0x0, symName: '___80-[RCTImageLoader decodeImageData:size:scale:clipped:resizeMode:completionBlock:]_block_invoke_2', symObjAddr: 0x45EC, symBinAddr: 0xADDC, symSize: 0x1D4 }
+  - { offset: 0x49314, size: 0x8, addend: 0x0, symName: __ZL22RCTResizeImageIfNeededP7UIImage6CGSized13RCTResizeMode, symObjAddr: 0x486C, symBinAddr: 0xB05C, symSize: 0x158 }
+  - { offset: 0x493D7, size: 0x8, addend: 0x0, symName: '___80-[RCTImageLoader decodeImageData:size:scale:clipped:resizeMode:completionBlock:]_block_invoke_3', symObjAddr: 0x47C0, symBinAddr: 0xAFB0, symSize: 0xAC }
+  - { offset: 0x49593, size: 0x8, addend: 0x0, symName: ___copy_helper_block_ea8_32s40s48b56c40_ZTSNSt3__110shared_ptrINS_6atomicIiEEEE, symObjAddr: 0x49C4, symBinAddr: 0xB1B4, symSize: 0x60 }
+  - { offset: 0x4966F, size: 0x8, addend: 0x0, symName: ___destroy_helper_block_ea8_32s40s48s56c40_ZTSNSt3__110shared_ptrINS_6atomicIiEEEE, symObjAddr: 0x4A24, symBinAddr: 0xB214, symSize: 0x38 }
+  - { offset: 0x496AF, size: 0x8, addend: 0x0, symName: ___copy_helper_block_ea8_32b40c40_ZTSNSt3__110shared_ptrINS_6atomicIiEEEE, symObjAddr: 0x4A5C, symBinAddr: 0xB24C, symSize: 0x50 }
+  - { offset: 0x4978B, size: 0x8, addend: 0x0, symName: ___destroy_helper_block_ea8_32s40c40_ZTSNSt3__110shared_ptrINS_6atomicIiEEEE, symObjAddr: 0x4AAC, symBinAddr: 0xB29C, symSize: 0x28 }
+  - { offset: 0x497CB, size: 0x8, addend: 0x0, symName: '___80-[RCTImageLoader decodeImageData:size:scale:clipped:resizeMode:completionBlock:]_block_invoke.188', symObjAddr: 0x4AD4, symBinAddr: 0xB2C4, symSize: 0x4 }
+  - { offset: 0x497F4, size: 0x8, addend: 0x0, symName: '___80-[RCTImageLoader decodeImageData:size:scale:clipped:resizeMode:completionBlock:]_block_invoke_2.190', symObjAddr: 0x4AD8, symBinAddr: 0xB2C8, symSize: 0x148 }
+  - { offset: 0x49A3E, size: 0x8, addend: 0x0, symName: '___80-[RCTImageLoader decodeImageData:size:scale:clipped:resizeMode:completionBlock:]_block_invoke_3.191', symObjAddr: 0x4C20, symBinAddr: 0xB410, symSize: 0x13C }
+  - { offset: 0x49C47, size: 0x8, addend: 0x0, symName: '___80-[RCTImageLoader decodeImageData:size:scale:clipped:resizeMode:completionBlock:]_block_invoke_4', symObjAddr: 0x4D5C, symBinAddr: 0xB54C, symSize: 0x28 }
+  - { offset: 0x49C9A, size: 0x8, addend: 0x0, symName: ___copy_helper_block_ea8_32s40s48b80c40_ZTSNSt3__110shared_ptrINS_6atomicIiEEEE, symObjAddr: 0x4D84, symBinAddr: 0xB574, symSize: 0x60 }
+  - { offset: 0x49D7A, size: 0x8, addend: 0x0, symName: ___destroy_helper_block_ea8_32s40s48s80c40_ZTSNSt3__110shared_ptrINS_6atomicIiEEEE, symObjAddr: 0x4DE4, symBinAddr: 0xB5D4, symSize: 0x38 }
+  - { offset: 0x49DBA, size: 0x8, addend: 0x0, symName: '___80-[RCTImageLoader decodeImageData:size:scale:clipped:resizeMode:completionBlock:]_block_invoke.194', symObjAddr: 0x4E1C, symBinAddr: 0xB60C, symSize: 0xE4 }
+  - { offset: 0x49E38, size: 0x8, addend: 0x0, symName: ___copy_helper_block_ea8_32s40b, symObjAddr: 0x4F00, symBinAddr: 0xB6F0, symSize: 0x34 }
+  - { offset: 0x49E8C, size: 0x8, addend: 0x0, symName: '___80-[RCTImageLoader decodeImageData:size:scale:clipped:resizeMode:completionBlock:]_block_invoke.195', symObjAddr: 0x4F5C, symBinAddr: 0xB724, symSize: 0x10 }
+  - { offset: 0x49ECD, size: 0x8, addend: 0x0, symName: '___80-[RCTImageLoader decodeImageData:size:scale:clipped:resizeMode:completionBlock:]_block_invoke.195', symObjAddr: 0x4F5C, symBinAddr: 0xB724, symSize: 0x10 }
+  - { offset: 0x49F6A, size: 0x8, addend: 0x0, symName: ___copy_helper_block_ea8_32c40_ZTSNSt3__110shared_ptrINS_6atomicIiEEEE, symObjAddr: 0x4F6C, symBinAddr: 0xB734, symSize: 0x24 }
+  - { offset: 0x49F92, size: 0x8, addend: 0x0, symName: ___copy_helper_block_ea8_32c40_ZTSNSt3__110shared_ptrINS_6atomicIiEEEE, symObjAddr: 0x4F6C, symBinAddr: 0xB734, symSize: 0x24 }
+  - { offset: 0x49FBA, size: 0x8, addend: 0x0, symName: ___copy_helper_block_ea8_32c40_ZTSNSt3__110shared_ptrINS_6atomicIiEEEE, symObjAddr: 0x4F6C, symBinAddr: 0xB734, symSize: 0x24 }
+  - { offset: 0x4A042, size: 0x8, addend: 0x0, symName: ___destroy_helper_block_ea8_32c40_ZTSNSt3__110shared_ptrINS_6atomicIiEEEE, symObjAddr: 0x4F90, symBinAddr: 0xB758, symSize: 0x8 }
+  - { offset: 0x4A083, size: 0x8, addend: 0x0, symName: '-[RCTImageLoader getImageSizeForURLRequest:block:]', symObjAddr: 0x4F98, symBinAddr: 0xB760, symSize: 0x148 }
+  - { offset: 0x4A276, size: 0x8, addend: 0x0, symName: '___50-[RCTImageLoader getImageSizeForURLRequest:block:]_block_invoke', symObjAddr: 0x50E0, symBinAddr: 0xB8A8, symSize: 0x210 }
+  - { offset: 0x4A391, size: 0x8, addend: 0x0, symName: '-[RCTImageLoader getImageCacheStatus:]', symObjAddr: 0x52F0, symBinAddr: 0xBAB8, symSize: 0x2EC }
+  - { offset: 0x4A453, size: 0x8, addend: 0x0, symName: '-[RCTImageLoader canHandleRequest:].cold.1', symObjAddr: 0x6BE4, symBinAddr: 0x14C64, symSize: 0x14 }
+  - { offset: 0x4A46F, size: 0x8, addend: 0x0, symName: '-[RCTImageLoader canHandleRequest:].cold.1', symObjAddr: 0x6BE4, symBinAddr: 0x14C64, symSize: 0x14 }
+  - { offset: 0x4A482, size: 0x8, addend: 0x0, symName: '___35-[RCTImageLoader canHandleRequest:]_block_invoke', symObjAddr: 0x57C0, symBinAddr: 0xBF88, symSize: 0xA0 }
+  - { offset: 0x4A4E4, size: 0x8, addend: 0x0, symName: '-[RCTImageLoader sendRequest:withDelegate:]', symObjAddr: 0x5860, symBinAddr: 0xC028, symSize: 0x14C }
+  - { offset: 0x4A552, size: 0x8, addend: 0x0, symName: '___43-[RCTImageLoader sendRequest:withDelegate:]_block_invoke', symObjAddr: 0x59AC, symBinAddr: 0xC174, symSize: 0x1F0 }
+  - { offset: 0x4A67E, size: 0x8, addend: 0x0, symName: ___copy_helper_block_ea8_32s40s48r, symObjAddr: 0x5B9C, symBinAddr: 0xC364, symSize: 0x3C }
+  - { offset: 0x4A6A7, size: 0x8, addend: 0x0, symName: ___destroy_helper_block_ea8_32s40s48r, symObjAddr: 0x5BD8, symBinAddr: 0xC3A0, symSize: 0x34 }
+  - { offset: 0x4A6C6, size: 0x8, addend: 0x0, symName: '-[RCTImageLoader cancelRequest:]', symObjAddr: 0x5C0C, symBinAddr: 0xC3D4, symSize: 0x50 }
+  - { offset: 0x4A7D8, size: 0x8, addend: 0x0, symName: '-[RCTImageLoader getTurboModule:]', symObjAddr: 0x5C5C, symBinAddr: 0xC424, symSize: 0x3C }
+  - { offset: 0x4A8A9, size: 0x8, addend: 0x0, symName: '-[RCTImageLoader getSize:resolve:reject:]', symObjAddr: 0x5CA4, symBinAddr: 0xC46C, symSize: 0x140 }
+  - { offset: 0x4A91F, size: 0x8, addend: 0x0, symName: '___41-[RCTImageLoader getSize:resolve:reject:]_block_invoke', symObjAddr: 0x5DE4, symBinAddr: 0xC5AC, symSize: 0x180 }
+  - { offset: 0x4A9D9, size: 0x8, addend: 0x0, symName: ___copy_helper_block_ea8_32s40b48b, symObjAddr: 0x5F64, symBinAddr: 0xC72C, symSize: 0x44 }
+  - { offset: 0x4AA02, size: 0x8, addend: 0x0, symName: ___destroy_helper_block_ea8_32s40s48s, symObjAddr: 0x5FA8, symBinAddr: 0xC770, symSize: 0x30 }
+  - { offset: 0x4AA21, size: 0x8, addend: 0x0, symName: '-[RCTImageLoader getSizeWithHeaders:headers:resolve:reject:]', symObjAddr: 0x5FE4, symBinAddr: 0xC7AC, symSize: 0x1B8 }
+  - { offset: 0x4AAB9, size: 0x8, addend: 0x0, symName: '___60-[RCTImageLoader getSizeWithHeaders:headers:resolve:reject:]_block_invoke', symObjAddr: 0x619C, symBinAddr: 0xC964, symSize: 0x84 }
+  - { offset: 0x4AB26, size: 0x8, addend: 0x0, symName: '___60-[RCTImageLoader getSizeWithHeaders:headers:resolve:reject:]_block_invoke.237', symObjAddr: 0x6220, symBinAddr: 0xC9E8, symSize: 0x164 }
+  - { offset: 0x4ABC8, size: 0x8, addend: 0x0, symName: '-[RCTImageLoader prefetchImage:resolve:reject:]', symObjAddr: 0x63CC, symBinAddr: 0xCB58, symSize: 0x14 }
+  - { offset: 0x4AC5B, size: 0x8, addend: 0x0, symName: '-[RCTImageLoader prefetchImageWithMetadata:queryRootName:rootTag:resolve:reject:]', symObjAddr: 0x63EC, symBinAddr: 0xCB78, symSize: 0x1CC }
+  - { offset: 0x4AE7B, size: 0x8, addend: 0x0, symName: __ZNSt3__112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEC2B8ne200100ILi0EEEPKc, symObjAddr: 0x69BC, symBinAddr: 0xD148, symSize: 0xA4 }
+  - { offset: 0x4B0FA, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceINS_6atomicIiEENS_9allocatorIS2_EEED1Ev, symObjAddr: 0x6A60, symBinAddr: 0xD1EC, symSize: 0x14 }
+  - { offset: 0x4B10C, size: 0x8, addend: 0x0, symName: '___81-[RCTImageLoader prefetchImageWithMetadata:queryRootName:rootTag:resolve:reject:]_block_invoke', symObjAddr: 0x65B8, symBinAddr: 0xCD44, symSize: 0x7C }
+  - { offset: 0x4B1A4, size: 0x8, addend: 0x0, symName: '-[RCTImageLoader queryCache:resolve:reject:]', symObjAddr: 0x6640, symBinAddr: 0xCDCC, symSize: 0x7C }
+  - { offset: 0x4B220, size: 0x8, addend: 0x0, symName: '-[RCTImageLoader bridge]', symObjAddr: 0x66BC, symBinAddr: 0xCE48, symSize: 0x18 }
+  - { offset: 0x4B255, size: 0x8, addend: 0x0, symName: '-[RCTImageLoader moduleRegistry]', symObjAddr: 0x66D4, symBinAddr: 0xCE60, symSize: 0x18 }
+  - { offset: 0x4B289, size: 0x8, addend: 0x0, symName: '-[RCTImageLoader setModuleRegistry:]', symObjAddr: 0x66EC, symBinAddr: 0xCE78, symSize: 0xC }
+  - { offset: 0x4B2C7, size: 0x8, addend: 0x0, symName: '-[RCTImageLoader maxConcurrentLoadingTasks]', symObjAddr: 0x66F8, symBinAddr: 0xCE84, symSize: 0x8 }
+  - { offset: 0x4B2FB, size: 0x8, addend: 0x0, symName: '-[RCTImageLoader setMaxConcurrentLoadingTasks:]', symObjAddr: 0x6700, symBinAddr: 0xCE8C, symSize: 0x8 }
+  - { offset: 0x4B334, size: 0x8, addend: 0x0, symName: '-[RCTImageLoader maxConcurrentDecodingTasks]', symObjAddr: 0x6708, symBinAddr: 0xCE94, symSize: 0x8 }
+  - { offset: 0x4B368, size: 0x8, addend: 0x0, symName: '-[RCTImageLoader setMaxConcurrentDecodingTasks:]', symObjAddr: 0x6710, symBinAddr: 0xCE9C, symSize: 0x8 }
+  - { offset: 0x4B3A1, size: 0x8, addend: 0x0, symName: '-[RCTImageLoader maxConcurrentDecodingBytes]', symObjAddr: 0x6718, symBinAddr: 0xCEA4, symSize: 0x8 }
+  - { offset: 0x4B3D5, size: 0x8, addend: 0x0, symName: '-[RCTImageLoader setMaxConcurrentDecodingBytes:]', symObjAddr: 0x6720, symBinAddr: 0xCEAC, symSize: 0x8 }
+  - { offset: 0x4B40F, size: 0x8, addend: 0x0, symName: '-[RCTImageLoader .cxx_destruct]', symObjAddr: 0x6728, symBinAddr: 0xCEB4, symSize: 0xAC }
+  - { offset: 0x4B532, size: 0x8, addend: 0x0, symName: '-[RCTImageLoader .cxx_construct]', symObjAddr: 0x67D4, symBinAddr: 0xCF60, symSize: 0x3C }
+  - { offset: 0x4B568, size: 0x8, addend: 0x0, symName: '-[RCTImageLoader .cxx_construct]', symObjAddr: 0x67D4, symBinAddr: 0xCF60, symSize: 0x3C }
+  - { offset: 0x4B587, size: 0x8, addend: 0x0, symName: '-[RCTImageLoader .cxx_construct]', symObjAddr: 0x67D4, symBinAddr: 0xCF60, symSize: 0x3C }
+  - { offset: 0x4B5A6, size: 0x8, addend: 0x0, symName: '-[RCTImageLoader .cxx_construct]', symObjAddr: 0x67D4, symBinAddr: 0xCF60, symSize: 0x3C }
+  - { offset: 0x4B5C5, size: 0x8, addend: 0x0, symName: '-[RCTImageLoader .cxx_construct]', symObjAddr: 0x67D4, symBinAddr: 0xCF60, symSize: 0x3C }
+  - { offset: 0x4B5ED, size: 0x8, addend: 0x0, symName: '-[RCTImageLoader .cxx_construct]', symObjAddr: 0x67D4, symBinAddr: 0xCF60, symSize: 0x3C }
+  - { offset: 0x4B615, size: 0x8, addend: 0x0, symName: '-[RCTImageLoader .cxx_construct]', symObjAddr: 0x67D4, symBinAddr: 0xCF60, symSize: 0x3C }
+  - { offset: 0x4B6C0, size: 0x8, addend: 0x0, symName: '-[RCTBridge(RCTImageLoader) imageLoader]', symObjAddr: 0x6810, symBinAddr: 0xCF9C, symSize: 0x4C }
+  - { offset: 0x4B710, size: 0x8, addend: 0x0, symName: '-[RCTBridgeProxy(RCTImageLoader) imageLoader]', symObjAddr: 0x685C, symBinAddr: 0xCFE8, symSize: 0x30 }
+  - { offset: 0x4B746, size: 0x8, addend: 0x0, symName: _RCTImageLoaderCls, symObjAddr: 0x688C, symBinAddr: 0xD018, symSize: 0xC }
+  - { offset: 0x4B844, size: 0x8, addend: 0x0, symName: __ZNSt3__112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE20__throw_length_errorB8ne200100Ev, symObjAddr: 0x6918, symBinAddr: 0xD0A4, symSize: 0x14 }
+  - { offset: 0x4B85B, size: 0x8, addend: 0x0, symName: __ZNSt3__120__throw_length_errorB8ne200100EPKc, symObjAddr: 0x692C, symBinAddr: 0xD0B8, symSize: 0x50 }
+  - { offset: 0x4B866, size: 0x8, addend: 0x0, symName: __ZNSt12length_errorC1B8ne200100EPKc, symObjAddr: 0x697C, symBinAddr: 0xD108, symSize: 0x24 }
+  - { offset: 0x4B8EE, size: 0x8, addend: 0x0, symName: ____ZL25RCTLoadImageURLFromLoaderPU28objcproto17RCTImageURLLoader11objc_objectP5NSURL6CGSized13RCTResizeModeU13block_pointerFvxxEU13block_pointerFvP7UIImageEU13block_pointerFvP7NSErrorS8_P11objc_objectE_block_invoke, symObjAddr: 0x69A0, symBinAddr: 0xD12C, symSize: 0xC }
+  - { offset: 0x4B97B, size: 0x8, addend: 0x0, symName: ____ZL25RCTLoadImageURLFromLoaderPU28objcproto17RCTImageURLLoader11objc_objectP5NSURL6CGSized13RCTResizeModeU13block_pointerFvxxEU13block_pointerFvP7UIImageEU13block_pointerFvP7NSErrorS8_P11objc_objectE_block_invoke_2, symObjAddr: 0x69AC, symBinAddr: 0xD138, symSize: 0x10 }
+  - { offset: 0x4BAA1, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceINS_6atomicIiEENS_9allocatorIS2_EEED1Ev, symObjAddr: 0x6A60, symBinAddr: 0xD1EC, symSize: 0x14 }
+  - { offset: 0x4BAC5, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceINS_6atomicIiEENS_9allocatorIS2_EEED1Ev, symObjAddr: 0x6A60, symBinAddr: 0xD1EC, symSize: 0x14 }
+  - { offset: 0x4BAFB, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceINS_6atomicIiEENS_9allocatorIS2_EEED0Ev, symObjAddr: 0x6A74, symBinAddr: 0xD200, symSize: 0x24 }
+  - { offset: 0x4BB61, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceINS_6atomicIiEENS_9allocatorIS2_EEE16__on_zero_sharedEv, symObjAddr: 0x6A98, symBinAddr: 0xD224, symSize: 0x4 }
+  - { offset: 0x4BBE4, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceINS_6atomicIiEENS_9allocatorIS2_EEE21__on_zero_shared_weakEv, symObjAddr: 0x6A9C, symBinAddr: 0xD228, symSize: 0x4 }
+  - { offset: 0x4BC16, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceINS_6atomicIiEENS_9allocatorIS2_EEE21__on_zero_shared_weakEv, symObjAddr: 0x6A9C, symBinAddr: 0xD228, symSize: 0x4 }
+  - { offset: 0x4BC3A, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceINS_6atomicIiEENS_9allocatorIS2_EEE21__on_zero_shared_weakEv, symObjAddr: 0x6A9C, symBinAddr: 0xD228, symSize: 0x4 }
+  - { offset: 0x4BC5F, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceINS_6atomicIiEENS_9allocatorIS2_EEE21__on_zero_shared_weakEv, symObjAddr: 0x6A9C, symBinAddr: 0xD228, symSize: 0x4 }
+  - { offset: 0x4BC96, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceINS_6atomicIiEENS_9allocatorIS2_EEE21__on_zero_shared_weakEv, symObjAddr: 0x6A9C, symBinAddr: 0xD228, symSize: 0x4 }
+  - { offset: 0x4BEF1, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react27NativeImageLoaderIOSSpecJSIENS_9allocatorIS3_EEEC2B8ne200100IJRKNS2_15ObjCTurboModule10InitParamsEES5_Li0EEES5_DpOT_, symObjAddr: 0x6B50, symBinAddr: 0xD2DC, symSize: 0x4C }
+  - { offset: 0x4C091, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react27NativeImageLoaderIOSSpecJSIENS_9allocatorIS3_EEED1Ev, symObjAddr: 0x6B9C, symBinAddr: 0xD328, symSize: 0x14 }
+  - { offset: 0x4C0B5, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react27NativeImageLoaderIOSSpecJSIENS_9allocatorIS3_EEED1Ev, symObjAddr: 0x6B9C, symBinAddr: 0xD328, symSize: 0x14 }
+  - { offset: 0x4C0EB, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react27NativeImageLoaderIOSSpecJSIENS_9allocatorIS3_EEED0Ev, symObjAddr: 0x6BB0, symBinAddr: 0xD33C, symSize: 0x24 }
+  - { offset: 0x4C1BC, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react27NativeImageLoaderIOSSpecJSIENS_9allocatorIS3_EEE16__on_zero_sharedEv, symObjAddr: 0x6BD4, symBinAddr: 0xD360, symSize: 0xC }
+  - { offset: 0x4C1E5, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react27NativeImageLoaderIOSSpecJSIENS_9allocatorIS3_EEE16__on_zero_sharedEv, symObjAddr: 0x6BD4, symBinAddr: 0xD360, symSize: 0xC }
+  - { offset: 0x4C204, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react27NativeImageLoaderIOSSpecJSIENS_9allocatorIS3_EEE16__on_zero_sharedEv, symObjAddr: 0x6BD4, symBinAddr: 0xD360, symSize: 0xC }
+  - { offset: 0x4C223, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react27NativeImageLoaderIOSSpecJSIENS_9allocatorIS3_EEE16__on_zero_sharedEv, symObjAddr: 0x6BD4, symBinAddr: 0xD360, symSize: 0xC }
+  - { offset: 0x4C24F, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react27NativeImageLoaderIOSSpecJSIENS_9allocatorIS3_EEE21__on_zero_shared_weakEv, symObjAddr: 0x6BE0, symBinAddr: 0xD36C, symSize: 0x4 }
+  - { offset: 0x4C281, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react27NativeImageLoaderIOSSpecJSIENS_9allocatorIS3_EEE21__on_zero_shared_weakEv, symObjAddr: 0x6BE0, symBinAddr: 0xD36C, symSize: 0x4 }
+  - { offset: 0x4C2A5, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react27NativeImageLoaderIOSSpecJSIENS_9allocatorIS3_EEE21__on_zero_shared_weakEv, symObjAddr: 0x6BE0, symBinAddr: 0xD36C, symSize: 0x4 }
+  - { offset: 0x4C2CA, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react27NativeImageLoaderIOSSpecJSIENS_9allocatorIS3_EEE21__on_zero_shared_weakEv, symObjAddr: 0x6BE0, symBinAddr: 0xD36C, symSize: 0x4 }
+  - { offset: 0x4C302, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react27NativeImageLoaderIOSSpecJSIENS_9allocatorIS3_EEE21__on_zero_shared_weakEv, symObjAddr: 0x6BE0, symBinAddr: 0xD36C, symSize: 0x4 }
+  - { offset: 0x50655, size: 0x8, addend: 0x0, symName: _RCTImageClassProvider, symObjAddr: 0x0, symBinAddr: 0xD370, symSize: 0x26C }
+  - { offset: 0x5067B, size: 0x8, addend: 0x0, symName: __ZZ21RCTImageClassProviderE19sCoreModuleClassMap, symObjAddr: 0x33A20, symBinAddr: 0x2BEB0, symSize: 0x0 }
+  - { offset: 0x56B44, size: 0x8, addend: 0x0, symName: __ZSt28__throw_bad_array_new_lengthB8ne200100v, symObjAddr: 0x398, symBinAddr: 0xD5DC, symSize: 0x28 }
+  - { offset: 0x5763F, size: 0x8, addend: 0x0, symName: __ZNKSt3__112__hash_tableINS_17__hash_value_typeINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEEPFP10objc_classvEEENS_22__unordered_map_hasherIS7_SC_NS_4hashIS7_EENS_8equal_toIS7_EELb1EEENS_21__unordered_map_equalIS7_SC_SH_SF_Lb1EEENS5_ISC_EEE4findIS7_EENS_21__hash_const_iteratorIPNS_11__hash_nodeISC_PvEEEERKT_, symObjAddr: 0xFDC, symBinAddr: 0xE190, symSize: 0xF8 }
+  - { offset: 0x57848, size: 0x8, addend: 0x0, symName: __ZNSt3__113unordered_mapINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEEPFP10objc_classvENS_4hashIS6_EENS_8equal_toIS6_EENS4_INS_4pairIKS6_SA_EEEEEC2ESt16initializer_listISH_E, symObjAddr: 0x3D0, symBinAddr: 0xD604, symSize: 0x74 }
+  - { offset: 0x57C7B, size: 0x8, addend: 0x0, symName: __ZNSt3__112__hash_tableINS_17__hash_value_typeINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEEPFP10objc_classvEEENS_22__unordered_map_hasherIS7_SC_NS_4hashIS7_EENS_8equal_toIS7_EELb1EEENS_21__unordered_map_equalIS7_SC_SH_SF_Lb1EEENS5_ISC_EEE25__emplace_unique_key_argsIS7_JRKNS_4pairIKS7_SB_EEEEENSO_INS_15__hash_iteratorIPNS_11__hash_nodeISC_PvEEEEbEERKT_DpOT0_, symObjAddr: 0x444, symBinAddr: 0xD678, symSize: 0x25C }
+  - { offset: 0x5816F, size: 0x8, addend: 0x0, symName: __ZNSt3__112__hash_tableINS_17__hash_value_typeINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEEPFP10objc_classvEEENS_22__unordered_map_hasherIS7_SC_NS_4hashIS7_EENS_8equal_toIS7_EELb1EEENS_21__unordered_map_equalIS7_SC_SH_SF_Lb1EEENS5_ISC_EEED2Ev, symObjAddr: 0xF60, symBinAddr: 0xE114, symSize: 0x38 }
+  - { offset: 0x58485, size: 0x8, addend: 0x0, symName: __ZNKSt3__113__string_hashIcNS_9allocatorIcEEEclB8ne200100ERKNS_12basic_stringIcNS_11char_traitsIcEES2_EE, symObjAddr: 0x74C, symBinAddr: 0xD980, symSize: 0x3C }
+  - { offset: 0x5855D, size: 0x8, addend: 0x0, symName: __ZNKSt3__18equal_toINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEEEclB8ne200100ERKS6_S9_, symObjAddr: 0xBF4, symBinAddr: 0xDE28, symSize: 0x70 }
+  - { offset: 0x585A8, size: 0x8, addend: 0x0, symName: __ZNKSt3__18equal_toINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEEEclB8ne200100ERKS6_S9_, symObjAddr: 0xBF4, symBinAddr: 0xDE28, symSize: 0x70 }
+  - { offset: 0x585DC, size: 0x8, addend: 0x0, symName: __ZNKSt3__18equal_toINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEEEclB8ne200100ERKS6_S9_, symObjAddr: 0xBF4, symBinAddr: 0xDE28, symSize: 0x70 }
+  - { offset: 0x585FA, size: 0x8, addend: 0x0, symName: __ZNKSt3__18equal_toINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEEEclB8ne200100ERKS6_S9_, symObjAddr: 0xBF4, symBinAddr: 0xDE28, symSize: 0x70 }
+  - { offset: 0x5870E, size: 0x8, addend: 0x0, symName: __ZNSt3__112__hash_tableINS_17__hash_value_typeINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEEPFP10objc_classvEEENS_22__unordered_map_hasherIS7_SC_NS_4hashIS7_EENS_8equal_toIS7_EELb1EEENS_21__unordered_map_equalIS7_SC_SH_SF_Lb1EEENS5_ISC_EEE21__construct_node_hashIRKNS_4pairIKS7_SB_EEJEEENS_10unique_ptrINS_11__hash_nodeISC_PvEENS_22__hash_node_destructorINS5_ISW_EEEEEEmOT_DpOT0_, symObjAddr: 0x6A0, symBinAddr: 0xD8D4, symSize: 0xAC }
+  - { offset: 0x58AF8, size: 0x8, addend: 0x0, symName: __ZNSt3__112__hash_tableINS_17__hash_value_typeINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEEPFP10objc_classvEEENS_22__unordered_map_hasherIS7_SC_NS_4hashIS7_EENS_8equal_toIS7_EELb1EEENS_21__unordered_map_equalIS7_SC_SH_SF_Lb1EEENS5_ISC_EEE8__rehashILb1EEEvm, symObjAddr: 0xCE4, symBinAddr: 0xDE98, symSize: 0xDC }
+  - { offset: 0x58BF7, size: 0x8, addend: 0x0, symName: __ZNSt3__122__hash_node_destructorINS_9allocatorINS_11__hash_nodeINS_17__hash_value_typeINS_12basic_stringIcNS_11char_traitsIcEENS1_IcEEEEPFP10objc_classvEEEPvEEEEEclB8ne200100EPSF_, symObjAddr: 0xF10, symBinAddr: 0xE0C4, symSize: 0x50 }
+  - { offset: 0x5921D, size: 0x8, addend: 0x0, symName: __ZNSt3__112__hash_tableINS_17__hash_value_typeINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEEPFP10objc_classvEEENS_22__unordered_map_hasherIS7_SC_NS_4hashIS7_EENS_8equal_toIS7_EELb1EEENS_21__unordered_map_equalIS7_SC_SH_SF_Lb1EEENS5_ISC_EEE8__rehashILb1EEEvm, symObjAddr: 0xCE4, symBinAddr: 0xDE98, symSize: 0xDC }
+  - { offset: 0x59252, size: 0x8, addend: 0x0, symName: __ZNKSt3__121__murmur2_or_cityhashImLm64EEclB8ne200100EPKvm, symObjAddr: 0x788, symBinAddr: 0xD9BC, symSize: 0x208 }
+  - { offset: 0x598FD, size: 0x8, addend: 0x0, symName: __ZNSt3__121__murmur2_or_cityhashImLm64EE18__hash_len_0_to_16B8ne200100EPKcm, symObjAddr: 0x990, symBinAddr: 0xDBC4, symSize: 0xF8 }
+  - { offset: 0x59B16, size: 0x8, addend: 0x0, symName: __ZNSt3__121__murmur2_or_cityhashImLm64EE19__hash_len_33_to_64B8ne200100EPKcm, symObjAddr: 0xB34, symBinAddr: 0xDD68, symSize: 0xC0 }
+  - { offset: 0x59D95, size: 0x8, addend: 0x0, symName: __ZNSt3__121__murmur2_or_cityhashImLm64EE19__hash_len_17_to_32B8ne200100EPKcm, symObjAddr: 0xA88, symBinAddr: 0xDCBC, symSize: 0xAC }
+  - { offset: 0x59F68, size: 0x8, addend: 0x0, symName: __ZNSt3__112__hash_tableINS_17__hash_value_typeINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEEPFP10objc_classvEEENS_22__unordered_map_hasherIS7_SC_NS_4hashIS7_EENS_8equal_toIS7_EELb1EEENS_21__unordered_map_equalIS7_SC_SH_SF_Lb1EEENS5_ISC_EEE11__do_rehashILb1EEEvm, symObjAddr: 0xDC0, symBinAddr: 0xDF74, symSize: 0x150 }
+  - { offset: 0x5A3AD, size: 0x8, addend: 0x0, symName: __ZNSt3__122__hash_node_destructorINS_9allocatorINS_11__hash_nodeINS_17__hash_value_typeINS_12basic_stringIcNS_11char_traitsIcEENS1_IcEEEEPFP10objc_classvEEEPvEEEEEclB8ne200100EPSF_, symObjAddr: 0xF10, symBinAddr: 0xE0C4, symSize: 0x50 }
+  - { offset: 0x5A5BF, size: 0x8, addend: 0x0, symName: __ZNSt3__112__hash_tableINS_17__hash_value_typeINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEEPFP10objc_classvEEENS_22__unordered_map_hasherIS7_SC_NS_4hashIS7_EENS_8equal_toIS7_EELb1EEENS_21__unordered_map_equalIS7_SC_SH_SF_Lb1EEENS5_ISC_EEE17__deallocate_nodeEPNS_16__hash_node_baseIPNS_11__hash_nodeISC_PvEEEE, symObjAddr: 0xF98, symBinAddr: 0xE14C, symSize: 0x44 }
+  - { offset: 0x5C6EF, size: 0x8, addend: 0x0, symName: '-[RCTImageShadowView isYogaLeafNode]', symObjAddr: 0x0, symBinAddr: 0xE288, symSize: 0x8 }
+  - { offset: 0x5CDD9, size: 0x8, addend: 0x0, symName: '-[RCTImageShadowView isYogaLeafNode]', symObjAddr: 0x0, symBinAddr: 0xE288, symSize: 0x8 }
+  - { offset: 0x5CE09, size: 0x8, addend: 0x0, symName: '-[RCTImageShadowView canHaveSubviews]', symObjAddr: 0x8, symBinAddr: 0xE290, symSize: 0x8 }
+  - { offset: 0x5D026, size: 0x8, addend: 0x0, symName: '+[RCTImageStoreManager moduleName]', symObjAddr: 0x0, symBinAddr: 0xE298, symSize: 0xC }
+  - { offset: 0x5D07C, size: 0x8, addend: 0x0, symName: '+[RCTImageStoreManager __rct_export__980]', symObjAddr: 0x638, symBinAddr: 0xE844, symSize: 0xC }
+  - { offset: 0x5D0A6, size: 0x8, addend: 0x0, symName: '__ZZ41+[RCTImageStoreManager __rct_export__980]E6config', symObjAddr: 0x2580, symBinAddr: 0x2BD08, symSize: 0x0 }
+  - { offset: 0x5D0CE, size: 0x8, addend: 0x0, symName: '+[RCTImageStoreManager __rct_export__1031]', symObjAddr: 0x64C, symBinAddr: 0xE858, symSize: 0xC }
+  - { offset: 0x5D0F8, size: 0x8, addend: 0x0, symName: '__ZZ42+[RCTImageStoreManager __rct_export__1031]E6config', symObjAddr: 0x2598, symBinAddr: 0x2BD20, symSize: 0x0 }
+  - { offset: 0x5D114, size: 0x8, addend: 0x0, symName: '+[RCTImageStoreManager __rct_export__1122]', symObjAddr: 0x788, symBinAddr: 0xE994, symSize: 0xC }
+  - { offset: 0x5D13E, size: 0x8, addend: 0x0, symName: '__ZZ42+[RCTImageStoreManager __rct_export__1122]E6config', symObjAddr: 0x25B0, symBinAddr: 0x2BD38, symSize: 0x0 }
+  - { offset: 0x5D15A, size: 0x8, addend: 0x0, symName: '+[RCTImageStoreManager __rct_export__1293]', symObjAddr: 0xA48, symBinAddr: 0xEC54, symSize: 0xC }
+  - { offset: 0x5D184, size: 0x8, addend: 0x0, symName: '__ZZ42+[RCTImageStoreManager __rct_export__1293]E6config', symObjAddr: 0x25C8, symBinAddr: 0x2BD50, symSize: 0x0 }
+  - { offset: 0x65E61, size: 0x8, addend: 0x0, symName: __ZNSt3__115allocate_sharedB8ne200100IN8facebook5react26NativeImageStoreIOSSpecJSIENS_9allocatorIS3_EEJRKNS2_15ObjCTurboModule10InitParamsEELi0EEENS_10shared_ptrIT_EERKT0_DpOT1_, symObjAddr: 0x1AF4, symBinAddr: 0xFBE4, symSize: 0x58 }
+  - { offset: 0x68CE1, size: 0x8, addend: 0x0, symName: '+[RCTImageStoreManager moduleName]', symObjAddr: 0x0, symBinAddr: 0xE298, symSize: 0xC }
+  - { offset: 0x68D12, size: 0x8, addend: 0x0, symName: '+[RCTImageStoreManager load]', symObjAddr: 0xC, symBinAddr: 0xE2A4, symSize: 0x4 }
+  - { offset: 0x68D44, size: 0x8, addend: 0x0, symName: '+[RCTImageStoreManager load]', symObjAddr: 0xC, symBinAddr: 0xE2A4, symSize: 0x4 }
+  - { offset: 0x68D63, size: 0x8, addend: 0x0, symName: '+[RCTImageStoreManager requiresMainQueueSetup]', symObjAddr: 0x10, symBinAddr: 0xE2A8, symSize: 0x8 }
+  - { offset: 0x68D93, size: 0x8, addend: 0x0, symName: '-[RCTImageStoreManager handlerPriority]', symObjAddr: 0x18, symBinAddr: 0xE2B0, symSize: 0x8 }
+  - { offset: 0x68DC3, size: 0x8, addend: 0x0, symName: '-[RCTImageStoreManager removeImageForTag:withBlock:]', symObjAddr: 0x20, symBinAddr: 0xE2B8, symSize: 0xA8 }
+  - { offset: 0x68E3E, size: 0x8, addend: 0x0, symName: '___52-[RCTImageStoreManager removeImageForTag:withBlock:]_block_invoke', symObjAddr: 0xC8, symBinAddr: 0xE360, symSize: 0x40 }
+  - { offset: 0x68EA7, size: 0x8, addend: 0x0, symName: ___copy_helper_block_ea8_32s40s48b, symObjAddr: 0x108, symBinAddr: 0xE3A0, symSize: 0x3C }
+  - { offset: 0x68ECF, size: 0x8, addend: 0x0, symName: '-[RCTImageStoreManager _storeImageData:]', symObjAddr: 0x174, symBinAddr: 0xE3DC, symSize: 0xCC }
+  - { offset: 0x68F21, size: 0x8, addend: 0x0, symName: '-[RCTImageStoreManager storeImageData:withBlock:]', symObjAddr: 0x240, symBinAddr: 0xE4A8, symSize: 0xAC }
+  - { offset: 0x68F8A, size: 0x8, addend: 0x0, symName: '___49-[RCTImageStoreManager storeImageData:withBlock:]_block_invoke', symObjAddr: 0x2EC, symBinAddr: 0xE554, symSize: 0x60 }
+  - { offset: 0x68FF9, size: 0x8, addend: 0x0, symName: '-[RCTImageStoreManager getImageDataForTag:withBlock:]', symObjAddr: 0x34C, symBinAddr: 0xE5B4, symSize: 0xAC }
+  - { offset: 0x69062, size: 0x8, addend: 0x0, symName: '___53-[RCTImageStoreManager getImageDataForTag:withBlock:]_block_invoke', symObjAddr: 0x3F8, symBinAddr: 0xE660, symSize: 0x60 }
+  - { offset: 0x690D1, size: 0x8, addend: 0x0, symName: '-[RCTImageStoreManager storeImage:withBlock:]', symObjAddr: 0x458, symBinAddr: 0xE6C0, symSize: 0xA8 }
+  - { offset: 0x6913A, size: 0x8, addend: 0x0, symName: '___45-[RCTImageStoreManager storeImage:withBlock:]_block_invoke', symObjAddr: 0x500, symBinAddr: 0xE768, symSize: 0xCC }
+  - { offset: 0x691F9, size: 0x8, addend: 0x0, symName: '___45-[RCTImageStoreManager storeImage:withBlock:]_block_invoke_2', symObjAddr: 0x5CC, symBinAddr: 0xE834, symSize: 0x10 }
+  - { offset: 0x6924E, size: 0x8, addend: 0x0, symName: '-[RCTImageStoreManager removeImageForTag:]', symObjAddr: 0x644, symBinAddr: 0xE850, symSize: 0x8 }
+  - { offset: 0x6928C, size: 0x8, addend: 0x0, symName: '-[RCTImageStoreManager hasImageForTag:callback:]', symObjAddr: 0x658, symBinAddr: 0xE864, symSize: 0x130 }
+  - { offset: 0x692F3, size: 0x8, addend: 0x0, symName: '-[RCTImageStoreManager getBase64ForTag:successCallback:errorCallback:]', symObjAddr: 0x794, symBinAddr: 0xE9A0, symSize: 0x1F0 }
+  - { offset: 0x6940A, size: 0x8, addend: 0x0, symName: '___70-[RCTImageStoreManager getBase64ForTag:successCallback:errorCallback:]_block_invoke', symObjAddr: 0x984, symBinAddr: 0xEB90, symSize: 0xC4 }
+  - { offset: 0x6946B, size: 0x8, addend: 0x0, symName: '-[RCTImageStoreManager addImageFromBase64:successCallback:errorCallback:]', symObjAddr: 0xA54, symBinAddr: 0xEC60, symSize: 0xE8 }
+  - { offset: 0x694FB, size: 0x8, addend: 0x0, symName: '___73-[RCTImageStoreManager addImageFromBase64:successCallback:errorCallback:]_block_invoke', symObjAddr: 0xB3C, symBinAddr: 0xED48, symSize: 0x180 }
+  - { offset: 0x695C9, size: 0x8, addend: 0x0, symName: '___73-[RCTImageStoreManager addImageFromBase64:successCallback:errorCallback:]_block_invoke_2', symObjAddr: 0xCBC, symBinAddr: 0xEEC8, symSize: 0xC8 }
+  - { offset: 0x6963F, size: 0x8, addend: 0x0, symName: ___copy_helper_block_ea8_32s40s48b56b, symObjAddr: 0xD84, symBinAddr: 0xEF90, symSize: 0x4C }
+  - { offset: 0x69667, size: 0x8, addend: 0x0, symName: '-[RCTImageStoreManager canHandleRequest:]', symObjAddr: 0xE08, symBinAddr: 0xEFDC, symSize: 0x78 }
+  - { offset: 0x69A80, size: 0x8, addend: 0x0, symName: '-[RCTImageStoreManager sendRequest:withDelegate:]', symObjAddr: 0xE80, symBinAddr: 0xF054, symSize: 0x1CC }
+  - { offset: 0x69E77, size: 0x8, addend: 0x0, symName: ___Block_byref_object_copy_, symObjAddr: 0x104C, symBinAddr: 0xF220, symSize: 0x10 }
+  - { offset: 0x69E9F, size: 0x8, addend: 0x0, symName: ___Block_byref_object_copy_, symObjAddr: 0x104C, symBinAddr: 0xF220, symSize: 0x10 }
+  - { offset: 0x69EC7, size: 0x8, addend: 0x0, symName: ___Block_byref_object_copy_, symObjAddr: 0x104C, symBinAddr: 0xF220, symSize: 0x10 }
+  - { offset: 0x69EF0, size: 0x8, addend: 0x0, symName: ___Block_byref_object_dispose_, symObjAddr: 0x105C, symBinAddr: 0xF230, symSize: 0x8 }
+  - { offset: 0x69FCA, size: 0x8, addend: 0x0, symName: '___49-[RCTImageStoreManager sendRequest:withDelegate:]_block_invoke', symObjAddr: 0x1064, symBinAddr: 0xF238, symSize: 0x18 }
+  - { offset: 0x6A0B4, size: 0x8, addend: 0x0, symName: '___49-[RCTImageStoreManager sendRequest:withDelegate:]_block_invoke.19', symObjAddr: 0x1098, symBinAddr: 0xF250, symSize: 0x2D0 }
+  - { offset: 0x6A32B, size: 0x8, addend: 0x0, symName: ___copy_helper_block_ea8_32s40s48s56b64r, symObjAddr: 0x1368, symBinAddr: 0xF520, symSize: 0x54 }
+  - { offset: 0x6A354, size: 0x8, addend: 0x0, symName: ___destroy_helper_block_ea8_32s40s48s56s64r, symObjAddr: 0x13BC, symBinAddr: 0xF574, symSize: 0x44 }
+  - { offset: 0x6A372, size: 0x8, addend: 0x0, symName: '-[RCTImageStoreManager cancelRequest:]', symObjAddr: 0x1400, symBinAddr: 0xF5B8, symSize: 0x50 }
+  - { offset: 0x6A480, size: 0x8, addend: 0x0, symName: '-[RCTImageStoreManager getTurboModule:]', symObjAddr: 0x1450, symBinAddr: 0xF608, symSize: 0x3C }
+  - { offset: 0x6A54B, size: 0x8, addend: 0x0, symName: '-[RCTImageStoreManager methodQueue]', symObjAddr: 0x148C, symBinAddr: 0xF644, symSize: 0x8 }
+  - { offset: 0x6A580, size: 0x8, addend: 0x0, symName: '-[RCTImageStoreManager .cxx_destruct]', symObjAddr: 0x1494, symBinAddr: 0xF64C, symSize: 0x30 }
+  - { offset: 0x6A5B0, size: 0x8, addend: 0x0, symName: '-[RCTImageStoreManager(Deprecated) storeImage:]', symObjAddr: 0x14C4, symBinAddr: 0xF67C, symSize: 0x10C }
+  - { offset: 0x6A66D, size: 0x8, addend: 0x0, symName: ___Block_byref_object_copy_.155, symObjAddr: 0x15D0, symBinAddr: 0xF788, symSize: 0x10 }
+  - { offset: 0x6A692, size: 0x8, addend: 0x0, symName: ___Block_byref_object_dispose_.156, symObjAddr: 0x15E0, symBinAddr: 0xF798, symSize: 0x8 }
+  - { offset: 0x6A6B1, size: 0x8, addend: 0x0, symName: '___47-[RCTImageStoreManager(Deprecated) storeImage:]_block_invoke', symObjAddr: 0x15E8, symBinAddr: 0xF7A0, symSize: 0x74 }
+  - { offset: 0x6A71A, size: 0x8, addend: 0x0, symName: '-[RCTImageStoreManager(Deprecated) imageForTag:]', symObjAddr: 0x16CC, symBinAddr: 0xF814, symSize: 0x140 }
+  - { offset: 0x6A7A7, size: 0x8, addend: 0x0, symName: '___48-[RCTImageStoreManager(Deprecated) imageForTag:]_block_invoke', symObjAddr: 0x180C, symBinAddr: 0xF954, symSize: 0x3C }
+  - { offset: 0x6A803, size: 0x8, addend: 0x0, symName: '-[RCTImageStoreManager(Deprecated) getImageForTag:withBlock:]', symObjAddr: 0x1848, symBinAddr: 0xF990, symSize: 0xA8 }
+  - { offset: 0x6A86C, size: 0x8, addend: 0x0, symName: '___61-[RCTImageStoreManager(Deprecated) getImageForTag:withBlock:]_block_invoke', symObjAddr: 0x18F0, symBinAddr: 0xFA38, symSize: 0x9C }
+  - { offset: 0x6A8FA, size: 0x8, addend: 0x0, symName: '___61-[RCTImageStoreManager(Deprecated) getImageForTag:withBlock:]_block_invoke_2', symObjAddr: 0x198C, symBinAddr: 0xFAD4, symSize: 0x64 }
+  - { offset: 0x6A955, size: 0x8, addend: 0x0, symName: '-[RCTBridge(RCTImageStoreManager) imageStoreManager]', symObjAddr: 0x19F0, symBinAddr: 0xFB38, symSize: 0x30 }
+  - { offset: 0x6A98A, size: 0x8, addend: 0x0, symName: '-[RCTBridgeProxy(RCTImageStoreManager) imageStoreManager]', symObjAddr: 0x1A20, symBinAddr: 0xFB68, symSize: 0x30 }
+  - { offset: 0x6A9C0, size: 0x8, addend: 0x0, symName: _RCTImageStoreManagerCls, symObjAddr: 0x1A50, symBinAddr: 0xFB98, symSize: 0xC }
+  - { offset: 0x6A9F6, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceINS_6atomicIbEENS_9allocatorIS2_EEED1Ev, symObjAddr: 0x1A5C, symBinAddr: 0xFBA4, symSize: 0x14 }
+  - { offset: 0x6AA1A, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceINS_6atomicIbEENS_9allocatorIS2_EEED1Ev, symObjAddr: 0x1A5C, symBinAddr: 0xFBA4, symSize: 0x14 }
+  - { offset: 0x6AA50, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceINS_6atomicIbEENS_9allocatorIS2_EEED0Ev, symObjAddr: 0x1A70, symBinAddr: 0xFBB8, symSize: 0x24 }
+  - { offset: 0x6AAB6, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceINS_6atomicIbEENS_9allocatorIS2_EEE16__on_zero_sharedEv, symObjAddr: 0x1A94, symBinAddr: 0xFBDC, symSize: 0x4 }
+  - { offset: 0x6AB39, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceINS_6atomicIbEENS_9allocatorIS2_EEE21__on_zero_shared_weakEv, symObjAddr: 0x1A98, symBinAddr: 0xFBE0, symSize: 0x4 }
+  - { offset: 0x6AB6B, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceINS_6atomicIbEENS_9allocatorIS2_EEE21__on_zero_shared_weakEv, symObjAddr: 0x1A98, symBinAddr: 0xFBE0, symSize: 0x4 }
+  - { offset: 0x6AB8F, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceINS_6atomicIbEENS_9allocatorIS2_EEE21__on_zero_shared_weakEv, symObjAddr: 0x1A98, symBinAddr: 0xFBE0, symSize: 0x4 }
+  - { offset: 0x6ABB4, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceINS_6atomicIbEENS_9allocatorIS2_EEE21__on_zero_shared_weakEv, symObjAddr: 0x1A98, symBinAddr: 0xFBE0, symSize: 0x4 }
+  - { offset: 0x6ABEB, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceINS_6atomicIbEENS_9allocatorIS2_EEE21__on_zero_shared_weakEv, symObjAddr: 0x1A98, symBinAddr: 0xFBE0, symSize: 0x4 }
+  - { offset: 0x6AE46, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react26NativeImageStoreIOSSpecJSIENS_9allocatorIS3_EEEC2B8ne200100IJRKNS2_15ObjCTurboModule10InitParamsEES5_Li0EEES5_DpOT_, symObjAddr: 0x1B4C, symBinAddr: 0xFC3C, symSize: 0x4C }
+  - { offset: 0x6AFE6, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react26NativeImageStoreIOSSpecJSIENS_9allocatorIS3_EEED1Ev, symObjAddr: 0x1B98, symBinAddr: 0xFC88, symSize: 0x14 }
+  - { offset: 0x6B00A, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react26NativeImageStoreIOSSpecJSIENS_9allocatorIS3_EEED1Ev, symObjAddr: 0x1B98, symBinAddr: 0xFC88, symSize: 0x14 }
+  - { offset: 0x6B040, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react26NativeImageStoreIOSSpecJSIENS_9allocatorIS3_EEED0Ev, symObjAddr: 0x1BAC, symBinAddr: 0xFC9C, symSize: 0x24 }
+  - { offset: 0x6B111, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react26NativeImageStoreIOSSpecJSIENS_9allocatorIS3_EEE16__on_zero_sharedEv, symObjAddr: 0x1BD0, symBinAddr: 0xFCC0, symSize: 0xC }
+  - { offset: 0x6B13A, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react26NativeImageStoreIOSSpecJSIENS_9allocatorIS3_EEE16__on_zero_sharedEv, symObjAddr: 0x1BD0, symBinAddr: 0xFCC0, symSize: 0xC }
+  - { offset: 0x6B159, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react26NativeImageStoreIOSSpecJSIENS_9allocatorIS3_EEE16__on_zero_sharedEv, symObjAddr: 0x1BD0, symBinAddr: 0xFCC0, symSize: 0xC }
+  - { offset: 0x6B178, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react26NativeImageStoreIOSSpecJSIENS_9allocatorIS3_EEE16__on_zero_sharedEv, symObjAddr: 0x1BD0, symBinAddr: 0xFCC0, symSize: 0xC }
+  - { offset: 0x6B1A4, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react26NativeImageStoreIOSSpecJSIENS_9allocatorIS3_EEE21__on_zero_shared_weakEv, symObjAddr: 0x1BDC, symBinAddr: 0xFCCC, symSize: 0x4 }
+  - { offset: 0x6B1D6, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react26NativeImageStoreIOSSpecJSIENS_9allocatorIS3_EEE21__on_zero_shared_weakEv, symObjAddr: 0x1BDC, symBinAddr: 0xFCCC, symSize: 0x4 }
+  - { offset: 0x6B1FA, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react26NativeImageStoreIOSSpecJSIENS_9allocatorIS3_EEE21__on_zero_shared_weakEv, symObjAddr: 0x1BDC, symBinAddr: 0xFCCC, symSize: 0x4 }
+  - { offset: 0x6B21F, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react26NativeImageStoreIOSSpecJSIENS_9allocatorIS3_EEE21__on_zero_shared_weakEv, symObjAddr: 0x1BDC, symBinAddr: 0xFCCC, symSize: 0x4 }
+  - { offset: 0x6B257, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react26NativeImageStoreIOSSpecJSIENS_9allocatorIS3_EEE21__on_zero_shared_weakEv, symObjAddr: 0x1BDC, symBinAddr: 0xFCCC, symSize: 0x4 }
+  - { offset: 0x6DAA3, size: 0x8, addend: 0x0, symName: '-[RCTImageURLLoaderRequest initWithRequestId:imageURL:cancellationBlock:]', symObjAddr: 0x0, symBinAddr: 0xFCD0, symSize: 0xD0 }
+  - { offset: 0x6DBB4, size: 0x8, addend: 0x0, symName: '-[RCTImageURLLoaderRequest initWithRequestId:imageURL:cancellationBlock:]', symObjAddr: 0x0, symBinAddr: 0xFCD0, symSize: 0xD0 }
+  - { offset: 0x6DC16, size: 0x8, addend: 0x0, symName: '-[RCTImageURLLoaderRequest cancel]', symObjAddr: 0xD0, symBinAddr: 0xFDA0, symSize: 0x14 }
+  - { offset: 0x6DC52, size: 0x8, addend: 0x0, symName: '-[RCTImageURLLoaderRequest requestId]', symObjAddr: 0xE4, symBinAddr: 0xFDB4, symSize: 0x8 }
+  - { offset: 0x6DC86, size: 0x8, addend: 0x0, symName: '-[RCTImageURLLoaderRequest imageURL]', symObjAddr: 0xEC, symBinAddr: 0xFDBC, symSize: 0x8 }
+  - { offset: 0x6DCBA, size: 0x8, addend: 0x0, symName: '-[RCTImageURLLoaderRequest cancellationBlock]', symObjAddr: 0xF4, symBinAddr: 0xFDC4, symSize: 0x8 }
+  - { offset: 0x6DCEF, size: 0x8, addend: 0x0, symName: '-[RCTImageURLLoaderRequest .cxx_destruct]', symObjAddr: 0xFC, symBinAddr: 0xFDCC, symSize: 0x3C }
+  - { offset: 0x706C4, size: 0x8, addend: 0x0, symName: _RCTTargetRect, symObjAddr: 0x0, symBinAddr: 0xFE08, symSize: 0x1BC }
+  - { offset: 0x707F4, size: 0x8, addend: 0x0, symName: _RCTTargetRect, symObjAddr: 0x0, symBinAddr: 0xFE08, symSize: 0x1BC }
+  - { offset: 0x70A73, size: 0x8, addend: 0x0, symName: _RCTTransformFromTargetRect, symObjAddr: 0x1BC, symBinAddr: 0xFFC4, symSize: 0xAC }
+  - { offset: 0x70B25, size: 0x8, addend: 0x0, symName: _RCTTargetSize, symObjAddr: 0x268, symBinAddr: 0x10070, symSize: 0xDC }
+  - { offset: 0x70C5F, size: 0x8, addend: 0x0, symName: _RCTUpscalingRequired, symObjAddr: 0x344, symBinAddr: 0x1014C, symSize: 0x90 }
+  - { offset: 0x70CF2, size: 0x8, addend: 0x0, symName: _RCTDecodeImageWithData, symObjAddr: 0x3D4, symBinAddr: 0x101DC, symSize: 0x2CC }
+  - { offset: 0x70FCE, size: 0x8, addend: 0x0, symName: _RCTGetImageMetadata, symObjAddr: 0x6A0, symBinAddr: 0x104A8, symSize: 0x4C }
+  - { offset: 0x710AF, size: 0x8, addend: 0x0, symName: _RCTGetImageData, symObjAddr: 0x6EC, symBinAddr: 0x104F4, symSize: 0x268 }
+  - { offset: 0x7130F, size: 0x8, addend: 0x0, symName: _RCTImageHasAlpha, symObjAddr: 0x954, symBinAddr: 0x1075C, symSize: 0x2C }
+  - { offset: 0x71343, size: 0x8, addend: 0x0, symName: _RCTTransformImage, symObjAddr: 0x980, symBinAddr: 0x10788, symSize: 0x188 }
+  - { offset: 0x713F8, size: 0x8, addend: 0x0, symName: ___RCTTransformImage_block_invoke, symObjAddr: 0xB08, symBinAddr: 0x10910, symSize: 0x74 }
+  - { offset: 0x76364, size: 0x8, addend: 0x0, symName: '-[RCTImageView initWithBridge:]', symObjAddr: 0x0, symBinAddr: 0x10984, symSize: 0x174 }
+  - { offset: 0x763BC, size: 0x8, addend: 0x0, symName: '-[RCTImageView init]', symObjAddr: 0x174, symBinAddr: 0x10AF8, symSize: 0x44 }
+  - { offset: 0x764C7, size: 0x8, addend: 0x0, symName: '-[RCTImageView initWithCoder:]', symObjAddr: 0x1B8, symBinAddr: 0x10B3C, symSize: 0x58 }
+  - { offset: 0x76522, size: 0x8, addend: 0x0, symName: '-[RCTImageView initWithFrame:]', symObjAddr: 0x210, symBinAddr: 0x10B94, symSize: 0x44 }
+  - { offset: 0x765A1, size: 0x8, addend: 0x0, symName: '-[RCTImageView updateWithImage:]', symObjAddr: 0x254, symBinAddr: 0x10BD8, symSize: 0x198 }
+  - { offset: 0x765F5, size: 0x8, addend: 0x0, symName: '-[RCTImageView setImage:]', symObjAddr: 0x3EC, symBinAddr: 0x10D70, symSize: 0x80 }
+  - { offset: 0x76634, size: 0x8, addend: 0x0, symName: '-[RCTImageView image]', symObjAddr: 0x46C, symBinAddr: 0x10DF0, symSize: 0x10 }
+  - { offset: 0x76669, size: 0x8, addend: 0x0, symName: '-[RCTImageView setBlurRadius:]', symObjAddr: 0x47C, symBinAddr: 0x10E00, symSize: 0x2C }
+  - { offset: 0x766A6, size: 0x8, addend: 0x0, symName: '-[RCTImageView setCapInsets:]', symObjAddr: 0x4A8, symBinAddr: 0x10E2C, symSize: 0xE8 }
+  - { offset: 0x76763, size: 0x8, addend: 0x0, symName: '-[RCTImageView setRenderingMode:]', symObjAddr: 0x590, symBinAddr: 0x10F14, symSize: 0x7C }
+  - { offset: 0x767A2, size: 0x8, addend: 0x0, symName: '-[RCTImageView setImageSources:]', symObjAddr: 0x60C, symBinAddr: 0x10F90, symSize: 0x7C }
+  - { offset: 0x767E1, size: 0x8, addend: 0x0, symName: '-[RCTImageView setResizeMode:]', symObjAddr: 0x688, symBinAddr: 0x1100C, symSize: 0x68 }
+  - { offset: 0x76820, size: 0x8, addend: 0x0, symName: '-[RCTImageView setInternal_analyticTag:]', symObjAddr: 0x6F0, symBinAddr: 0x11074, symSize: 0x64 }
+  - { offset: 0x7685F, size: 0x8, addend: 0x0, symName: '-[RCTImageView cancelImageLoad]', symObjAddr: 0x754, symBinAddr: 0x110D8, symSize: 0x3C }
+  - { offset: 0x7688F, size: 0x8, addend: 0x0, symName: '-[RCTImageView cancelAndClearImageLoad]', symObjAddr: 0x790, symBinAddr: 0x11114, symSize: 0xA4 }
+  - { offset: 0x768BF, size: 0x8, addend: 0x0, symName: '-[RCTImageView clearImageIfDetached]', symObjAddr: 0x834, symBinAddr: 0x111B8, symSize: 0x60 }
+  - { offset: 0x768EF, size: 0x8, addend: 0x0, symName: '-[RCTImageView hasMultipleSources]', symObjAddr: 0x894, symBinAddr: 0x11218, symSize: 0x28 }
+  - { offset: 0x76923, size: 0x8, addend: 0x0, symName: '-[RCTImageView imageSourceForSize:]', symObjAddr: 0x8BC, symBinAddr: 0x11240, symSize: 0x218 }
+  - { offset: 0x76A1C, size: 0x8, addend: 0x0, symName: '-[RCTImageView shouldReloadImageSourceAfterResize]', symObjAddr: 0xAD4, symBinAddr: 0x11458, symSize: 0x3C }
+  - { offset: 0x76A68, size: 0x8, addend: 0x0, symName: '-[RCTImageView shouldChangeImageSource]', symObjAddr: 0xB10, symBinAddr: 0x11494, symSize: 0x84 }
+  - { offset: 0x76C42, size: 0x8, addend: 0x0, symName: '-[RCTImageView reloadImage]', symObjAddr: 0xB94, symBinAddr: 0x11518, symSize: 0x488 }
+  - { offset: 0x76F9D, size: 0x8, addend: 0x0, symName: '___27-[RCTImageView reloadImage]_block_invoke', symObjAddr: 0x101C, symBinAddr: 0x119A0, symSize: 0x110 }
+  - { offset: 0x77016, size: 0x8, addend: 0x0, symName: '___27-[RCTImageView reloadImage]_block_invoke.9', symObjAddr: 0x1144, symBinAddr: 0x11AB0, symSize: 0x6C }
+  - { offset: 0x77076, size: 0x8, addend: 0x0, symName: ___copy_helper_block_ea8_32s40w, symObjAddr: 0x11B0, symBinAddr: 0x11B1C, symSize: 0x30 }
+  - { offset: 0x7709F, size: 0x8, addend: 0x0, symName: ___destroy_helper_block_ea8_32s40w, symObjAddr: 0x11E0, symBinAddr: 0x11B4C, symSize: 0x28 }
+  - { offset: 0x770BE, size: 0x8, addend: 0x0, symName: '___27-[RCTImageView reloadImage]_block_invoke.11', symObjAddr: 0x1208, symBinAddr: 0x11B74, symSize: 0x88 }
+  - { offset: 0x7713C, size: 0x8, addend: 0x0, symName: '-[RCTImageView imageLoaderLoadedImage:error:forImageSource:partial:]', symObjAddr: 0x12C8, symBinAddr: 0x11BFC, symSize: 0x4D4 }
+  - { offset: 0x772DF, size: 0x8, addend: 0x0, symName: '___68-[RCTImageView imageLoaderLoadedImage:error:forImageSource:partial:]_block_invoke', symObjAddr: 0x179C, symBinAddr: 0x120D0, symSize: 0x4C }
+  - { offset: 0x7731D, size: 0x8, addend: 0x0, symName: ___copy_helper_block_ea8_32w, symObjAddr: 0x17E8, symBinAddr: 0x1211C, symSize: 0xC }
+  - { offset: 0x77346, size: 0x8, addend: 0x0, symName: ___destroy_helper_block_ea8_32w, symObjAddr: 0x17F4, symBinAddr: 0x12128, symSize: 0x8 }
+  - { offset: 0x7738D, size: 0x8, addend: 0x0, symName: '___68-[RCTImageView imageLoaderLoadedImage:error:forImageSource:partial:]_block_invoke.25', symObjAddr: 0x17FC, symBinAddr: 0x12130, symSize: 0x310 }
+  - { offset: 0x77470, size: 0x8, addend: 0x0, symName: '___68-[RCTImageView imageLoaderLoadedImage:error:forImageSource:partial:]_block_invoke.26', symObjAddr: 0x1B0C, symBinAddr: 0x12440, symSize: 0xB4 }
+  - { offset: 0x7751E, size: 0x8, addend: 0x0, symName: '___68-[RCTImageView imageLoaderLoadedImage:error:forImageSource:partial:]_block_invoke_2', symObjAddr: 0x1BC0, symBinAddr: 0x124F4, symSize: 0x10 }
+  - { offset: 0x77579, size: 0x8, addend: 0x0, symName: '___68-[RCTImageView imageLoaderLoadedImage:error:forImageSource:partial:]_block_invoke.27', symObjAddr: 0x1C2C, symBinAddr: 0x12504, symSize: 0x10 }
+  - { offset: 0x7762F, size: 0x8, addend: 0x0, symName: '-[RCTImageView reactSetFrame:]', symObjAddr: 0x1C3C, symBinAddr: 0x12514, symSize: 0x2BC }
+  - { offset: 0x777C8, size: 0x8, addend: 0x0, symName: '-[RCTImageView didSetProps:]', symObjAddr: 0x1EF8, symBinAddr: 0x127D0, symSize: 0x1C }
+  - { offset: 0x77805, size: 0x8, addend: 0x0, symName: '-[RCTImageView didMoveToWindow]', symObjAddr: 0x1F14, symBinAddr: 0x127EC, symSize: 0x78 }
+  - { offset: 0x77837, size: 0x8, addend: 0x0, symName: '-[RCTImageView dealloc]', symObjAddr: 0x1F8C, symBinAddr: 0x12864, symSize: 0x9C }
+  - { offset: 0x77868, size: 0x8, addend: 0x0, symName: '-[RCTImageView capInsets]', symObjAddr: 0x2038, symBinAddr: 0x12900, symSize: 0x18 }
+  - { offset: 0x7789A, size: 0x8, addend: 0x0, symName: '-[RCTImageView defaultImage]', symObjAddr: 0x2050, symBinAddr: 0x12918, symSize: 0x10 }
+  - { offset: 0x778CE, size: 0x8, addend: 0x0, symName: '-[RCTImageView setDefaultImage:]', symObjAddr: 0x2060, symBinAddr: 0x12928, symSize: 0x14 }
+  - { offset: 0x7790C, size: 0x8, addend: 0x0, symName: '-[RCTImageView renderingMode]', symObjAddr: 0x2074, symBinAddr: 0x1293C, symSize: 0x10 }
+  - { offset: 0x77940, size: 0x8, addend: 0x0, symName: '-[RCTImageView imageSources]', symObjAddr: 0x2084, symBinAddr: 0x1294C, symSize: 0x10 }
+  - { offset: 0x77974, size: 0x8, addend: 0x0, symName: '-[RCTImageView blurRadius]', symObjAddr: 0x2094, symBinAddr: 0x1295C, symSize: 0x10 }
+  - { offset: 0x779A6, size: 0x8, addend: 0x0, symName: '-[RCTImageView resizeMode]', symObjAddr: 0x20A4, symBinAddr: 0x1296C, symSize: 0x10 }
+  - { offset: 0x779DA, size: 0x8, addend: 0x0, symName: '-[RCTImageView internal_analyticTag]', symObjAddr: 0x20B4, symBinAddr: 0x1297C, symSize: 0x10 }
+  - { offset: 0x77A0E, size: 0x8, addend: 0x0, symName: '-[RCTImageView onLoadStart]', symObjAddr: 0x20C4, symBinAddr: 0x1298C, symSize: 0x10 }
+  - { offset: 0x77A42, size: 0x8, addend: 0x0, symName: '-[RCTImageView setOnLoadStart:]', symObjAddr: 0x20D4, symBinAddr: 0x1299C, symSize: 0xC }
+  - { offset: 0x77A7D, size: 0x8, addend: 0x0, symName: '-[RCTImageView onProgress]', symObjAddr: 0x20E0, symBinAddr: 0x129A8, symSize: 0x10 }
+  - { offset: 0x77AB1, size: 0x8, addend: 0x0, symName: '-[RCTImageView setOnProgress:]', symObjAddr: 0x20F0, symBinAddr: 0x129B8, symSize: 0xC }
+  - { offset: 0x77AEC, size: 0x8, addend: 0x0, symName: '-[RCTImageView onError]', symObjAddr: 0x20FC, symBinAddr: 0x129C4, symSize: 0x10 }
+  - { offset: 0x77B20, size: 0x8, addend: 0x0, symName: '-[RCTImageView setOnError:]', symObjAddr: 0x210C, symBinAddr: 0x129D4, symSize: 0xC }
+  - { offset: 0x77B5B, size: 0x8, addend: 0x0, symName: '-[RCTImageView onPartialLoad]', symObjAddr: 0x2118, symBinAddr: 0x129E0, symSize: 0x10 }
+  - { offset: 0x77B8F, size: 0x8, addend: 0x0, symName: '-[RCTImageView setOnPartialLoad:]', symObjAddr: 0x2128, symBinAddr: 0x129F0, symSize: 0xC }
+  - { offset: 0x77BCA, size: 0x8, addend: 0x0, symName: '-[RCTImageView onLoad]', symObjAddr: 0x2134, symBinAddr: 0x129FC, symSize: 0x10 }
+  - { offset: 0x77BFE, size: 0x8, addend: 0x0, symName: '-[RCTImageView setOnLoad:]', symObjAddr: 0x2144, symBinAddr: 0x12A0C, symSize: 0xC }
+  - { offset: 0x77C39, size: 0x8, addend: 0x0, symName: '-[RCTImageView onLoadEnd]', symObjAddr: 0x2150, symBinAddr: 0x12A18, symSize: 0x10 }
+  - { offset: 0x77C6D, size: 0x8, addend: 0x0, symName: '-[RCTImageView setOnLoadEnd:]', symObjAddr: 0x2160, symBinAddr: 0x12A28, symSize: 0xC }
+  - { offset: 0x77CA9, size: 0x8, addend: 0x0, symName: '-[RCTImageView .cxx_destruct]', symObjAddr: 0x216C, symBinAddr: 0x12A34, symSize: 0x13C }
+  - { offset: 0x79F7A, size: 0x8, addend: 0x0, symName: '+[RCTImageViewManager moduleName]', symObjAddr: 0x0, symBinAddr: 0x12B70, symSize: 0xC }
+  - { offset: 0x79F95, size: 0x8, addend: 0x0, symName: '+[RCTImageViewManager __rct_export__570]', symObjAddr: 0x22C, symBinAddr: 0x12D9C, symSize: 0xC }
+  - { offset: 0x79FBF, size: 0x8, addend: 0x0, symName: '__ZZ40+[RCTImageViewManager __rct_export__570]E6config', symObjAddr: 0x13B0, symBinAddr: 0x2BDC8, symSize: 0x0 }
+  - { offset: 0x79FE2, size: 0x8, addend: 0x0, symName: '+[RCTImageViewManager __rct_export__731]', symObjAddr: 0x520, symBinAddr: 0x1302C, symSize: 0xC }
+  - { offset: 0x7A00C, size: 0x8, addend: 0x0, symName: '__ZZ40+[RCTImageViewManager __rct_export__731]E6config', symObjAddr: 0x13C8, symBinAddr: 0x2BDE0, symSize: 0x0 }
+  - { offset: 0x7A028, size: 0x8, addend: 0x0, symName: '+[RCTImageViewManager __rct_export__892]', symObjAddr: 0x7F4, symBinAddr: 0x13300, symSize: 0xC }
+  - { offset: 0x7A052, size: 0x8, addend: 0x0, symName: '__ZZ40+[RCTImageViewManager __rct_export__892]E6config', symObjAddr: 0x13E0, symBinAddr: 0x2BDF8, symSize: 0x0 }
+  - { offset: 0x7A06E, size: 0x8, addend: 0x0, symName: '+[RCTImageViewManager __rct_export__1113]', symObjAddr: 0x9E4, symBinAddr: 0x134F0, symSize: 0xC }
+  - { offset: 0x7A098, size: 0x8, addend: 0x0, symName: '__ZZ41+[RCTImageViewManager __rct_export__1113]E6config', symObjAddr: 0x13F8, symBinAddr: 0x2BE10, symSize: 0x0 }
+  - { offset: 0x7A18C, size: 0x8, addend: 0x0, symName: '+[RCTImageViewManager moduleName]', symObjAddr: 0x0, symBinAddr: 0x12B70, symSize: 0xC }
+  - { offset: 0x7A1BD, size: 0x8, addend: 0x0, symName: '+[RCTImageViewManager load]', symObjAddr: 0xC, symBinAddr: 0x12B7C, symSize: 0x4 }
+  - { offset: 0x7A1EF, size: 0x8, addend: 0x0, symName: '+[RCTImageViewManager load]', symObjAddr: 0xC, symBinAddr: 0x12B7C, symSize: 0x4 }
+  - { offset: 0x7A20E, size: 0x8, addend: 0x0, symName: '-[RCTImageViewManager shadowView]', symObjAddr: 0x10, symBinAddr: 0x12B80, symSize: 0x1C }
+  - { offset: 0x7A23E, size: 0x8, addend: 0x0, symName: '-[RCTImageViewManager view]', symObjAddr: 0x2C, symBinAddr: 0x12B9C, symSize: 0x64 }
+  - { offset: 0x7A272, size: 0x8, addend: 0x0, symName: '+[RCTImageViewManager propConfig_blurRadius]', symObjAddr: 0x90, symBinAddr: 0x12C00, symSize: 0xC }
+  - { offset: 0x7A2A2, size: 0x8, addend: 0x0, symName: '+[RCTImageViewManager propConfig_capInsets]', symObjAddr: 0x9C, symBinAddr: 0x12C0C, symSize: 0xC }
+  - { offset: 0x7A2D2, size: 0x8, addend: 0x0, symName: '+[RCTImageViewManager propConfig_defaultSource]', symObjAddr: 0xA8, symBinAddr: 0x12C18, symSize: 0xC }
+  - { offset: 0x7A302, size: 0x8, addend: 0x0, symName: '+[RCTImageViewManager propConfig_onLoadStart]', symObjAddr: 0xB4, symBinAddr: 0x12C24, symSize: 0xC }
+  - { offset: 0x7A332, size: 0x8, addend: 0x0, symName: '+[RCTImageViewManager propConfig_onProgress]', symObjAddr: 0xC0, symBinAddr: 0x12C30, symSize: 0xC }
+  - { offset: 0x7A362, size: 0x8, addend: 0x0, symName: '+[RCTImageViewManager propConfig_onError]', symObjAddr: 0xCC, symBinAddr: 0x12C3C, symSize: 0xC }
+  - { offset: 0x7A392, size: 0x8, addend: 0x0, symName: '+[RCTImageViewManager propConfig_onPartialLoad]', symObjAddr: 0xD8, symBinAddr: 0x12C48, symSize: 0xC }
+  - { offset: 0x7A3C2, size: 0x8, addend: 0x0, symName: '+[RCTImageViewManager propConfig_onLoad]', symObjAddr: 0xE4, symBinAddr: 0x12C54, symSize: 0xC }
+  - { offset: 0x7A3F2, size: 0x8, addend: 0x0, symName: '+[RCTImageViewManager propConfig_onLoadEnd]', symObjAddr: 0xF0, symBinAddr: 0x12C60, symSize: 0xC }
+  - { offset: 0x7A422, size: 0x8, addend: 0x0, symName: '+[RCTImageViewManager propConfig_resizeMode]', symObjAddr: 0xFC, symBinAddr: 0x12C6C, symSize: 0xC }
+  - { offset: 0x7A452, size: 0x8, addend: 0x0, symName: '+[RCTImageViewManager propConfig_internal_analyticTag]', symObjAddr: 0x108, symBinAddr: 0x12C78, symSize: 0xC }
+  - { offset: 0x7A482, size: 0x8, addend: 0x0, symName: '+[RCTImageViewManager propConfig_source]', symObjAddr: 0x114, symBinAddr: 0x12C84, symSize: 0xC }
+  - { offset: 0x7A4B2, size: 0x8, addend: 0x0, symName: '+[RCTImageViewManager propConfig_tintColor]', symObjAddr: 0x120, symBinAddr: 0x12C90, symSize: 0xC }
+  - { offset: 0x7A4E2, size: 0x8, addend: 0x0, symName: '-[RCTImageViewManager set_tintColor:forView:withDefaultView:]', symObjAddr: 0x12C, symBinAddr: 0x12C9C, symSize: 0x100 }
+  - { offset: 0x7A53B, size: 0x8, addend: 0x0, symName: '-[RCTImageViewManager getSize:successBlock:errorBlock:]', symObjAddr: 0x238, symBinAddr: 0x12DA8, symSize: 0x144 }
+  - { offset: 0x7A599, size: 0x8, addend: 0x0, symName: '___55-[RCTImageViewManager getSize:successBlock:errorBlock:]_block_invoke', symObjAddr: 0x37C, symBinAddr: 0x12EEC, symSize: 0x140 }
+  - { offset: 0x7A62B, size: 0x8, addend: 0x0, symName: '-[RCTImageViewManager getSizeWithHeaders:resolve:reject:]', symObjAddr: 0x52C, symBinAddr: 0x13038, symSize: 0x164 }
+  - { offset: 0x7A689, size: 0x8, addend: 0x0, symName: '___57-[RCTImageViewManager getSizeWithHeaders:resolve:reject:]_block_invoke', symObjAddr: 0x690, symBinAddr: 0x1319C, symSize: 0x164 }
+  - { offset: 0x7A720, size: 0x8, addend: 0x0, symName: '-[RCTImageViewManager prefetchImage:resolve:reject:]', symObjAddr: 0x800, symBinAddr: 0x1330C, symSize: 0x168 }
+  - { offset: 0x7A7A5, size: 0x8, addend: 0x0, symName: '___52-[RCTImageViewManager prefetchImage:resolve:reject:]_block_invoke', symObjAddr: 0x968, symBinAddr: 0x13474, symSize: 0x7C }
+  - { offset: 0x7A825, size: 0x8, addend: 0x0, symName: '-[RCTImageViewManager queryCache:resolve:reject:]', symObjAddr: 0x9F0, symBinAddr: 0x134FC, symSize: 0xD8 }
+  - { offset: 0x7ADBE, size: 0x8, addend: 0x0, symName: '+[RCTLocalAssetImageLoader moduleName]', symObjAddr: 0x0, symBinAddr: 0x135D4, symSize: 0xC }
+  - { offset: 0x84D1A, size: 0x8, addend: 0x0, symName: '+[RCTLocalAssetImageLoader moduleName]', symObjAddr: 0x0, symBinAddr: 0x135D4, symSize: 0xC }
+  - { offset: 0x84D4B, size: 0x8, addend: 0x0, symName: '+[RCTLocalAssetImageLoader load]', symObjAddr: 0xC, symBinAddr: 0x135E0, symSize: 0x4 }
+  - { offset: 0x84D7D, size: 0x8, addend: 0x0, symName: '+[RCTLocalAssetImageLoader load]', symObjAddr: 0xC, symBinAddr: 0x135E0, symSize: 0x4 }
+  - { offset: 0x84D9C, size: 0x8, addend: 0x0, symName: '-[RCTLocalAssetImageLoader canLoadImageURL:]', symObjAddr: 0x10, symBinAddr: 0x135E4, symSize: 0x8 }
+  - { offset: 0x84E1A, size: 0x8, addend: 0x0, symName: '-[RCTLocalAssetImageLoader requiresScheduling]', symObjAddr: 0x18, symBinAddr: 0x135EC, symSize: 0x8 }
+  - { offset: 0x84E4A, size: 0x8, addend: 0x0, symName: '-[RCTLocalAssetImageLoader shouldCacheLoadedImages]', symObjAddr: 0x20, symBinAddr: 0x135F4, symSize: 0x8 }
+  - { offset: 0x84E7A, size: 0x8, addend: 0x0, symName: '-[RCTLocalAssetImageLoader loadImageForURL:size:scale:resizeMode:progressHandler:partialLoadHandler:completionHandler:]', symObjAddr: 0x28, symBinAddr: 0x135FC, symSize: 0x158 }
+  - { offset: 0x85512, size: 0x8, addend: 0x0, symName: '-[RCTLocalAssetImageLoader getTurboModule:]', symObjAddr: 0x180, symBinAddr: 0x13754, symSize: 0x8 }
+  - { offset: 0x85551, size: 0x8, addend: 0x0, symName: '-[RCTLocalAssetImageLoader getTurboModule:]', symObjAddr: 0x180, symBinAddr: 0x13754, symSize: 0x8 }
+  - { offset: 0x85575, size: 0x8, addend: 0x0, symName: '-[RCTLocalAssetImageLoader getTurboModule:]', symObjAddr: 0x180, symBinAddr: 0x13754, symSize: 0x8 }
+  - { offset: 0x85598, size: 0x8, addend: 0x0, symName: '-[RCTLocalAssetImageLoader loaderPriority]', symObjAddr: 0x188, symBinAddr: 0x1375C, symSize: 0x8 }
+  - { offset: 0x855C9, size: 0x8, addend: 0x0, symName: _RCTLocalAssetImageLoaderCls, symObjAddr: 0x190, symBinAddr: 0x13764, symSize: 0xC }
+  - { offset: 0x87532, size: 0x8, addend: 0x0, symName: '+[RCTConvert(RCTResizeMode) RCTResizeMode:]', symObjAddr: 0x0, symBinAddr: 0x13770, symSize: 0x98 }
+  - { offset: 0x8753F, size: 0x8, addend: 0x0, symName: '+[RCTConvert(RCTResizeMode) RCTResizeMode:]', symObjAddr: 0x0, symBinAddr: 0x13770, symSize: 0x98 }
+  - { offset: 0x87569, size: 0x8, addend: 0x0, symName: '__ZZ43+[RCTConvert(RCTResizeMode) RCTResizeMode:]E7mapping', symObjAddr: 0x2718, symBinAddr: 0x2BEC0, symSize: 0x0 }
+  - { offset: 0x8757F, size: 0x8, addend: 0x0, symName: '__ZZ43+[RCTConvert(RCTResizeMode) RCTResizeMode:]E9onceToken', symObjAddr: 0x2720, symBinAddr: 0x2BEC8, symSize: 0x0 }
+  - { offset: 0x876D2, size: 0x8, addend: 0x0, symName: '+[RCTConvert(RCTResizeMode) RCTResizeMode:].cold.1', symObjAddr: 0xB0, symBinAddr: 0x14C78, symSize: 0x14 }
+  - { offset: 0x876EE, size: 0x8, addend: 0x0, symName: '+[RCTConvert(RCTResizeMode) RCTResizeMode:].cold.1', symObjAddr: 0xB0, symBinAddr: 0x14C78, symSize: 0x14 }
+  - { offset: 0x87700, size: 0x8, addend: 0x0, symName: '___43+[RCTConvert(RCTResizeMode) RCTResizeMode:]_block_invoke', symObjAddr: 0x98, symBinAddr: 0x13808, symSize: 0x18 }
+  - { offset: 0x87C67, size: 0x8, addend: 0x0, symName: '-[RCTUIImageViewAnimated initWithFrame:]', symObjAddr: 0x0, symBinAddr: 0x13820, symSize: 0xD4 }
+  - { offset: 0x87CCA, size: 0x8, addend: 0x0, symName: '-[RCTUIImageViewAnimated resetAnimatedImage]', symObjAddr: 0xD4, symBinAddr: 0x138F4, symSize: 0xF8 }
+  - { offset: 0x87D46, size: 0x8, addend: 0x0, symName: '-[RCTUIImageViewAnimated setImage:]', symObjAddr: 0x1CC, symBinAddr: 0x139EC, symSize: 0x24C }
+  - { offset: 0x87DBF, size: 0x8, addend: 0x0, symName: '-[RCTUIImageViewAnimated fetchQueue]', symObjAddr: 0x418, symBinAddr: 0x13C38, symSize: 0x54 }
+  - { offset: 0x87DF3, size: 0x8, addend: 0x0, symName: '-[RCTUIImageViewAnimated frameBuffer]', symObjAddr: 0x46C, symBinAddr: 0x13C8C, symSize: 0x4C }
+  - { offset: 0x87E27, size: 0x8, addend: 0x0, symName: '-[RCTUIImageViewAnimated displayLink]', symObjAddr: 0x4B8, symBinAddr: 0x13CD8, symSize: 0x114 }
+  - { offset: 0x87E70, size: 0x8, addend: 0x0, symName: '-[RCTUIImageViewAnimated prefetchNextFrame:fetchFrameIndex:]', symObjAddr: 0x5CC, symBinAddr: 0x13DEC, symSize: 0x168 }
+  - { offset: 0x87EE3, size: 0x8, addend: 0x0, symName: '___60-[RCTUIImageViewAnimated prefetchNextFrame:fetchFrameIndex:]_block_invoke', symObjAddr: 0x734, symBinAddr: 0x13F54, symSize: 0xE4 }
+  - { offset: 0x87F6F, size: 0x8, addend: 0x0, symName: ___copy_helper_block_ea8_32s40s, symObjAddr: 0x818, symBinAddr: 0x14038, symSize: 0x28 }
+  - { offset: 0x87F97, size: 0x8, addend: 0x0, symName: '-[RCTUIImageViewAnimated start]', symObjAddr: 0x868, symBinAddr: 0x14060, symSize: 0x4C }
+  - { offset: 0x87FC7, size: 0x8, addend: 0x0, symName: '-[RCTUIImageViewAnimated stop]', symObjAddr: 0x8B4, symBinAddr: 0x140AC, symSize: 0x4C }
+  - { offset: 0x87FF7, size: 0x8, addend: 0x0, symName: '-[RCTUIImageViewAnimated paused]', symObjAddr: 0x900, symBinAddr: 0x140F8, symSize: 0x44 }
+  - { offset: 0x8802B, size: 0x8, addend: 0x0, symName: '-[RCTUIImageViewAnimated displayDidRefresh:]', symObjAddr: 0x944, symBinAddr: 0x1413C, symSize: 0x468 }
+  - { offset: 0x882C1, size: 0x8, addend: 0x0, symName: '-[RCTUIImageViewAnimated calculateMaxBufferCount]', symObjAddr: 0xDAC, symBinAddr: 0x145A4, symSize: 0x180 }
+  - { offset: 0x8849A, size: 0x8, addend: 0x0, symName: '-[RCTUIImageViewAnimated dealloc]', symObjAddr: 0xF2C, symBinAddr: 0x14724, symSize: 0x88 }
+  - { offset: 0x884CC, size: 0x8, addend: 0x0, symName: '-[RCTUIImageViewAnimated didReceiveMemoryWarning:]', symObjAddr: 0xFC4, symBinAddr: 0x147AC, symSize: 0x74 }
+  - { offset: 0x8850B, size: 0x8, addend: 0x0, symName: '___50-[RCTUIImageViewAnimated didReceiveMemoryWarning:]_block_invoke', symObjAddr: 0x1038, symBinAddr: 0x14820, symSize: 0x1F8 }
+  - { offset: 0x885A5, size: 0x8, addend: 0x0, symName: '-[RCTUIImageViewAnimated maxBufferSize]', symObjAddr: 0x1240, symBinAddr: 0x14A18, symSize: 0x10 }
+  - { offset: 0x885D9, size: 0x8, addend: 0x0, symName: '-[RCTUIImageViewAnimated setMaxBufferSize:]', symObjAddr: 0x1250, symBinAddr: 0x14A28, symSize: 0x10 }
+  - { offset: 0x88612, size: 0x8, addend: 0x0, symName: '-[RCTUIImageViewAnimated currentFrame]', symObjAddr: 0x1260, symBinAddr: 0x14A38, symSize: 0x10 }
+  - { offset: 0x88646, size: 0x8, addend: 0x0, symName: '-[RCTUIImageViewAnimated setCurrentFrame:]', symObjAddr: 0x1270, symBinAddr: 0x14A48, symSize: 0x14 }
+  - { offset: 0x88684, size: 0x8, addend: 0x0, symName: '-[RCTUIImageViewAnimated currentFrameIndex]', symObjAddr: 0x1284, symBinAddr: 0x14A5C, symSize: 0x10 }
+  - { offset: 0x886B8, size: 0x8, addend: 0x0, symName: '-[RCTUIImageViewAnimated setCurrentFrameIndex:]', symObjAddr: 0x1294, symBinAddr: 0x14A6C, symSize: 0x10 }
+  - { offset: 0x886F1, size: 0x8, addend: 0x0, symName: '-[RCTUIImageViewAnimated currentLoopCount]', symObjAddr: 0x12A4, symBinAddr: 0x14A7C, symSize: 0x10 }
+  - { offset: 0x88725, size: 0x8, addend: 0x0, symName: '-[RCTUIImageViewAnimated setCurrentLoopCount:]', symObjAddr: 0x12B4, symBinAddr: 0x14A8C, symSize: 0x10 }
+  - { offset: 0x8875E, size: 0x8, addend: 0x0, symName: '-[RCTUIImageViewAnimated totalFrameCount]', symObjAddr: 0x12C4, symBinAddr: 0x14A9C, symSize: 0x10 }
+  - { offset: 0x88792, size: 0x8, addend: 0x0, symName: '-[RCTUIImageViewAnimated setTotalFrameCount:]', symObjAddr: 0x12D4, symBinAddr: 0x14AAC, symSize: 0x10 }
+  - { offset: 0x887CB, size: 0x8, addend: 0x0, symName: '-[RCTUIImageViewAnimated totalLoopCount]', symObjAddr: 0x12E4, symBinAddr: 0x14ABC, symSize: 0x10 }
+  - { offset: 0x887FF, size: 0x8, addend: 0x0, symName: '-[RCTUIImageViewAnimated setTotalLoopCount:]', symObjAddr: 0x12F4, symBinAddr: 0x14ACC, symSize: 0x10 }
+  - { offset: 0x88838, size: 0x8, addend: 0x0, symName: '-[RCTUIImageViewAnimated animatedImage]', symObjAddr: 0x1304, symBinAddr: 0x14ADC, symSize: 0x10 }
+  - { offset: 0x8886C, size: 0x8, addend: 0x0, symName: '-[RCTUIImageViewAnimated setAnimatedImage:]', symObjAddr: 0x1314, symBinAddr: 0x14AEC, symSize: 0x14 }
+  - { offset: 0x888AA, size: 0x8, addend: 0x0, symName: '-[RCTUIImageViewAnimated setFrameBuffer:]', symObjAddr: 0x1328, symBinAddr: 0x14B00, symSize: 0x14 }
+  - { offset: 0x888E8, size: 0x8, addend: 0x0, symName: '-[RCTUIImageViewAnimated currentTime]', symObjAddr: 0x133C, symBinAddr: 0x14B14, symSize: 0x10 }
+  - { offset: 0x8891A, size: 0x8, addend: 0x0, symName: '-[RCTUIImageViewAnimated setCurrentTime:]', symObjAddr: 0x134C, symBinAddr: 0x14B24, symSize: 0x10 }
+  - { offset: 0x88954, size: 0x8, addend: 0x0, symName: '-[RCTUIImageViewAnimated bufferMiss]', symObjAddr: 0x135C, symBinAddr: 0x14B34, symSize: 0x10 }
+  - { offset: 0x88988, size: 0x8, addend: 0x0, symName: '-[RCTUIImageViewAnimated setBufferMiss:]', symObjAddr: 0x136C, symBinAddr: 0x14B44, symSize: 0x10 }
+  - { offset: 0x889C0, size: 0x8, addend: 0x0, symName: '-[RCTUIImageViewAnimated maxBufferCount]', symObjAddr: 0x137C, symBinAddr: 0x14B54, symSize: 0x10 }
+  - { offset: 0x889F4, size: 0x8, addend: 0x0, symName: '-[RCTUIImageViewAnimated setMaxBufferCount:]', symObjAddr: 0x138C, symBinAddr: 0x14B64, symSize: 0x10 }
+  - { offset: 0x88A2D, size: 0x8, addend: 0x0, symName: '-[RCTUIImageViewAnimated setFetchQueue:]', symObjAddr: 0x139C, symBinAddr: 0x14B74, symSize: 0x14 }
+  - { offset: 0x88A6B, size: 0x8, addend: 0x0, symName: '-[RCTUIImageViewAnimated lock]', symObjAddr: 0x13B0, symBinAddr: 0x14B88, symSize: 0x10 }
+  - { offset: 0x88A9F, size: 0x8, addend: 0x0, symName: '-[RCTUIImageViewAnimated setLock:]', symObjAddr: 0x13C0, symBinAddr: 0x14B98, symSize: 0x14 }
+  - { offset: 0x88ADD, size: 0x8, addend: 0x0, symName: '-[RCTUIImageViewAnimated setDisplayLink:]', symObjAddr: 0x13D4, symBinAddr: 0x14BAC, symSize: 0x14 }
+  - { offset: 0x88B1C, size: 0x8, addend: 0x0, symName: '-[RCTUIImageViewAnimated .cxx_destruct]', symObjAddr: 0x13E8, symBinAddr: 0x14BC0, symSize: 0x90 }
+...

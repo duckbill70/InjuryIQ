@@ -1,0 +1,53 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     '/Users/uk-aplatts/Development/InjuryIQ/ios/DerivedData/Build/Intermediates.noindex/ArchiveIntermediates/InjuryIQ/IntermediateBuildFilesPath/UninstalledProducts/iphoneos/RNBootSplash.framework/RNBootSplash'
+relocations:
+  - { offset: 0x33, size: 0x8, addend: 0x0, symName: _RNBootSplashVersionString, symObjAddr: 0x0, symBinAddr: 0x5210, symSize: 0x0 }
+  - { offset: 0x67, size: 0x8, addend: 0x0, symName: _RNBootSplashVersionNumber, symObjAddr: 0x30, symBinAddr: 0x5240, symSize: 0x0 }
+  - { offset: 0xBC, size: 0x8, addend: 0x0, symName: __ZL9_rootView, symObjAddr: 0x61CD0, symBinAddr: 0xC950, symSize: 0x0 }
+  - { offset: 0x1882, size: 0x8, addend: 0x0, symName: __ZL12_loadingView, symObjAddr: 0x61CD8, symBinAddr: 0xC958, symSize: 0x0 }
+  - { offset: 0x189B, size: 0x8, addend: 0x0, symName: __ZL13_resolveQueue, symObjAddr: 0x61CE0, symBinAddr: 0xC960, symSize: 0x0 }
+  - { offset: 0x18C9, size: 0x8, addend: 0x0, symName: __ZL5_fade, symObjAddr: 0x61CE8, symBinAddr: 0xC968, symSize: 0x0 }
+  - { offset: 0x18E2, size: 0x8, addend: 0x0, symName: __ZL13_nativeHidden, symObjAddr: 0x61CE9, symBinAddr: 0xC969, symSize: 0x0 }
+  - { offset: 0x10335, size: 0x8, addend: 0x0, symName: __ZNSt3__115allocate_sharedB8ne200100IN8facebook5react25NativeRNBootSplashSpecJSIENS_9allocatorIS3_EEJRKNS2_15ObjCTurboModule10InitParamsEELi0EEENS_10shared_ptrIT_EERKT0_DpOT1_, symObjAddr: 0x840, symBinAddr: 0x4840, symSize: 0x58 }
+  - { offset: 0x12D47, size: 0x8, addend: 0x0, symName: '+[RNBootSplash moduleName]', symObjAddr: 0x0, symBinAddr: 0x4000, symSize: 0xC }
+  - { offset: 0x12D7A, size: 0x8, addend: 0x0, symName: '+[RNBootSplash load]', symObjAddr: 0xC, symBinAddr: 0x400C, symSize: 0x4 }
+  - { offset: 0x12DAE, size: 0x8, addend: 0x0, symName: '+[RNBootSplash load]', symObjAddr: 0xC, symBinAddr: 0x400C, symSize: 0x4 }
+  - { offset: 0x12DCF, size: 0x8, addend: 0x0, symName: '+[RNBootSplash requiresMainQueueSetup]', symObjAddr: 0x10, symBinAddr: 0x4010, symSize: 0x8 }
+  - { offset: 0x12E24, size: 0x8, addend: 0x0, symName: '-[RNBootSplash methodQueue]', symObjAddr: 0x18, symBinAddr: 0x4018, symSize: 0xC }
+  - { offset: 0x12E5A, size: 0x8, addend: 0x0, symName: '-[RNBootSplash methodQueue]', symObjAddr: 0x18, symBinAddr: 0x4018, symSize: 0xC }
+  - { offset: 0x12E6C, size: 0x8, addend: 0x0, symName: '+[RNBootSplash isLoadingViewVisible]', symObjAddr: 0x24, symBinAddr: 0x4024, symSize: 0x24 }
+  - { offset: 0x12E9F, size: 0x8, addend: 0x0, symName: '+[RNBootSplash clearResolveQueue]', symObjAddr: 0x48, symBinAddr: 0x4048, symSize: 0x88 }
+  - { offset: 0x12F08, size: 0x8, addend: 0x0, symName: '+[RNBootSplash hideAndClearPromiseQueue]', symObjAddr: 0xD0, symBinAddr: 0x40D0, symSize: 0x78 }
+  - { offset: 0x12FD1, size: 0x8, addend: 0x0, symName: '___40+[RNBootSplash hideAndClearPromiseQueue]_block_invoke', symObjAddr: 0x148, symBinAddr: 0x4148, symSize: 0x2C }
+  - { offset: 0x12FF8, size: 0x8, addend: 0x0, symName: '___40+[RNBootSplash hideAndClearPromiseQueue]_block_invoke_2', symObjAddr: 0x174, symBinAddr: 0x4174, symSize: 0x10 }
+  - { offset: 0x1301F, size: 0x8, addend: 0x0, symName: '___40+[RNBootSplash hideAndClearPromiseQueue]_block_invoke_3', symObjAddr: 0x184, symBinAddr: 0x4184, symSize: 0x38 }
+  - { offset: 0x13052, size: 0x8, addend: 0x0, symName: '+[RNBootSplash initWithStoryboard:rootView:]', symObjAddr: 0x1BC, symBinAddr: 0x41BC, symSize: 0x224 }
+  - { offset: 0x13116, size: 0x8, addend: 0x0, symName: '___44+[RNBootSplash initWithStoryboard:rootView:]_block_invoke', symObjAddr: 0x3E0, symBinAddr: 0x43E0, symSize: 0x48 }
+  - { offset: 0x13161, size: 0x8, addend: 0x0, symName: '+[RNBootSplash onJavaScriptDidLoad]', symObjAddr: 0x428, symBinAddr: 0x4428, symSize: 0x58 }
+  - { offset: 0x13194, size: 0x8, addend: 0x0, symName: '+[RNBootSplash onJavaScriptDidFailToLoad]', symObjAddr: 0x480, symBinAddr: 0x4480, symSize: 0x5C }
+  - { offset: 0x131C7, size: 0x8, addend: 0x0, symName: '-[RNBootSplash constantsToExport]', symObjAddr: 0x4DC, symBinAddr: 0x44DC, symSize: 0x128 }
+  - { offset: 0x13231, size: 0x8, addend: 0x0, symName: '___33-[RNBootSplash constantsToExport]_block_invoke', symObjAddr: 0x604, symBinAddr: 0x4604, symSize: 0x90 }
+  - { offset: 0x139D5, size: 0x8, addend: 0x0, symName: ___copy_helper_block_ea8_32r, symObjAddr: 0x694, symBinAddr: 0x4694, symSize: 0x10 }
+  - { offset: 0x139FE, size: 0x8, addend: 0x0, symName: ___destroy_helper_block_ea8_32r, symObjAddr: 0x6A4, symBinAddr: 0x46A4, symSize: 0xC }
+  - { offset: 0x13A1D, size: 0x8, addend: 0x0, symName: '-[RNBootSplash hideImpl:resolve:]', symObjAddr: 0x6B0, symBinAddr: 0x46B0, symSize: 0xC0 }
+  - { offset: 0x13A8C, size: 0x8, addend: 0x0, symName: '-[RNBootSplash isVisibleImpl:]', symObjAddr: 0x770, symBinAddr: 0x4770, symSize: 0x88 }
+  - { offset: 0x13BA4, size: 0x8, addend: 0x0, symName: '-[RNBootSplash getTurboModule:]', symObjAddr: 0x7F8, symBinAddr: 0x47F8, symSize: 0x3C }
+  - { offset: 0x13C76, size: 0x8, addend: 0x0, symName: '-[RNBootSplash getConstants]', symObjAddr: 0x834, symBinAddr: 0x4834, symSize: 0x4 }
+  - { offset: 0x13CAB, size: 0x8, addend: 0x0, symName: '-[RNBootSplash hide:resolve:reject:]', symObjAddr: 0x838, symBinAddr: 0x4838, symSize: 0x4 }
+  - { offset: 0x13D09, size: 0x8, addend: 0x0, symName: '-[RNBootSplash isVisible:reject:]', symObjAddr: 0x83C, symBinAddr: 0x483C, symSize: 0x4 }
+  - { offset: 0x13F93, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react25NativeRNBootSplashSpecJSIENS_9allocatorIS3_EEEC2B8ne200100IJRKNS2_15ObjCTurboModule10InitParamsEES5_Li0EEES5_DpOT_, symObjAddr: 0x898, symBinAddr: 0x4898, symSize: 0x4C }
+  - { offset: 0x1415D, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react25NativeRNBootSplashSpecJSIENS_9allocatorIS3_EEED1Ev, symObjAddr: 0x8E4, symBinAddr: 0x48E4, symSize: 0x14 }
+  - { offset: 0x14181, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react25NativeRNBootSplashSpecJSIENS_9allocatorIS3_EEED1Ev, symObjAddr: 0x8E4, symBinAddr: 0x48E4, symSize: 0x14 }
+  - { offset: 0x141B8, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react25NativeRNBootSplashSpecJSIENS_9allocatorIS3_EEED0Ev, symObjAddr: 0x8F8, symBinAddr: 0x48F8, symSize: 0x24 }
+  - { offset: 0x14289, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react25NativeRNBootSplashSpecJSIENS_9allocatorIS3_EEE16__on_zero_sharedEv, symObjAddr: 0x91C, symBinAddr: 0x491C, symSize: 0xC }
+  - { offset: 0x142B3, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react25NativeRNBootSplashSpecJSIENS_9allocatorIS3_EEE16__on_zero_sharedEv, symObjAddr: 0x91C, symBinAddr: 0x491C, symSize: 0xC }
+  - { offset: 0x142D2, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react25NativeRNBootSplashSpecJSIENS_9allocatorIS3_EEE16__on_zero_sharedEv, symObjAddr: 0x91C, symBinAddr: 0x491C, symSize: 0xC }
+  - { offset: 0x142F0, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react25NativeRNBootSplashSpecJSIENS_9allocatorIS3_EEE16__on_zero_sharedEv, symObjAddr: 0x91C, symBinAddr: 0x491C, symSize: 0xC }
+  - { offset: 0x1431C, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react25NativeRNBootSplashSpecJSIENS_9allocatorIS3_EEE21__on_zero_shared_weakEv, symObjAddr: 0x928, symBinAddr: 0x4928, symSize: 0x4 }
+  - { offset: 0x14350, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react25NativeRNBootSplashSpecJSIENS_9allocatorIS3_EEE21__on_zero_shared_weakEv, symObjAddr: 0x928, symBinAddr: 0x4928, symSize: 0x4 }
+  - { offset: 0x14372, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react25NativeRNBootSplashSpecJSIENS_9allocatorIS3_EEE21__on_zero_shared_weakEv, symObjAddr: 0x928, symBinAddr: 0x4928, symSize: 0x4 }
+  - { offset: 0x14396, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react25NativeRNBootSplashSpecJSIENS_9allocatorIS3_EEE21__on_zero_shared_weakEv, symObjAddr: 0x928, symBinAddr: 0x4928, symSize: 0x4 }
+  - { offset: 0x143CC, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react25NativeRNBootSplashSpecJSIENS_9allocatorIS3_EEE21__on_zero_shared_weakEv, symObjAddr: 0x928, symBinAddr: 0x4928, symSize: 0x4 }
+  - { offset: 0x143FC, size: 0x8, addend: 0x0, symName: __GLOBAL__sub_I_RNBootSplash.mm, symObjAddr: 0xA60, symBinAddr: 0x492C, symSize: 0x38 }
+...

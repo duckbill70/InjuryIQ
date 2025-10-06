@@ -1,0 +1,62 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     '/Users/uk-aplatts/Development/InjuryIQ/ios/DerivedData/Build/Intermediates.noindex/ArchiveIntermediates/InjuryIQ/InstallationBuildProductsLocation/Applications/InjuryIQ.app/InjuryIQ'
+relocations:
+  - { offset: 0x830F4, size: 0x8, addend: 0x0, symName: _InjuryIQVersionString, symObjAddr: 0x0, symBinAddr: 0x100005EE0, symSize: 0x0 }
+  - { offset: 0x8312B, size: 0x8, addend: 0x0, symName: _InjuryIQVersionNumber, symObjAddr: 0x30, symBinAddr: 0x100005F10, symSize: 0x0 }
+  - { offset: 0x833F2, size: 0x8, addend: 0x0, symName: '_$s8InjuryIQ11AppDelegateCfETo', symObjAddr: 0x854, symBinAddr: 0x100004740, symSize: 0x48 }
+  - { offset: 0x83589, size: 0x8, addend: 0x0, symName: '_$s8InjuryIQ11AppDelegateCMa', symObjAddr: 0x12F8, symBinAddr: 0x100005140, symSize: 0x20 }
+  - { offset: 0x8359D, size: 0x8, addend: 0x0, symName: '_$s8InjuryIQ19ReactNativeDelegateCMa', symObjAddr: 0x1318, symBinAddr: 0x100005160, symSize: 0x20 }
+  - { offset: 0x835B1, size: 0x8, addend: 0x0, symName: ___swift_instantiateConcreteTypeFromMangledName, symObjAddr: 0x1338, symBinAddr: 0x100005180, symSize: 0x44 }
+  - { offset: 0x835C5, size: 0x8, addend: 0x0, symName: '_$s10Foundation3URLVSgWOb', symObjAddr: 0x137C, symBinAddr: 0x1000051C4, symSize: 0x48 }
+  - { offset: 0x835D9, size: 0x8, addend: 0x0, symName: '_$sSo29UIApplicationLaunchOptionsKeyaMa', symObjAddr: 0x13C4, symBinAddr: 0x10000520C, symSize: 0x50 }
+  - { offset: 0x835ED, size: 0x8, addend: 0x0, symName: '_$sypWOc', symObjAddr: 0x1414, symBinAddr: 0x10000525C, symSize: 0x3C }
+  - { offset: 0x83601, size: 0x8, addend: 0x0, symName: '_$sypWOb', symObjAddr: 0x148C, symBinAddr: 0x1000052D4, symSize: 0x10 }
+  - { offset: 0x83615, size: 0x8, addend: 0x0, symName: '_$sSo29UIApplicationLaunchOptionsKeyas20_SwiftNewtypeWrapperSCSYWb', symObjAddr: 0x149C, symBinAddr: 0x1000052E4, symSize: 0x24 }
+  - { offset: 0x83629, size: 0x8, addend: 0x0, symName: '_$sSo29UIApplicationLaunchOptionsKeyas20_SwiftNewtypeWrapperSCs35_HasCustomAnyHashableRepresentationPWb', symObjAddr: 0x14C0, symBinAddr: 0x100005308, symSize: 0x24 }
+  - { offset: 0x8363D, size: 0x8, addend: 0x0, symName: '_$sSo29UIApplicationLaunchOptionsKeyaSHSCSQWb', symObjAddr: 0x14E4, symBinAddr: 0x10000532C, symSize: 0x24 }
+  - { offset: 0x836D5, size: 0x8, addend: 0x0, symName: '_$ss17_dictionaryUpCastySDyq0_q1_GSDyxq_GSHRzSHR0_r2_lFSo29UIApplicationLaunchOptionsKeya_yps11AnyHashableVypTg5', symObjAddr: 0x35C, symBinAddr: 0x100004344, symSize: 0x2F0 }
+  - { offset: 0x83841, size: 0x8, addend: 0x0, symName: '_$sSo29UIApplicationLaunchOptionsKeyaSHSCSH9hashValueSivgTW', symObjAddr: 0xD38, symBinAddr: 0x100004B80, symSize: 0x38 }
+  - { offset: 0x838BF, size: 0x8, addend: 0x0, symName: '_$sSo29UIApplicationLaunchOptionsKeyaSHSCSH4hash4intoys6HasherVz_tFTW', symObjAddr: 0xD70, symBinAddr: 0x100004BB8, symSize: 0x40 }
+  - { offset: 0x8393D, size: 0x8, addend: 0x0, symName: '_$sSo29UIApplicationLaunchOptionsKeyaSHSCSH13_rawHashValue4seedS2i_tFTW', symObjAddr: 0xDB0, symBinAddr: 0x100004BF8, symSize: 0x70 }
+  - { offset: 0x839BB, size: 0x8, addend: 0x0, symName: '_$sSo29UIApplicationLaunchOptionsKeyas21_ObjectiveCBridgeableSCsACP09_bridgeToE1C01_E5CTypeQzyFTW', symObjAddr: 0xE20, symBinAddr: 0x100004C68, symSize: 0x8 }
+  - { offset: 0x83A38, size: 0x8, addend: 0x0, symName: '_$sSo29UIApplicationLaunchOptionsKeyas21_ObjectiveCBridgeableSCsACP016_forceBridgeFromE1C_6resulty01_E5CTypeQz_xSgztFZTW', symObjAddr: 0xE28, symBinAddr: 0x100004C70, symSize: 0x74 }
+  - { offset: 0x83AE7, size: 0x8, addend: 0x0, symName: '_$sSo29UIApplicationLaunchOptionsKeyas21_ObjectiveCBridgeableSCsACP024_conditionallyBridgeFromE1C_6resultSb01_E5CTypeQz_xSgztFZTW', symObjAddr: 0xE9C, symBinAddr: 0x100004CE4, symSize: 0x7C }
+  - { offset: 0x83B96, size: 0x8, addend: 0x0, symName: '_$sSo29UIApplicationLaunchOptionsKeyas21_ObjectiveCBridgeableSCsACP026_unconditionallyBridgeFromE1Cyx01_E5CTypeQzSgFZTW', symObjAddr: 0xF18, symBinAddr: 0x100004D60, symSize: 0x40 }
+  - { offset: 0x83C16, size: 0x8, addend: 0x0, symName: '_$sSo29UIApplicationLaunchOptionsKeyaSQSCSQ2eeoiySbx_xtFZTW', symObjAddr: 0xF58, symBinAddr: 0x100004DA0, symSize: 0x84 }
+  - { offset: 0x83CC0, size: 0x8, addend: 0x0, symName: '_$sSo29UIApplicationLaunchOptionsKeyas35_HasCustomAnyHashableRepresentationSCsACP03_tofgH0s0gH0VSgyFTW', symObjAddr: 0x1048, symBinAddr: 0x100004E90, symSize: 0x6C }
+  - { offset: 0x83E1F, size: 0x8, addend: 0x0, symName: '_$s8InjuryIQ11AppDelegateC6windowSo8UIWindowCSgvgTo', symObjAddr: 0x8, symBinAddr: 0x100004000, symSize: 0x48 }
+  - { offset: 0x83E52, size: 0x8, addend: 0x0, symName: '_$s8InjuryIQ11AppDelegateC6windowSo8UIWindowCSgvg', symObjAddr: 0x50, symBinAddr: 0x100004048, symSize: 0x48 }
+  - { offset: 0x83E9D, size: 0x8, addend: 0x0, symName: '_$s8InjuryIQ11AppDelegateC6windowSo8UIWindowCSgvsTo', symObjAddr: 0x98, symBinAddr: 0x100004090, symSize: 0x5C }
+  - { offset: 0x83ED8, size: 0x8, addend: 0x0, symName: '_$s8InjuryIQ11AppDelegateC6windowSo8UIWindowCSgvs', symObjAddr: 0xF4, symBinAddr: 0x1000040EC, symSize: 0x54 }
+  - { offset: 0x83F01, size: 0x8, addend: 0x0, symName: '_$s8InjuryIQ11AppDelegateC6windowSo8UIWindowCSgvM', symObjAddr: 0x148, symBinAddr: 0x100004140, symSize: 0x40 }
+  - { offset: 0x83F26, size: 0x8, addend: 0x0, symName: '_$s8InjuryIQ11AppDelegateC011reactNativeD0AA05ReactfD0CSgvg', symObjAddr: 0x190, symBinAddr: 0x100004180, symSize: 0x48 }
+  - { offset: 0x83F4B, size: 0x8, addend: 0x0, symName: '_$s8InjuryIQ11AppDelegateC011reactNativeD0AA05ReactfD0CSgvs', symObjAddr: 0x1D8, symBinAddr: 0x1000041C8, symSize: 0x54 }
+  - { offset: 0x83F80, size: 0x8, addend: 0x0, symName: '_$s8InjuryIQ11AppDelegateC011reactNativeD0AA05ReactfD0CSgvM', symObjAddr: 0x22C, symBinAddr: 0x10000421C, symSize: 0x40 }
+  - { offset: 0x83FA5, size: 0x8, addend: 0x0, symName: '_$s8InjuryIQ11AppDelegateC011reactNativeD0AA05ReactfD0CSgvM.resume.0', symObjAddr: 0x26C, symBinAddr: 0x10000425C, symSize: 0x4 }
+  - { offset: 0x83FC6, size: 0x8, addend: 0x0, symName: '_$s8InjuryIQ11AppDelegateC18reactNativeFactorySo08RCTReactfG0CSgvg', symObjAddr: 0x278, symBinAddr: 0x100004260, symSize: 0x48 }
+  - { offset: 0x83FEB, size: 0x8, addend: 0x0, symName: '_$s8InjuryIQ11AppDelegateC18reactNativeFactorySo08RCTReactfG0CSgvs', symObjAddr: 0x2C0, symBinAddr: 0x1000042A8, symSize: 0x54 }
+  - { offset: 0x84020, size: 0x8, addend: 0x0, symName: '_$s8InjuryIQ11AppDelegateC18reactNativeFactorySo08RCTReactfG0CSgvM', symObjAddr: 0x314, symBinAddr: 0x1000042FC, symSize: 0x40 }
+  - { offset: 0x84045, size: 0x8, addend: 0x0, symName: '_$s8InjuryIQ11AppDelegateC11application_29didFinishLaunchingWithOptionsSbSo13UIApplicationC_SDySo0k6LaunchJ3KeyaypGSgtF', symObjAddr: 0x354, symBinAddr: 0x10000433C, symSize: 0x8 }
+  - { offset: 0x8408B, size: 0x8, addend: 0x0, symName: '_$s8InjuryIQ11AppDelegateC11application_29didFinishLaunchingWithOptionsSbSo13UIApplicationC_SDySo0k6LaunchJ3KeyaypGSgtFTo', symObjAddr: 0x64C, symBinAddr: 0x100004634, symSize: 0xA0 }
+  - { offset: 0x840D5, size: 0x8, addend: 0x0, symName: '_$s8InjuryIQ11AppDelegateCACycfcTo', symObjAddr: 0x760, symBinAddr: 0x1000046D4, symSize: 0x60 }
+  - { offset: 0x84174, size: 0x8, addend: 0x0, symName: '_$s8InjuryIQ19ReactNativeDelegateC9sourceURL3for10Foundation0G0VSgSo9RCTBridgeC_tFTo', symObjAddr: 0x910, symBinAddr: 0x100004788, symSize: 0x144 }
+  - { offset: 0x84196, size: 0x8, addend: 0x0, symName: '_$s8InjuryIQ19ReactNativeDelegateC9bundleURL10Foundation0G0VSgyF', symObjAddr: 0xA54, symBinAddr: 0x1000048CC, symSize: 0xF0 }
+  - { offset: 0x841B7, size: 0x8, addend: 0x0, symName: '_$s8InjuryIQ19ReactNativeDelegateC9bundleURL10Foundation0G0VSgyFTo', symObjAddr: 0xB44, symBinAddr: 0x1000049BC, symSize: 0xC4 }
+  - { offset: 0x841DF, size: 0x8, addend: 0x0, symName: '_$s8InjuryIQ19ReactNativeDelegateCACycfcTo', symObjAddr: 0xC38, symBinAddr: 0x100004A80, symSize: 0x3C }
+  - { offset: 0x8422B, size: 0x8, addend: 0x0, symName: _main, symObjAddr: 0xCB0, symBinAddr: 0x100004AF8, symSize: 0x88 }
+  - { offset: 0x842A1, size: 0x8, addend: 0x0, symName: '_$sSo29UIApplicationLaunchOptionsKeyaSYSCSY8rawValuexSg03RawF0Qz_tcfCTW', symObjAddr: 0xFDC, symBinAddr: 0x100004E24, symSize: 0x44 }
+  - { offset: 0x842CC, size: 0x8, addend: 0x0, symName: '_$sSo29UIApplicationLaunchOptionsKeyaSYSCSY8rawValue03RawF0QzvgTW', symObjAddr: 0x1020, symBinAddr: 0x100004E68, symSize: 0x28 }
+  - { offset: 0x84420, size: 0x8, addend: 0x0, symName: '_$s8InjuryIQ11AppDelegateC11application_29didFinishLaunchingWithOptionsSbSo13UIApplicationC_SDySo0k6LaunchJ3KeyaypGSgtFTf4dnn_n', symObjAddr: 0x10B4, symBinAddr: 0x100004EFC, symSize: 0x244 }
+  - { offset: 0x8468A, size: 0x8, addend: 0x0, symName: '_$sSo8NSObjectCMa', symObjAddr: 0x180, symBinAddr: 0x1000053A4, symSize: 0x44 }
+  - { offset: 0x8469E, size: 0x8, addend: 0x0, symName: '_$s8InjuryIQ13ColorResourceVSHAASQWb', symObjAddr: 0x4DC, symBinAddr: 0x10000554C, symSize: 0x4 }
+  - { offset: 0x846B2, size: 0x8, addend: 0x0, symName: '_$s8InjuryIQ13ColorResourceVACSQAAWl', symObjAddr: 0x4E0, symBinAddr: 0x100005550, symSize: 0x40 }
+  - { offset: 0x846C6, size: 0x8, addend: 0x0, symName: '_$s8InjuryIQ13ImageResourceVSHAASQWb', symObjAddr: 0x520, symBinAddr: 0x100005590, symSize: 0x4 }
+  - { offset: 0x846DA, size: 0x8, addend: 0x0, symName: '_$s8InjuryIQ13ImageResourceVACSQAAWl', symObjAddr: 0x524, symBinAddr: 0x100005594, symSize: 0x40 }
+  - { offset: 0x846EE, size: 0x8, addend: 0x0, symName: '_$s8InjuryIQ19ResourceBundleClass33_ECFA46C84848D8F7280D0821EE87653FLLCMa', symObjAddr: 0x564, symBinAddr: 0x1000055D4, symSize: 0x20 }
+  - { offset: 0x84702, size: 0x8, addend: 0x0, symName: '_$s8InjuryIQ13ColorResourceVwxx', symObjAddr: 0x588, symBinAddr: 0x1000055F8, symSize: 0x28 }
+  - { offset: 0x84716, size: 0x8, addend: 0x0, symName: ___swift_memcpy24_8, symObjAddr: 0x5B4, symBinAddr: 0x100005624, symSize: 0x14 }
+  - { offset: 0x8472A, size: 0x8, addend: 0x0, symName: '_$s8InjuryIQ13ColorResourceVMa', symObjAddr: 0x5D4, symBinAddr: 0x100005644, symSize: 0x10 }
+  - { offset: 0x8473E, size: 0x8, addend: 0x0, symName: '_$s8InjuryIQ13ImageResourceVMa', symObjAddr: 0x748, symBinAddr: 0x1000057B8, symSize: 0x10 }
+  - { offset: 0x84796, size: 0x8, addend: 0x0, symName: '_$s8InjuryIQ19ResourceBundleClass33_ECFA46C84848D8F7280D0821EE87653FLLCfD', symObjAddr: 0x0, symBinAddr: 0x100005394, symSize: 0x10 }
+...

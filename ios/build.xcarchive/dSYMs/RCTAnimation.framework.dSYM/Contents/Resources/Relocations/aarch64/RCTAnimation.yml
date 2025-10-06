@@ -1,0 +1,526 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     '/Users/uk-aplatts/Development/InjuryIQ/ios/DerivedData/Build/Intermediates.noindex/ArchiveIntermediates/InjuryIQ/IntermediateBuildFilesPath/UninstalledProducts/iphoneos/RCTAnimation.framework/RCTAnimation'
+relocations:
+  - { offset: 0x33, size: 0x8, addend: 0x0, symName: _RCTAnimationVersionString, symObjAddr: 0x0, symBinAddr: 0x16348, symSize: 0x0 }
+  - { offset: 0x67, size: 0x8, addend: 0x0, symName: _RCTAnimationVersionNumber, symObjAddr: 0x30, symBinAddr: 0x16378, symSize: 0x0 }
+  - { offset: 0xA3, size: 0x8, addend: 0x0, symName: '-[RCTAdditionAnimatedNode performUpdate]', symObjAddr: 0x0, symBinAddr: 0x4000, symSize: 0x1D8 }
+  - { offset: 0x4B5, size: 0x8, addend: 0x0, symName: '-[RCTAdditionAnimatedNode performUpdate]', symObjAddr: 0x0, symBinAddr: 0x4000, symSize: 0x1D8 }
+  - { offset: 0x841, size: 0x8, addend: 0x0, symName: '-[RCTAnimatedNode initWithTag:config:]', symObjAddr: 0x0, symBinAddr: 0x41D8, symSize: 0xBC }
+  - { offset: 0x99A, size: 0x8, addend: 0x0, symName: '-[RCTAnimatedNode initWithTag:config:]', symObjAddr: 0x0, symBinAddr: 0x41D8, symSize: 0xBC }
+  - { offset: 0x9EC, size: 0x8, addend: 0x0, symName: '-[RCTAnimatedNode init]', symObjAddr: 0xBC, symBinAddr: 0x4294, symSize: 0x44 }
+  - { offset: 0xB1B, size: 0x8, addend: 0x0, symName: '-[RCTAnimatedNode childNodes]', symObjAddr: 0x100, symBinAddr: 0x42D8, symSize: 0x8 }
+  - { offset: 0xB4F, size: 0x8, addend: 0x0, symName: '-[RCTAnimatedNode parentNodes]', symObjAddr: 0x108, symBinAddr: 0x42E0, symSize: 0x8 }
+  - { offset: 0xB83, size: 0x8, addend: 0x0, symName: '-[RCTAnimatedNode addChild:]', symObjAddr: 0x110, symBinAddr: 0x42E8, symSize: 0xC0 }
+  - { offset: 0xBC2, size: 0x8, addend: 0x0, symName: '-[RCTAnimatedNode removeChild:]', symObjAddr: 0x1D0, symBinAddr: 0x43A8, symSize: 0x90 }
+  - { offset: 0xC01, size: 0x8, addend: 0x0, symName: '-[RCTAnimatedNode onAttachedToNode:]', symObjAddr: 0x260, symBinAddr: 0x4438, symSize: 0xA8 }
+  - { offset: 0xC40, size: 0x8, addend: 0x0, symName: '-[RCTAnimatedNode onDetachedFromNode:]', symObjAddr: 0x308, symBinAddr: 0x44E0, symSize: 0x78 }
+  - { offset: 0xC7F, size: 0x8, addend: 0x0, symName: '-[RCTAnimatedNode detachNode]', symObjAddr: 0x380, symBinAddr: 0x4558, symSize: 0x1B4 }
+  - { offset: 0xCD9, size: 0x8, addend: 0x0, symName: '-[RCTAnimatedNode setNeedsUpdate]', symObjAddr: 0x534, symBinAddr: 0x470C, symSize: 0x114 }
+  - { offset: 0xD1E, size: 0x8, addend: 0x0, symName: '-[RCTAnimatedNode updateNodeIfNecessary]', symObjAddr: 0x648, symBinAddr: 0x4820, symSize: 0x124 }
+  - { offset: 0xD63, size: 0x8, addend: 0x0, symName: '-[RCTAnimatedNode performUpdate]', symObjAddr: 0x76C, symBinAddr: 0x4944, symSize: 0x8 }
+  - { offset: 0xD91, size: 0x8, addend: 0x0, symName: '-[RCTAnimatedNode isManagedByFabric]', symObjAddr: 0x774, symBinAddr: 0x494C, symSize: 0x11C }
+  - { offset: 0xDDA, size: 0x8, addend: 0x0, symName: '-[RCTAnimatedNode nodeTag]', symObjAddr: 0x890, symBinAddr: 0x4A68, symSize: 0x8 }
+  - { offset: 0xE0E, size: 0x8, addend: 0x0, symName: '-[RCTAnimatedNode manager]', symObjAddr: 0x898, symBinAddr: 0x4A70, symSize: 0x18 }
+  - { offset: 0xE42, size: 0x8, addend: 0x0, symName: '-[RCTAnimatedNode setManager:]', symObjAddr: 0x8B0, symBinAddr: 0x4A88, symSize: 0xC }
+  - { offset: 0xE7F, size: 0x8, addend: 0x0, symName: '-[RCTAnimatedNode config]', symObjAddr: 0x8BC, symBinAddr: 0x4A94, symSize: 0x8 }
+  - { offset: 0xEB3, size: 0x8, addend: 0x0, symName: '-[RCTAnimatedNode needsUpdate]', symObjAddr: 0x8C4, symBinAddr: 0x4A9C, symSize: 0x8 }
+  - { offset: 0xEE7, size: 0x8, addend: 0x0, symName: '-[RCTAnimatedNode .cxx_destruct]', symObjAddr: 0x8CC, symBinAddr: 0x4AA4, symSize: 0x50 }
+  - { offset: 0x10E7, size: 0x8, addend: 0x0, symName: _RCTAnimationClassProvider, symObjAddr: 0x0, symBinAddr: 0x4AF4, symSize: 0x1F4 }
+  - { offset: 0x110C, size: 0x8, addend: 0x0, symName: __ZZ25RCTAnimationClassProviderE19sCoreModuleClassMap, symObjAddr: 0x32EC8, symBinAddr: 0x27E60, symSize: 0x0 }
+  - { offset: 0x68C1, size: 0x8, addend: 0x0, symName: __ZNSt3__120__throw_length_errorB8ne200100EPKc, symObjAddr: 0x2AC, symBinAddr: 0x4DA0, symSize: 0x50 }
+  - { offset: 0x7BF9, size: 0x8, addend: 0x0, symName: __ZSt28__throw_bad_array_new_lengthB8ne200100v, symObjAddr: 0x320, symBinAddr: 0x4E14, symSize: 0x28 }
+  - { offset: 0x849B, size: 0x8, addend: 0x0, symName: __ZNSt3__112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEC2B8ne200100ILi0EEEPKc, symObjAddr: 0x1F4, symBinAddr: 0x4CE8, symSize: 0xA4 }
+  - { offset: 0x86F5, size: 0x8, addend: 0x0, symName: __ZNSt3__112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE20__throw_length_errorB8ne200100Ev, symObjAddr: 0x298, symBinAddr: 0x4D8C, symSize: 0x14 }
+  - { offset: 0x8706, size: 0x8, addend: 0x0, symName: __ZNKSt3__112__hash_tableINS_17__hash_value_typeINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEEPFP10objc_classvEEENS_22__unordered_map_hasherIS7_SC_NS_4hashIS7_EENS_8equal_toIS7_EELb1EEENS_21__unordered_map_equalIS7_SC_SH_SF_Lb1EEENS5_ISC_EEE4findIS7_EENS_21__hash_const_iteratorIPNS_11__hash_nodeISC_PvEEEERKT_, symObjAddr: 0xF64, symBinAddr: 0x5A58, symSize: 0xF8 }
+  - { offset: 0x88F9, size: 0x8, addend: 0x0, symName: __ZNSt3__113unordered_mapINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEEPFP10objc_classvENS_4hashIS6_EENS_8equal_toIS6_EENS4_INS_4pairIKS6_SA_EEEEEC2ESt16initializer_listISH_E, symObjAddr: 0x358, symBinAddr: 0x4E4C, symSize: 0x74 }
+  - { offset: 0x8BC3, size: 0x8, addend: 0x0, symName: __ZNSt3__112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE20__throw_length_errorB8ne200100Ev, symObjAddr: 0x298, symBinAddr: 0x4D8C, symSize: 0x14 }
+  - { offset: 0x8BDB, size: 0x8, addend: 0x0, symName: __ZNSt3__120__throw_length_errorB8ne200100EPKc, symObjAddr: 0x2AC, symBinAddr: 0x4DA0, symSize: 0x50 }
+  - { offset: 0x8BE6, size: 0x8, addend: 0x0, symName: __ZNSt12length_errorC1B8ne200100EPKc, symObjAddr: 0x2FC, symBinAddr: 0x4DF0, symSize: 0x24 }
+  - { offset: 0x8D4D, size: 0x8, addend: 0x0, symName: __ZNSt3__112__hash_tableINS_17__hash_value_typeINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEEPFP10objc_classvEEENS_22__unordered_map_hasherIS7_SC_NS_4hashIS7_EENS_8equal_toIS7_EELb1EEENS_21__unordered_map_equalIS7_SC_SH_SF_Lb1EEENS5_ISC_EEE25__emplace_unique_key_argsIS7_JRKNS_4pairIKS7_SB_EEEEENSO_INS_15__hash_iteratorIPNS_11__hash_nodeISC_PvEEEEbEERKT_DpOT0_, symObjAddr: 0x3CC, symBinAddr: 0x4EC0, symSize: 0x25C }
+  - { offset: 0x9204, size: 0x8, addend: 0x0, symName: __ZNSt3__112__hash_tableINS_17__hash_value_typeINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEEPFP10objc_classvEEENS_22__unordered_map_hasherIS7_SC_NS_4hashIS7_EENS_8equal_toIS7_EELb1EEENS_21__unordered_map_equalIS7_SC_SH_SF_Lb1EEENS5_ISC_EEED2Ev, symObjAddr: 0xEE8, symBinAddr: 0x59DC, symSize: 0x38 }
+  - { offset: 0x9505, size: 0x8, addend: 0x0, symName: __ZNKSt3__113__string_hashIcNS_9allocatorIcEEEclB8ne200100ERKNS_12basic_stringIcNS_11char_traitsIcEES2_EE, symObjAddr: 0x6D4, symBinAddr: 0x51C8, symSize: 0x3C }
+  - { offset: 0x95D4, size: 0x8, addend: 0x0, symName: __ZNKSt3__18equal_toINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEEEclB8ne200100ERKS6_S9_, symObjAddr: 0xB7C, symBinAddr: 0x5670, symSize: 0x70 }
+  - { offset: 0x961E, size: 0x8, addend: 0x0, symName: __ZNKSt3__18equal_toINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEEEclB8ne200100ERKS6_S9_, symObjAddr: 0xB7C, symBinAddr: 0x5670, symSize: 0x70 }
+  - { offset: 0x964F, size: 0x8, addend: 0x0, symName: __ZNKSt3__18equal_toINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEEEclB8ne200100ERKS6_S9_, symObjAddr: 0xB7C, symBinAddr: 0x5670, symSize: 0x70 }
+  - { offset: 0x966B, size: 0x8, addend: 0x0, symName: __ZNKSt3__18equal_toINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEEEclB8ne200100ERKS6_S9_, symObjAddr: 0xB7C, symBinAddr: 0x5670, symSize: 0x70 }
+  - { offset: 0x976F, size: 0x8, addend: 0x0, symName: __ZNSt3__112__hash_tableINS_17__hash_value_typeINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEEPFP10objc_classvEEENS_22__unordered_map_hasherIS7_SC_NS_4hashIS7_EENS_8equal_toIS7_EELb1EEENS_21__unordered_map_equalIS7_SC_SH_SF_Lb1EEENS5_ISC_EEE21__construct_node_hashIRKNS_4pairIKS7_SB_EEJEEENS_10unique_ptrINS_11__hash_nodeISC_PvEENS_22__hash_node_destructorINS5_ISW_EEEEEEmOT_DpOT0_, symObjAddr: 0x628, symBinAddr: 0x511C, symSize: 0xAC }
+  - { offset: 0x9B19, size: 0x8, addend: 0x0, symName: __ZNSt3__112__hash_tableINS_17__hash_value_typeINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEEPFP10objc_classvEEENS_22__unordered_map_hasherIS7_SC_NS_4hashIS7_EENS_8equal_toIS7_EELb1EEENS_21__unordered_map_equalIS7_SC_SH_SF_Lb1EEENS5_ISC_EEE8__rehashILb1EEEvm, symObjAddr: 0xC6C, symBinAddr: 0x5760, symSize: 0xDC }
+  - { offset: 0x9C11, size: 0x8, addend: 0x0, symName: __ZNSt3__122__hash_node_destructorINS_9allocatorINS_11__hash_nodeINS_17__hash_value_typeINS_12basic_stringIcNS_11char_traitsIcEENS1_IcEEEEPFP10objc_classvEEEPvEEEEEclB8ne200100EPSF_, symObjAddr: 0xE98, symBinAddr: 0x598C, symSize: 0x50 }
+  - { offset: 0xA0E5, size: 0x8, addend: 0x0, symName: __ZNSt3__112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE25__init_copy_ctor_externalEPKcm, symObjAddr: 0xBEC, symBinAddr: 0x56E0, symSize: 0x80 }
+  - { offset: 0xA2B8, size: 0x8, addend: 0x0, symName: __ZNSt3__112__hash_tableINS_17__hash_value_typeINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEEPFP10objc_classvEEENS_22__unordered_map_hasherIS7_SC_NS_4hashIS7_EENS_8equal_toIS7_EELb1EEENS_21__unordered_map_equalIS7_SC_SH_SF_Lb1EEENS5_ISC_EEE8__rehashILb1EEEvm, symObjAddr: 0xC6C, symBinAddr: 0x5760, symSize: 0xDC }
+  - { offset: 0xA2ED, size: 0x8, addend: 0x0, symName: __ZNKSt3__121__murmur2_or_cityhashImLm64EEclB8ne200100EPKvm, symObjAddr: 0x710, symBinAddr: 0x5204, symSize: 0x208 }
+  - { offset: 0xA952, size: 0x8, addend: 0x0, symName: __ZNSt3__121__murmur2_or_cityhashImLm64EE18__hash_len_0_to_16B8ne200100EPKcm, symObjAddr: 0x918, symBinAddr: 0x540C, symSize: 0xF8 }
+  - { offset: 0xAB58, size: 0x8, addend: 0x0, symName: __ZNSt3__121__murmur2_or_cityhashImLm64EE19__hash_len_33_to_64B8ne200100EPKcm, symObjAddr: 0xABC, symBinAddr: 0x55B0, symSize: 0xC0 }
+  - { offset: 0xADBF, size: 0x8, addend: 0x0, symName: __ZNSt3__121__murmur2_or_cityhashImLm64EE19__hash_len_17_to_32B8ne200100EPKcm, symObjAddr: 0xA10, symBinAddr: 0x5504, symSize: 0xAC }
+  - { offset: 0xAF85, size: 0x8, addend: 0x0, symName: __ZNSt3__112__hash_tableINS_17__hash_value_typeINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEEPFP10objc_classvEEENS_22__unordered_map_hasherIS7_SC_NS_4hashIS7_EENS_8equal_toIS7_EELb1EEENS_21__unordered_map_equalIS7_SC_SH_SF_Lb1EEENS5_ISC_EEE11__do_rehashILb1EEEvm, symObjAddr: 0xD48, symBinAddr: 0x583C, symSize: 0x150 }
+  - { offset: 0xB38B, size: 0x8, addend: 0x0, symName: __ZNSt3__122__hash_node_destructorINS_9allocatorINS_11__hash_nodeINS_17__hash_value_typeINS_12basic_stringIcNS_11char_traitsIcEENS1_IcEEEEPFP10objc_classvEEEPvEEEEEclB8ne200100EPSF_, symObjAddr: 0xE98, symBinAddr: 0x598C, symSize: 0x50 }
+  - { offset: 0xB59A, size: 0x8, addend: 0x0, symName: __ZNSt3__112__hash_tableINS_17__hash_value_typeINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEEPFP10objc_classvEEENS_22__unordered_map_hasherIS7_SC_NS_4hashIS7_EENS_8equal_toIS7_EELb1EEENS_21__unordered_map_equalIS7_SC_SH_SF_Lb1EEENS5_ISC_EEE17__deallocate_nodeEPNS_16__hash_node_baseIPNS_11__hash_nodeISC_PvEEEE, symObjAddr: 0xF20, symBinAddr: 0x5A14, symSize: 0x44 }
+  - { offset: 0xD93A, size: 0x8, addend: 0x0, symName: _RCTFindIndexOfNearestValue, symObjAddr: 0x0, symBinAddr: 0x5B50, symSize: 0xC8 }
+  - { offset: 0xD954, size: 0x8, addend: 0x0, symName: _EXTRAPOLATE_TYPE_IDENTITY, symObjAddr: 0x8A8, symBinAddr: 0x20310, symSize: 0x0 }
+  - { offset: 0xD97B, size: 0x8, addend: 0x0, symName: _EXTRAPOLATE_TYPE_CLAMP, symObjAddr: 0x8B0, symBinAddr: 0x20318, symSize: 0x0 }
+  - { offset: 0xD991, size: 0x8, addend: 0x0, symName: _EXTRAPOLATE_TYPE_EXTEND, symObjAddr: 0x8B8, symBinAddr: 0x20320, symSize: 0x0 }
+  - { offset: 0xD9ED, size: 0x8, addend: 0x0, symName: _RCTFindIndexOfNearestValue, symObjAddr: 0x0, symBinAddr: 0x5B50, symSize: 0xC8 }
+  - { offset: 0xDA5C, size: 0x8, addend: 0x0, symName: _RCTInterpolateValue, symObjAddr: 0xC8, symBinAddr: 0x5C18, symSize: 0x190 }
+  - { offset: 0xDB46, size: 0x8, addend: 0x0, symName: _RCTInterpolateValueInRange, symObjAddr: 0x258, symBinAddr: 0x5DA8, symSize: 0x188 }
+  - { offset: 0xDC65, size: 0x8, addend: 0x0, symName: _RCTInterpolateColorInRange, symObjAddr: 0x3E0, symBinAddr: 0x5F30, symSize: 0x1F8 }
+  - { offset: 0xDD6C, size: 0x8, addend: 0x0, symName: _RCTColorFromComponents, symObjAddr: 0x5D8, symBinAddr: 0x6128, symSize: 0x30 }
+  - { offset: 0xDDA2, size: 0x8, addend: 0x0, symName: _RCTAnimationDragCoefficient, symObjAddr: 0x608, symBinAddr: 0x6158, symSize: 0x8 }
+  - { offset: 0xDF9C, size: 0x8, addend: 0x0, symName: '-[RCTColorAnimatedNode performUpdate]', symObjAddr: 0x0, symBinAddr: 0x6160, symSize: 0x2D8 }
+  - { offset: 0xE02E, size: 0x8, addend: 0x0, symName: '-[RCTColorAnimatedNode performUpdate]', symObjAddr: 0x0, symBinAddr: 0x6160, symSize: 0x2D8 }
+  - { offset: 0xE0C8, size: 0x8, addend: 0x0, symName: '-[RCTColorAnimatedNode color]', symObjAddr: 0x2D8, symBinAddr: 0x6438, symSize: 0x10 }
+  - { offset: 0xE0FC, size: 0x8, addend: 0x0, symName: '-[RCTColorAnimatedNode setColor:]', symObjAddr: 0x2E8, symBinAddr: 0x6448, symSize: 0x10 }
+  - { offset: 0xE2FE, size: 0x8, addend: 0x0, symName: '-[RCTDecayAnimation initWithId:config:forNode:callBack:]', symObjAddr: 0x0, symBinAddr: 0x6458, symSize: 0x154 }
+  - { offset: 0xE542, size: 0x8, addend: 0x0, symName: '-[RCTDecayAnimation initWithId:config:forNode:callBack:]', symObjAddr: 0x0, symBinAddr: 0x6458, symSize: 0x154 }
+  - { offset: 0xE5B2, size: 0x8, addend: 0x0, symName: '-[RCTDecayAnimation resetAnimationConfig:]', symObjAddr: 0x154, symBinAddr: 0x65AC, symSize: 0x128 }
+  - { offset: 0xE600, size: 0x8, addend: 0x0, symName: '-[RCTDecayAnimation init]', symObjAddr: 0x27C, symBinAddr: 0x66D4, symSize: 0x44 }
+  - { offset: 0xE6FF, size: 0x8, addend: 0x0, symName: '-[RCTDecayAnimation startAnimation]', symObjAddr: 0x2C0, symBinAddr: 0x6718, symSize: 0x14 }
+  - { offset: 0xE72D, size: 0x8, addend: 0x0, symName: '-[RCTDecayAnimation stopAnimation]', symObjAddr: 0x2D4, symBinAddr: 0x672C, symSize: 0x160 }
+  - { offset: 0xE776, size: 0x8, addend: 0x0, symName: '-[RCTDecayAnimation stepAnimationWithTime:]', symObjAddr: 0x434, symBinAddr: 0x688C, symSize: 0x12C }
+  - { offset: 0xE7DE, size: 0x8, addend: 0x0, symName: '-[RCTDecayAnimation updateValue:]', symObjAddr: 0x560, symBinAddr: 0x69B8, symSize: 0x28 }
+  - { offset: 0xE81D, size: 0x8, addend: 0x0, symName: '-[RCTDecayAnimation animationId]', symObjAddr: 0x588, symBinAddr: 0x69E0, symSize: 0x8 }
+  - { offset: 0xE851, size: 0x8, addend: 0x0, symName: '-[RCTDecayAnimation setAnimationId:]', symObjAddr: 0x590, symBinAddr: 0x69E8, symSize: 0xC }
+  - { offset: 0xE88E, size: 0x8, addend: 0x0, symName: '-[RCTDecayAnimation valueNode]', symObjAddr: 0x59C, symBinAddr: 0x69F4, symSize: 0x8 }
+  - { offset: 0xE8C2, size: 0x8, addend: 0x0, symName: '-[RCTDecayAnimation setValueNode:]', symObjAddr: 0x5A4, symBinAddr: 0x69FC, symSize: 0xC }
+  - { offset: 0xE8FF, size: 0x8, addend: 0x0, symName: '-[RCTDecayAnimation animationHasBegun]', symObjAddr: 0x5B0, symBinAddr: 0x6A08, symSize: 0x8 }
+  - { offset: 0xE933, size: 0x8, addend: 0x0, symName: '-[RCTDecayAnimation setAnimationHasBegun:]', symObjAddr: 0x5B8, symBinAddr: 0x6A10, symSize: 0x8 }
+  - { offset: 0xE96B, size: 0x8, addend: 0x0, symName: '-[RCTDecayAnimation animationHasFinished]', symObjAddr: 0x5C0, symBinAddr: 0x6A18, symSize: 0x8 }
+  - { offset: 0xE99F, size: 0x8, addend: 0x0, symName: '-[RCTDecayAnimation setAnimationHasFinished:]', symObjAddr: 0x5C8, symBinAddr: 0x6A20, symSize: 0x8 }
+  - { offset: 0xE9D7, size: 0x8, addend: 0x0, symName: '-[RCTDecayAnimation .cxx_destruct]', symObjAddr: 0x5D0, symBinAddr: 0x6A28, symSize: 0x3C }
+  - { offset: 0xEBC0, size: 0x8, addend: 0x0, symName: '-[RCTDiffClampAnimatedNode initWithTag:config:]', symObjAddr: 0x0, symBinAddr: 0x6A64, symSize: 0x148 }
+  - { offset: 0xEC8C, size: 0x8, addend: 0x0, symName: '-[RCTDiffClampAnimatedNode initWithTag:config:]', symObjAddr: 0x0, symBinAddr: 0x6A64, symSize: 0x148 }
+  - { offset: 0xECDE, size: 0x8, addend: 0x0, symName: '-[RCTDiffClampAnimatedNode onAttachedToNode:]', symObjAddr: 0x148, symBinAddr: 0x6BAC, symSize: 0x7C }
+  - { offset: 0xED1D, size: 0x8, addend: 0x0, symName: '-[RCTDiffClampAnimatedNode performUpdate]', symObjAddr: 0x1C4, symBinAddr: 0x6C28, symSize: 0xD0 }
+  - { offset: 0xED6B, size: 0x8, addend: 0x0, symName: '-[RCTDiffClampAnimatedNode inputNodeValue]', symObjAddr: 0x294, symBinAddr: 0x6CF8, symSize: 0x100 }
+  - { offset: 0xEDFE, size: 0x8, addend: 0x0, symName: '-[RCTDiffClampAnimatedNode .cxx_destruct]', symObjAddr: 0x394, symBinAddr: 0x6DF8, symSize: 0x14 }
+  - { offset: 0xEFFB, size: 0x8, addend: 0x0, symName: '-[RCTDivisionAnimatedNode performUpdate]', symObjAddr: 0x0, symBinAddr: 0x6E0C, symSize: 0x208 }
+  - { offset: 0xF089, size: 0x8, addend: 0x0, symName: '-[RCTDivisionAnimatedNode performUpdate]', symObjAddr: 0x0, symBinAddr: 0x6E0C, symSize: 0x208 }
+  - { offset: 0xF2EF, size: 0x8, addend: 0x0, symName: '-[RCTEventAnimation initWithEventPath:valueNode:]', symObjAddr: 0x0, symBinAddr: 0x7014, symSize: 0xA0 }
+  - { offset: 0xF3E6, size: 0x8, addend: 0x0, symName: '-[RCTEventAnimation initWithEventPath:valueNode:]', symObjAddr: 0x0, symBinAddr: 0x7014, symSize: 0xA0 }
+  - { offset: 0xF438, size: 0x8, addend: 0x0, symName: '-[RCTEventAnimation updateWithEvent:]', symObjAddr: 0xA0, symBinAddr: 0x70B4, symSize: 0x1D8 }
+  - { offset: 0xF4AA, size: 0x8, addend: 0x0, symName: '-[RCTEventAnimation valueNode]', symObjAddr: 0x278, symBinAddr: 0x728C, symSize: 0x18 }
+  - { offset: 0xF4DE, size: 0x8, addend: 0x0, symName: '-[RCTEventAnimation .cxx_destruct]', symObjAddr: 0x290, symBinAddr: 0x72A4, symSize: 0x2C }
+  - { offset: 0xF6D6, size: 0x8, addend: 0x0, symName: '-[RCTFrameAnimation initWithId:config:forNode:callBack:]', symObjAddr: 0x0, symBinAddr: 0x72D0, symSize: 0x118 }
+  - { offset: 0xF8A6, size: 0x8, addend: 0x0, symName: '-[RCTFrameAnimation initWithId:config:forNode:callBack:]', symObjAddr: 0x0, symBinAddr: 0x72D0, symSize: 0x118 }
+  - { offset: 0xF916, size: 0x8, addend: 0x0, symName: '-[RCTFrameAnimation resetAnimationConfig:]', symObjAddr: 0x118, symBinAddr: 0x73E8, symSize: 0x1D4 }
+  - { offset: 0xF982, size: 0x8, addend: 0x0, symName: '-[RCTFrameAnimation init]', symObjAddr: 0x2EC, symBinAddr: 0x75BC, symSize: 0x44 }
+  - { offset: 0xFA81, size: 0x8, addend: 0x0, symName: '-[RCTFrameAnimation startAnimation]', symObjAddr: 0x330, symBinAddr: 0x7600, symSize: 0x14 }
+  - { offset: 0xFAAF, size: 0x8, addend: 0x0, symName: '-[RCTFrameAnimation stopAnimation]', symObjAddr: 0x344, symBinAddr: 0x7614, symSize: 0x160 }
+  - { offset: 0xFAF8, size: 0x8, addend: 0x0, symName: '-[RCTFrameAnimation stepAnimationWithTime:]', symObjAddr: 0x4A4, symBinAddr: 0x7774, symSize: 0x1D4 }
+  - { offset: 0xFC40, size: 0x8, addend: 0x0, symName: '-[RCTFrameAnimation updateOutputWithFrameOutput:]', symObjAddr: 0x678, symBinAddr: 0x7948, symSize: 0x4C }
+  - { offset: 0xFCA5, size: 0x8, addend: 0x0, symName: '-[RCTFrameAnimation animationId]', symObjAddr: 0x6C4, symBinAddr: 0x7994, symSize: 0x8 }
+  - { offset: 0xFCD9, size: 0x8, addend: 0x0, symName: '-[RCTFrameAnimation setAnimationId:]', symObjAddr: 0x6CC, symBinAddr: 0x799C, symSize: 0xC }
+  - { offset: 0xFD16, size: 0x8, addend: 0x0, symName: '-[RCTFrameAnimation valueNode]', symObjAddr: 0x6D8, symBinAddr: 0x79A8, symSize: 0x8 }
+  - { offset: 0xFD4A, size: 0x8, addend: 0x0, symName: '-[RCTFrameAnimation setValueNode:]', symObjAddr: 0x6E0, symBinAddr: 0x79B0, symSize: 0xC }
+  - { offset: 0xFD87, size: 0x8, addend: 0x0, symName: '-[RCTFrameAnimation animationHasBegun]', symObjAddr: 0x6EC, symBinAddr: 0x79BC, symSize: 0x8 }
+  - { offset: 0xFDBB, size: 0x8, addend: 0x0, symName: '-[RCTFrameAnimation setAnimationHasBegun:]', symObjAddr: 0x6F4, symBinAddr: 0x79C4, symSize: 0x8 }
+  - { offset: 0xFDF3, size: 0x8, addend: 0x0, symName: '-[RCTFrameAnimation animationHasFinished]', symObjAddr: 0x6FC, symBinAddr: 0x79CC, symSize: 0x8 }
+  - { offset: 0xFE27, size: 0x8, addend: 0x0, symName: '-[RCTFrameAnimation setAnimationHasFinished:]', symObjAddr: 0x704, symBinAddr: 0x79D4, symSize: 0x8 }
+  - { offset: 0xFE5F, size: 0x8, addend: 0x0, symName: '-[RCTFrameAnimation .cxx_destruct]', symObjAddr: 0x70C, symBinAddr: 0x79DC, symSize: 0x48 }
+  - { offset: 0x10048, size: 0x8, addend: 0x0, symName: _RCTInterpolateString, symObjAddr: 0x0, symBinAddr: 0x7A24, symSize: 0x3F8 }
+  - { offset: 0x10056, size: 0x8, addend: 0x0, symName: __ZL24getNumericComponentRegexv, symObjAddr: 0x3F8, symBinAddr: 0x7E1C, symSize: 0x30 }
+  - { offset: 0x1007F, size: 0x8, addend: 0x0, symName: __ZZL24getNumericComponentRegexvE5regex, symObjAddr: 0x6C58, symBinAddr: 0x27E70, symSize: 0x0 }
+  - { offset: 0x10094, size: 0x8, addend: 0x0, symName: __ZZL24getNumericComponentRegexvE9onceToken, symObjAddr: 0x6C60, symBinAddr: 0x27E78, symSize: 0x0 }
+  - { offset: 0x102B1, size: 0x8, addend: 0x0, symName: _RCTInterpolateString, symObjAddr: 0x0, symBinAddr: 0x7A24, symSize: 0x3F8 }
+  - { offset: 0x1049A, size: 0x8, addend: 0x0, symName: __ZL24getNumericComponentRegexv.cold.1, symObjAddr: 0xE2C, symBinAddr: 0x136E4, symSize: 0x14 }
+  - { offset: 0x104B6, size: 0x8, addend: 0x0, symName: __ZL24getNumericComponentRegexv.cold.1, symObjAddr: 0xE2C, symBinAddr: 0x136E4, symSize: 0x14 }
+  - { offset: 0x10504, size: 0x8, addend: 0x0, symName: '-[RCTInterpolationAnimatedNode initWithTag:config:]', symObjAddr: 0x428, symBinAddr: 0x7E4C, symSize: 0x54C }
+  - { offset: 0x105C9, size: 0x8, addend: 0x0, symName: '-[RCTInterpolationAnimatedNode onAttachedToNode:]', symObjAddr: 0x974, symBinAddr: 0x8398, symSize: 0x90 }
+  - { offset: 0x10608, size: 0x8, addend: 0x0, symName: '-[RCTInterpolationAnimatedNode onDetachedFromNode:]', symObjAddr: 0xA04, symBinAddr: 0x8428, symSize: 0x94 }
+  - { offset: 0x10647, size: 0x8, addend: 0x0, symName: '-[RCTInterpolationAnimatedNode performUpdate]', symObjAddr: 0xA98, symBinAddr: 0x84BC, symSize: 0x190 }
+  - { offset: 0x106F0, size: 0x8, addend: 0x0, symName: '-[RCTInterpolationAnimatedNode animatedObject]', symObjAddr: 0xC28, symBinAddr: 0x864C, symSize: 0x10 }
+  - { offset: 0x10724, size: 0x8, addend: 0x0, symName: '-[RCTInterpolationAnimatedNode .cxx_destruct]', symObjAddr: 0xC38, symBinAddr: 0x865C, symSize: 0xB4 }
+  - { offset: 0x10755, size: 0x8, addend: 0x0, symName: ____ZL24getNumericComponentRegexv_block_invoke, symObjAddr: 0xCEC, symBinAddr: 0x8710, symSize: 0x3C }
+  - { offset: 0x10799, size: 0x8, addend: 0x0, symName: ____ZL23outputFromStringPatternP8NSString_block_invoke, symObjAddr: 0xD28, symBinAddr: 0x874C, symSize: 0xB4 }
+  - { offset: 0x10807, size: 0x8, addend: 0x0, symName: ___copy_helper_block_ea8_32s40s, symObjAddr: 0xDDC, symBinAddr: 0x8800, symSize: 0x28 }
+  - { offset: 0x10830, size: 0x8, addend: 0x0, symName: ___destroy_helper_block_ea8_32s40s, symObjAddr: 0xE04, symBinAddr: 0x8828, symSize: 0x28 }
+  - { offset: 0x10E68, size: 0x8, addend: 0x0, symName: '-[RCTModuloAnimatedNode performUpdate]', symObjAddr: 0x0, symBinAddr: 0x8850, symSize: 0x15C }
+  - { offset: 0x10EE5, size: 0x8, addend: 0x0, symName: '-[RCTModuloAnimatedNode performUpdate]', symObjAddr: 0x0, symBinAddr: 0x8850, symSize: 0x15C }
+  - { offset: 0x1111E, size: 0x8, addend: 0x0, symName: '-[RCTMultiplicationAnimatedNode performUpdate]', symObjAddr: 0x0, symBinAddr: 0x89AC, symSize: 0x1D8 }
+  - { offset: 0x11196, size: 0x8, addend: 0x0, symName: '-[RCTMultiplicationAnimatedNode performUpdate]', symObjAddr: 0x0, symBinAddr: 0x89AC, symSize: 0x1D8 }
+  - { offset: 0x113C6, size: 0x8, addend: 0x0, symName: '+[RCTNativeAnimatedModule moduleName]', symObjAddr: 0x0, symBinAddr: 0x8B84, symSize: 0xC }
+  - { offset: 0x113E6, size: 0x8, addend: 0x0, symName: '+[RCTNativeAnimatedModule __rct_export__910]', symObjAddr: 0x3DC, symBinAddr: 0x8F60, symSize: 0xC }
+  - { offset: 0x1140F, size: 0x8, addend: 0x0, symName: '__ZZ44+[RCTNativeAnimatedModule __rct_export__910]E6config', symObjAddr: 0x4DB8, symBinAddr: 0x27710, symSize: 0x0 }
+  - { offset: 0x1147A, size: 0x8, addend: 0x0, symName: '+[RCTNativeAnimatedModule __rct_export__981]', symObjAddr: 0x514, symBinAddr: 0x9098, symSize: 0xC }
+  - { offset: 0x114A3, size: 0x8, addend: 0x0, symName: '__ZZ44+[RCTNativeAnimatedModule __rct_export__981]E6config', symObjAddr: 0x4DD0, symBinAddr: 0x27728, symSize: 0x0 }
+  - { offset: 0x114BF, size: 0x8, addend: 0x0, symName: '+[RCTNativeAnimatedModule __rct_export__1052]', symObjAddr: 0x63C, symBinAddr: 0x91C0, symSize: 0xC }
+  - { offset: 0x114E8, size: 0x8, addend: 0x0, symName: '__ZZ45+[RCTNativeAnimatedModule __rct_export__1052]E6config', symObjAddr: 0x4DE8, symBinAddr: 0x27740, symSize: 0x0 }
+  - { offset: 0x11504, size: 0x8, addend: 0x0, symName: '+[RCTNativeAnimatedModule __rct_export__1133]', symObjAddr: 0x744, symBinAddr: 0x92C8, symSize: 0xC }
+  - { offset: 0x1152D, size: 0x8, addend: 0x0, symName: '__ZZ45+[RCTNativeAnimatedModule __rct_export__1133]E6config', symObjAddr: 0x4E00, symBinAddr: 0x27758, symSize: 0x0 }
+  - { offset: 0x11549, size: 0x8, addend: 0x0, symName: '+[RCTNativeAnimatedModule __rct_export__1254]', symObjAddr: 0x84C, symBinAddr: 0x93D0, symSize: 0xC }
+  - { offset: 0x11572, size: 0x8, addend: 0x0, symName: '__ZZ45+[RCTNativeAnimatedModule __rct_export__1254]E6config', symObjAddr: 0x4E18, symBinAddr: 0x27770, symSize: 0x0 }
+  - { offset: 0x1158E, size: 0x8, addend: 0x0, symName: '+[RCTNativeAnimatedModule __rct_export__1465]', symObjAddr: 0xBC0, symBinAddr: 0x971C, symSize: 0xC }
+  - { offset: 0x115B7, size: 0x8, addend: 0x0, symName: '__ZZ45+[RCTNativeAnimatedModule __rct_export__1465]E6config', symObjAddr: 0x4E30, symBinAddr: 0x27788, symSize: 0x0 }
+  - { offset: 0x115D3, size: 0x8, addend: 0x0, symName: '+[RCTNativeAnimatedModule __rct_export__1566]', symObjAddr: 0xD24, symBinAddr: 0x9880, symSize: 0xC }
+  - { offset: 0x115FC, size: 0x8, addend: 0x0, symName: '__ZZ45+[RCTNativeAnimatedModule __rct_export__1566]E6config', symObjAddr: 0x4E48, symBinAddr: 0x277A0, symSize: 0x0 }
+  - { offset: 0x11618, size: 0x8, addend: 0x0, symName: '+[RCTNativeAnimatedModule __rct_export__1637]', symObjAddr: 0xE2C, symBinAddr: 0x9988, symSize: 0xC }
+  - { offset: 0x11641, size: 0x8, addend: 0x0, symName: '__ZZ45+[RCTNativeAnimatedModule __rct_export__1637]E6config', symObjAddr: 0x4E60, symBinAddr: 0x277B8, symSize: 0x0 }
+  - { offset: 0x1165D, size: 0x8, addend: 0x0, symName: '+[RCTNativeAnimatedModule __rct_export__1708]', symObjAddr: 0xF34, symBinAddr: 0x9A90, symSize: 0xC }
+  - { offset: 0x11686, size: 0x8, addend: 0x0, symName: '__ZZ45+[RCTNativeAnimatedModule __rct_export__1708]E6config', symObjAddr: 0x4E78, symBinAddr: 0x277D0, symSize: 0x0 }
+  - { offset: 0x116A2, size: 0x8, addend: 0x0, symName: '+[RCTNativeAnimatedModule __rct_export__1779]', symObjAddr: 0x1008, symBinAddr: 0x9B64, symSize: 0xC }
+  - { offset: 0x116CB, size: 0x8, addend: 0x0, symName: '__ZZ45+[RCTNativeAnimatedModule __rct_export__1779]E6config', symObjAddr: 0x4E90, symBinAddr: 0x277E8, symSize: 0x0 }
+  - { offset: 0x116E7, size: 0x8, addend: 0x0, symName: '+[RCTNativeAnimatedModule __rct_export__18410]', symObjAddr: 0x10DC, symBinAddr: 0x9C38, symSize: 0xC }
+  - { offset: 0x11710, size: 0x8, addend: 0x0, symName: '__ZZ46+[RCTNativeAnimatedModule __rct_export__18410]E6config', symObjAddr: 0x4EA8, symBinAddr: 0x27800, symSize: 0x0 }
+  - { offset: 0x1172C, size: 0x8, addend: 0x0, symName: '+[RCTNativeAnimatedModule __rct_export__19411]', symObjAddr: 0x12B4, symBinAddr: 0x9E10, symSize: 0xC }
+  - { offset: 0x11755, size: 0x8, addend: 0x0, symName: '__ZZ46+[RCTNativeAnimatedModule __rct_export__19411]E6config', symObjAddr: 0x4EC0, symBinAddr: 0x27818, symSize: 0x0 }
+  - { offset: 0x11771, size: 0x8, addend: 0x0, symName: '+[RCTNativeAnimatedModule __rct_export__20212]', symObjAddr: 0x13BC, symBinAddr: 0x9F18, symSize: 0xC }
+  - { offset: 0x1179A, size: 0x8, addend: 0x0, symName: '__ZZ46+[RCTNativeAnimatedModule __rct_export__20212]E6config', symObjAddr: 0x4ED8, symBinAddr: 0x27830, symSize: 0x0 }
+  - { offset: 0x117B6, size: 0x8, addend: 0x0, symName: '+[RCTNativeAnimatedModule __rct_export__20913]', symObjAddr: 0x1490, symBinAddr: 0x9FEC, symSize: 0xC }
+  - { offset: 0x117DF, size: 0x8, addend: 0x0, symName: '__ZZ46+[RCTNativeAnimatedModule __rct_export__20913]E6config', symObjAddr: 0x4EF0, symBinAddr: 0x27848, symSize: 0x0 }
+  - { offset: 0x117FB, size: 0x8, addend: 0x0, symName: '+[RCTNativeAnimatedModule __rct_export__21614]', symObjAddr: 0x1564, symBinAddr: 0xA0C0, symSize: 0xC }
+  - { offset: 0x11824, size: 0x8, addend: 0x0, symName: '__ZZ46+[RCTNativeAnimatedModule __rct_export__21614]E6config', symObjAddr: 0x4F08, symBinAddr: 0x27860, symSize: 0x0 }
+  - { offset: 0x11840, size: 0x8, addend: 0x0, symName: '+[RCTNativeAnimatedModule __rct_export__22415]', symObjAddr: 0x16CC, symBinAddr: 0xA228, symSize: 0xC }
+  - { offset: 0x11869, size: 0x8, addend: 0x0, symName: '__ZZ46+[RCTNativeAnimatedModule __rct_export__22415]E6config', symObjAddr: 0x4F20, symBinAddr: 0x27878, symSize: 0x0 }
+  - { offset: 0x11885, size: 0x8, addend: 0x0, symName: '+[RCTNativeAnimatedModule __rct_export__23416]', symObjAddr: 0x17A0, symBinAddr: 0xA2FC, symSize: 0xC }
+  - { offset: 0x118AE, size: 0x8, addend: 0x0, symName: '__ZZ46+[RCTNativeAnimatedModule __rct_export__23416]E6config', symObjAddr: 0x4F38, symBinAddr: 0x27890, symSize: 0x0 }
+  - { offset: 0x118CA, size: 0x8, addend: 0x0, symName: '+[RCTNativeAnimatedModule __rct_export__25317]', symObjAddr: 0x1B18, symBinAddr: 0xA64C, symSize: 0xC }
+  - { offset: 0x118F3, size: 0x8, addend: 0x0, symName: '__ZZ46+[RCTNativeAnimatedModule __rct_export__25317]E6config', symObjAddr: 0x4F50, symBinAddr: 0x278A8, symSize: 0x0 }
+  - { offset: 0x11910, size: 0x8, addend: 0x0, symName: '+[RCTNativeAnimatedModule __rct_export__26218]', symObjAddr: 0x1C7C, symBinAddr: 0xA7B0, symSize: 0xC }
+  - { offset: 0x1193C, size: 0x8, addend: 0x0, symName: '__ZZ46+[RCTNativeAnimatedModule __rct_export__26218]E6config', symObjAddr: 0x4F68, symBinAddr: 0x278C0, symSize: 0x0 }
+  - { offset: 0x11959, size: 0x8, addend: 0x0, symName: '+[RCTNativeAnimatedModule __rct_export__26919]', symObjAddr: 0x1DB4, symBinAddr: 0xA8E8, symSize: 0xC }
+  - { offset: 0x11985, size: 0x8, addend: 0x0, symName: '__ZZ46+[RCTNativeAnimatedModule __rct_export__26919]E6config', symObjAddr: 0x4F80, symBinAddr: 0x278D8, symSize: 0x0 }
+  - { offset: 0x119A9, size: 0x8, addend: 0x0, symName: __Z16RCTBridgingToVecIU8__strongP8NSStringEN2FB10LazyVectorIT_U8__strongP11objc_objectEES7_U13block_pointerFS5_S7_E, symObjAddr: 0x2CC4, symBinAddr: 0xB7F8, symSize: 0x14C }
+  - { offset: 0x12A96, size: 0x8, addend: 0x0, symName: __ZNSt3__125__throw_bad_function_callB8ne200100Ev, symObjAddr: 0x3314, symBinAddr: 0xBE48, symSize: 0x34 }
+  - { offset: 0x13CD6, size: 0x8, addend: 0x0, symName: '+[RCTNativeAnimatedModule moduleName]', symObjAddr: 0x0, symBinAddr: 0x8B84, symSize: 0xC }
+  - { offset: 0x13D06, size: 0x8, addend: 0x0, symName: '+[RCTNativeAnimatedModule load]', symObjAddr: 0xC, symBinAddr: 0x8B90, symSize: 0x4 }
+  - { offset: 0x13D38, size: 0x8, addend: 0x0, symName: '+[RCTNativeAnimatedModule load]', symObjAddr: 0xC, symBinAddr: 0x8B90, symSize: 0x4 }
+  - { offset: 0x13D57, size: 0x8, addend: 0x0, symName: '+[RCTNativeAnimatedModule requiresMainQueueSetup]', symObjAddr: 0x10, symBinAddr: 0x8B94, symSize: 0x8 }
+  - { offset: 0x13D87, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedModule init]', symObjAddr: 0x18, symBinAddr: 0x8B9C, symSize: 0xCC }
+  - { offset: 0x13DBB, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedModule invalidate]', symObjAddr: 0xE4, symBinAddr: 0x8C68, symSize: 0x12C }
+  - { offset: 0x13DEB, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedModule methodQueue]', symObjAddr: 0x210, symBinAddr: 0x8D94, symSize: 0x4 }
+  - { offset: 0x13E1F, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedModule methodQueue]', symObjAddr: 0x210, symBinAddr: 0x8D94, symSize: 0x4 }
+  - { offset: 0x13E45, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedModule setBridge:]', symObjAddr: 0x214, symBinAddr: 0x8D98, symSize: 0x138 }
+  - { offset: 0x13E84, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedModule initialize]', symObjAddr: 0x34C, symBinAddr: 0x8ED0, symSize: 0x74 }
+  - { offset: 0x13EB4, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedModule setSurfacePresenter:]', symObjAddr: 0x3C0, symBinAddr: 0x8F44, symSize: 0x1C }
+  - { offset: 0x13F23, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedModule createAnimatedNode:config:]', symObjAddr: 0x3E8, symBinAddr: 0x8F6C, symSize: 0xA0 }
+  - { offset: 0x13F72, size: 0x8, addend: 0x0, symName: '___53-[RCTNativeAnimatedModule createAnimatedNode:config:]_block_invoke', symObjAddr: 0x488, symBinAddr: 0x900C, symSize: 0x7C }
+  - { offset: 0x13FCA, size: 0x8, addend: 0x0, symName: ___copy_helper_block_ea8_32s, symObjAddr: 0x504, symBinAddr: 0x9088, symSize: 0x8 }
+  - { offset: 0x13FF1, size: 0x8, addend: 0x0, symName: ___destroy_helper_block_ea8_32s, symObjAddr: 0x50C, symBinAddr: 0x9090, symSize: 0x8 }
+  - { offset: 0x1400F, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedModule updateAnimatedNodeConfig:config:]', symObjAddr: 0x520, symBinAddr: 0x90A4, symSize: 0xA0 }
+  - { offset: 0x1405E, size: 0x8, addend: 0x0, symName: '___59-[RCTNativeAnimatedModule updateAnimatedNodeConfig:config:]_block_invoke', symObjAddr: 0x5C0, symBinAddr: 0x9144, symSize: 0x7C }
+  - { offset: 0x140B5, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedModule connectAnimatedNodes:childTag:]', symObjAddr: 0x648, symBinAddr: 0x91CC, symSize: 0x50 }
+  - { offset: 0x14104, size: 0x8, addend: 0x0, symName: '___57-[RCTNativeAnimatedModule connectAnimatedNodes:childTag:]_block_invoke', symObjAddr: 0x698, symBinAddr: 0x921C, symSize: 0xAC }
+  - { offset: 0x1415B, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedModule disconnectAnimatedNodes:childTag:]', symObjAddr: 0x750, symBinAddr: 0x92D4, symSize: 0x50 }
+  - { offset: 0x141AA, size: 0x8, addend: 0x0, symName: '___60-[RCTNativeAnimatedModule disconnectAnimatedNodes:childTag:]_block_invoke', symObjAddr: 0x7A0, symBinAddr: 0x9324, symSize: 0xAC }
+  - { offset: 0x14201, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedModule startAnimatingNode:nodeTag:config:endCallback:]', symObjAddr: 0x858, symBinAddr: 0x93DC, symSize: 0x120 }
+  - { offset: 0x14296, size: 0x8, addend: 0x0, symName: '___73-[RCTNativeAnimatedModule startAnimatingNode:nodeTag:config:endCallback:]_block_invoke', symObjAddr: 0x978, symBinAddr: 0x94FC, symSize: 0xAC }
+  - { offset: 0x1430C, size: 0x8, addend: 0x0, symName: ___copy_helper_block_ea8_32s40b, symObjAddr: 0xA24, symBinAddr: 0x95A8, symSize: 0x34 }
+  - { offset: 0x14335, size: 0x8, addend: 0x0, symName: '___73-[RCTNativeAnimatedModule startAnimatingNode:nodeTag:config:endCallback:]_block_invoke.19', symObjAddr: 0xA80, symBinAddr: 0x95DC, symSize: 0xC8 }
+  - { offset: 0x143B3, size: 0x8, addend: 0x0, symName: '___73-[RCTNativeAnimatedModule startAnimatingNode:nodeTag:config:endCallback:]_block_invoke_2', symObjAddr: 0xB48, symBinAddr: 0x96A4, symSize: 0x78 }
+  - { offset: 0x14400, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedModule stopAnimation:]', symObjAddr: 0xBCC, symBinAddr: 0x9728, symSize: 0xE0 }
+  - { offset: 0x14440, size: 0x8, addend: 0x0, symName: '___41-[RCTNativeAnimatedModule stopAnimation:]_block_invoke', symObjAddr: 0xCAC, symBinAddr: 0x9808, symSize: 0x78 }
+  - { offset: 0x14488, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedModule setAnimatedNodeValue:value:]', symObjAddr: 0xD30, symBinAddr: 0x988C, symSize: 0x50 }
+  - { offset: 0x144D7, size: 0x8, addend: 0x0, symName: '___54-[RCTNativeAnimatedModule setAnimatedNodeValue:value:]_block_invoke', symObjAddr: 0xD80, symBinAddr: 0x98DC, symSize: 0xAC }
+  - { offset: 0x1452E, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedModule setAnimatedNodeOffset:offset:]', symObjAddr: 0xE38, symBinAddr: 0x9994, symSize: 0x50 }
+  - { offset: 0x1457D, size: 0x8, addend: 0x0, symName: '___56-[RCTNativeAnimatedModule setAnimatedNodeOffset:offset:]_block_invoke', symObjAddr: 0xE88, symBinAddr: 0x99E4, symSize: 0xAC }
+  - { offset: 0x145D4, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedModule flattenAnimatedNodeOffset:]', symObjAddr: 0xF40, symBinAddr: 0x9A9C, symSize: 0x50 }
+  - { offset: 0x14614, size: 0x8, addend: 0x0, symName: '___53-[RCTNativeAnimatedModule flattenAnimatedNodeOffset:]_block_invoke', symObjAddr: 0xF90, symBinAddr: 0x9AEC, symSize: 0x78 }
+  - { offset: 0x1465C, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedModule extractAnimatedNodeOffset:]', symObjAddr: 0x1014, symBinAddr: 0x9B70, symSize: 0x50 }
+  - { offset: 0x1469C, size: 0x8, addend: 0x0, symName: '___53-[RCTNativeAnimatedModule extractAnimatedNodeOffset:]_block_invoke', symObjAddr: 0x1064, symBinAddr: 0x9BC0, symSize: 0x78 }
+  - { offset: 0x146E4, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedModule connectAnimatedNodeToView:viewTag:]', symObjAddr: 0x10E8, symBinAddr: 0x9C44, symSize: 0x120 }
+  - { offset: 0x14742, size: 0x8, addend: 0x0, symName: '___61-[RCTNativeAnimatedModule connectAnimatedNodeToView:viewTag:]_block_invoke', symObjAddr: 0x1208, symBinAddr: 0x9D64, symSize: 0xAC }
+  - { offset: 0x147A8, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedModule disconnectAnimatedNodeFromView:viewTag:]', symObjAddr: 0x12C0, symBinAddr: 0x9E1C, symSize: 0x50 }
+  - { offset: 0x147F7, size: 0x8, addend: 0x0, symName: '___66-[RCTNativeAnimatedModule disconnectAnimatedNodeFromView:viewTag:]_block_invoke', symObjAddr: 0x1310, symBinAddr: 0x9E6C, symSize: 0xAC }
+  - { offset: 0x1484E, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedModule restoreDefaultValues:]', symObjAddr: 0x13C8, symBinAddr: 0x9F24, symSize: 0x50 }
+  - { offset: 0x1488E, size: 0x8, addend: 0x0, symName: '___48-[RCTNativeAnimatedModule restoreDefaultValues:]_block_invoke', symObjAddr: 0x1418, symBinAddr: 0x9F74, symSize: 0x78 }
+  - { offset: 0x148D6, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedModule dropAnimatedNode:]', symObjAddr: 0x149C, symBinAddr: 0x9FF8, symSize: 0x50 }
+  - { offset: 0x14916, size: 0x8, addend: 0x0, symName: '___44-[RCTNativeAnimatedModule dropAnimatedNode:]_block_invoke', symObjAddr: 0x14EC, symBinAddr: 0xA048, symSize: 0x78 }
+  - { offset: 0x1495E, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedModule startListeningToAnimatedNodeValue:]', symObjAddr: 0x1570, symBinAddr: 0xA0CC, symSize: 0xB4 }
+  - { offset: 0x149AD, size: 0x8, addend: 0x0, symName: '___61-[RCTNativeAnimatedModule startListeningToAnimatedNodeValue:]_block_invoke', symObjAddr: 0x1624, symBinAddr: 0xA180, symSize: 0x94 }
+  - { offset: 0x14A05, size: 0x8, addend: 0x0, symName: ___copy_helper_block_ea8_32w, symObjAddr: 0x16B8, symBinAddr: 0xA214, symSize: 0xC }
+  - { offset: 0x14A2E, size: 0x8, addend: 0x0, symName: ___destroy_helper_block_ea8_32w, symObjAddr: 0x16C4, symBinAddr: 0xA220, symSize: 0x8 }
+  - { offset: 0x14A4C, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedModule stopListeningToAnimatedNodeValue:]', symObjAddr: 0x16D8, symBinAddr: 0xA234, symSize: 0x50 }
+  - { offset: 0x14A8C, size: 0x8, addend: 0x0, symName: '___60-[RCTNativeAnimatedModule stopListeningToAnimatedNodeValue:]_block_invoke', symObjAddr: 0x1728, symBinAddr: 0xA284, symSize: 0x78 }
+  - { offset: 0x14D20, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedModule addAnimatedEventToView:eventName:eventMapping:]', symObjAddr: 0x17AC, symBinAddr: 0xA308, symSize: 0x2C8 }
+  - { offset: 0x14FD3, size: 0x8, addend: 0x0, symName: __Z20RCTConvertVecToArrayIN2FB10LazyVectorIU8__strongP8NSStringU8__strongP11objc_objectEEEP7NSArrayRKT_U13block_pointerFS6_NSB_10value_typeEE, symObjAddr: 0x3140, symBinAddr: 0xBC74, symSize: 0xFC }
+  - { offset: 0x150E1, size: 0x8, addend: 0x0, symName: '___73-[RCTNativeAnimatedModule addAnimatedEventToView:eventName:eventMapping:]_block_invoke', symObjAddr: 0x1A74, symBinAddr: 0xA5D0, symSize: 0x7C }
+  - { offset: 0x15147, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedModule removeAnimatedEventFromView:eventName:animatedNodeTag:]', symObjAddr: 0x1B24, symBinAddr: 0xA658, symSize: 0xA4 }
+  - { offset: 0x151A5, size: 0x8, addend: 0x0, symName: '___81-[RCTNativeAnimatedModule removeAnimatedEventFromView:eventName:animatedNodeTag:]_block_invoke', symObjAddr: 0x1BC8, symBinAddr: 0xA6FC, symSize: 0xB4 }
+  - { offset: 0x1520C, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedModule getValue:saveValueCallback:]', symObjAddr: 0x1C88, symBinAddr: 0xA7BC, symSize: 0xA0 }
+  - { offset: 0x15260, size: 0x8, addend: 0x0, symName: '___54-[RCTNativeAnimatedModule getValue:saveValueCallback:]_block_invoke', symObjAddr: 0x1D28, symBinAddr: 0xA85C, symSize: 0x7C }
+  - { offset: 0x152C0, size: 0x8, addend: 0x0, symName: ___copy_helper_block_ea8_32b, symObjAddr: 0x1DA4, symBinAddr: 0xA8D8, symSize: 0x10 }
+  - { offset: 0x152E9, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedModule queueAndExecuteBatchedOperations:]', symObjAddr: 0x1DC0, symBinAddr: 0xA8F4, symSize: 0x4 }
+  - { offset: 0x15324, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedModule addOperationBlock:]', symObjAddr: 0x1DC4, symBinAddr: 0xA8F8, symSize: 0x5C }
+  - { offset: 0x15367, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedModule addPreOperationBlock:]', symObjAddr: 0x1E20, symBinAddr: 0xA954, symSize: 0x5C }
+  - { offset: 0x153AA, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedModule flushOperationQueues]', symObjAddr: 0x1E7C, symBinAddr: 0xA9B0, symSize: 0x134 }
+  - { offset: 0x1540A, size: 0x8, addend: 0x0, symName: '___47-[RCTNativeAnimatedModule flushOperationQueues]_block_invoke', symObjAddr: 0x1FB0, symBinAddr: 0xAAE4, symSize: 0x1E0 }
+  - { offset: 0x154C2, size: 0x8, addend: 0x0, symName: ___copy_helper_block_ea8_32s40s48s, symObjAddr: 0x2190, symBinAddr: 0xACC4, symSize: 0x30 }
+  - { offset: 0x154EB, size: 0x8, addend: 0x0, symName: ___destroy_helper_block_ea8_32s40s48s, symObjAddr: 0x21C0, symBinAddr: 0xACF4, symSize: 0x30 }
+  - { offset: 0x1550A, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedModule willMountComponentsWithRootTag:]', symObjAddr: 0x21F0, symBinAddr: 0xAD24, symSize: 0x54 }
+  - { offset: 0x1555D, size: 0x8, addend: 0x0, symName: '___58-[RCTNativeAnimatedModule willMountComponentsWithRootTag:]_block_invoke', symObjAddr: 0x2244, symBinAddr: 0xAD78, symSize: 0xD0 }
+  - { offset: 0x155C6, size: 0x8, addend: 0x0, symName: '___58-[RCTNativeAnimatedModule willMountComponentsWithRootTag:]_block_invoke_2', symObjAddr: 0x2314, symBinAddr: 0xAE48, symSize: 0x128 }
+  - { offset: 0x1563B, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedModule didMountComponentsWithRootTag:]', symObjAddr: 0x243C, symBinAddr: 0xAF70, symSize: 0x54 }
+  - { offset: 0x1568E, size: 0x8, addend: 0x0, symName: '___57-[RCTNativeAnimatedModule didMountComponentsWithRootTag:]_block_invoke', symObjAddr: 0x2490, symBinAddr: 0xAFC4, symSize: 0xD0 }
+  - { offset: 0x156F7, size: 0x8, addend: 0x0, symName: '___57-[RCTNativeAnimatedModule didMountComponentsWithRootTag:]_block_invoke_2', symObjAddr: 0x2560, symBinAddr: 0xB094, symSize: 0x128 }
+  - { offset: 0x1576C, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedModule uiManagerWillPerformMounting:]', symObjAddr: 0x2688, symBinAddr: 0xB1BC, symSize: 0x188 }
+  - { offset: 0x157C9, size: 0x8, addend: 0x0, symName: '___56-[RCTNativeAnimatedModule uiManagerWillPerformMounting:]_block_invoke', symObjAddr: 0x2810, symBinAddr: 0xB344, symSize: 0x128 }
+  - { offset: 0x15858, size: 0x8, addend: 0x0, symName: '___56-[RCTNativeAnimatedModule uiManagerWillPerformMounting:]_block_invoke.42', symObjAddr: 0x2938, symBinAddr: 0xB46C, symSize: 0x138 }
+  - { offset: 0x158E7, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedModule supportedEvents]', symObjAddr: 0x2A70, symBinAddr: 0xB5A4, symSize: 0xC }
+  - { offset: 0x15919, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedModule animatedNode:didUpdateValue:]', symObjAddr: 0x2A7C, symBinAddr: 0xB5B0, symSize: 0x134 }
+  - { offset: 0x1596D, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedModule eventDispatcherWillDispatchEvent:]', symObjAddr: 0x2BB0, symBinAddr: 0xB6E4, symSize: 0x8C }
+  - { offset: 0x159C4, size: 0x8, addend: 0x0, symName: '___60-[RCTNativeAnimatedModule eventDispatcherWillDispatchEvent:]_block_invoke', symObjAddr: 0x2C3C, symBinAddr: 0xB770, symSize: 0x14 }
+  - { offset: 0x15A16, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedModule .cxx_destruct]', symObjAddr: 0x2C50, symBinAddr: 0xB784, symSize: 0x68 }
+  - { offset: 0x15A47, size: 0x8, addend: 0x0, symName: _RCTNativeAnimatedModuleCls, symObjAddr: 0x2CB8, symBinAddr: 0xB7EC, symSize: 0xC }
+  - { offset: 0x15C4F, size: 0x8, addend: 0x0, symName: __ZN2FB10LazyVectorIU8__strongP8NSStringU8__strongP11objc_objectE18fromUnsafeRawValueES5_iNSt3__18functionIFS2_S5_EEE, symObjAddr: 0x2E2C, symBinAddr: 0xB960, symSize: 0x100 }
+  - { offset: 0x15E79, size: 0x8, addend: 0x0, symName: ____ZNK2JS20NativeAnimatedModule12EventMapping15nativeEventPathEv_block_invoke, symObjAddr: 0x2E10, symBinAddr: 0xB944, symSize: 0x1C }
+  - { offset: 0x15F91, size: 0x8, addend: 0x0, symName: __ZNSt3__110__function12__value_funcIFP8NSStringP11objc_objectEEC2B8ne200100ERKS7_, symObjAddr: 0x2F2C, symBinAddr: 0xBA60, symSize: 0x64 }
+  - { offset: 0x15FEA, size: 0x8, addend: 0x0, symName: __ZN2FB10LazyVectorIU8__strongP8NSStringU8__strongP11objc_objectEC2ES5_iNSt3__18functionIFS2_S5_EEE, symObjAddr: 0x2F90, symBinAddr: 0xBAC4, symSize: 0x6C }
+  - { offset: 0x160CD, size: 0x8, addend: 0x0, symName: __ZNSt3__110__function6__funcIU8__strongU13block_pointerFP8NSStringP11objc_objectENS_9allocatorIS8_EES6_ED1Ev, symObjAddr: 0x2FFC, symBinAddr: 0xBB30, symSize: 0x28 }
+  - { offset: 0x16128, size: 0x8, addend: 0x0, symName: __ZNSt3__110__function6__funcIU8__strongU13block_pointerFP8NSStringP11objc_objectENS_9allocatorIS8_EES6_ED0Ev, symObjAddr: 0x3024, symBinAddr: 0xBB58, symSize: 0x28 }
+  - { offset: 0x1618F, size: 0x8, addend: 0x0, symName: __ZNKSt3__110__function6__funcIU8__strongU13block_pointerFP8NSStringP11objc_objectENS_9allocatorIS8_EES6_E7__cloneEv, symObjAddr: 0x304C, symBinAddr: 0xBB80, symSize: 0x8 }
+  - { offset: 0x16201, size: 0x8, addend: 0x0, symName: __ZNKSt3__110__function6__funcIU8__strongU13block_pointerFP8NSStringP11objc_objectENS_9allocatorIS8_EES6_E7__cloneEPNS0_6__baseIS6_EE, symObjAddr: 0x3054, symBinAddr: 0xBB88, symSize: 0x38 }
+  - { offset: 0x16284, size: 0x8, addend: 0x0, symName: __ZNSt3__110__function6__funcIU8__strongU13block_pointerFP8NSStringP11objc_objectENS_9allocatorIS8_EES6_E7destroyEv, symObjAddr: 0x308C, symBinAddr: 0xBBC0, symSize: 0xC }
+  - { offset: 0x162A8, size: 0x8, addend: 0x0, symName: __ZNSt3__110__function6__funcIU8__strongU13block_pointerFP8NSStringP11objc_objectENS_9allocatorIS8_EES6_E18destroy_deallocateEv, symObjAddr: 0x3098, symBinAddr: 0xBBCC, symSize: 0x4 }
+  - { offset: 0x162D2, size: 0x8, addend: 0x0, symName: __ZNSt3__110__function6__funcIU8__strongU13block_pointerFP8NSStringP11objc_objectENS_9allocatorIS8_EES6_EclEOU8__strongS5_, symObjAddr: 0x309C, symBinAddr: 0xBBD0, symSize: 0x10 }
+  - { offset: 0x1630B, size: 0x8, addend: 0x0, symName: __ZNSt3__110__function6__funcIU8__strongU13block_pointerFP8NSStringP11objc_objectENS_9allocatorIS8_EES6_EclEOU8__strongS5_, symObjAddr: 0x309C, symBinAddr: 0xBBD0, symSize: 0x10 }
+  - { offset: 0x1633D, size: 0x8, addend: 0x0, symName: __ZNKSt3__110__function6__funcIU8__strongU13block_pointerFP8NSStringP11objc_objectENS_9allocatorIS8_EES6_E6targetERKSt9type_info, symObjAddr: 0x30AC, symBinAddr: 0xBBE0, symSize: 0x3C }
+  - { offset: 0x16389, size: 0x8, addend: 0x0, symName: __ZNKSt9type_infoeqB8ne200100ERKS_, symObjAddr: 0x30F4, symBinAddr: 0xBC28, symSize: 0x4C }
+  - { offset: 0x16426, size: 0x8, addend: 0x0, symName: __ZNKSt3__110__function6__funcIU8__strongU13block_pointerFP8NSStringP11objc_objectENS_9allocatorIS8_EES6_E11target_typeEv, symObjAddr: 0x30E8, symBinAddr: 0xBC1C, symSize: 0xC }
+  - { offset: 0x164AE, size: 0x8, addend: 0x0, symName: __ZNK2FB10LazyVectorIU8__strongP8NSStringU8__strongP11objc_objectEixEi, symObjAddr: 0x3244, symBinAddr: 0xBD78, symSize: 0x5C }
+  - { offset: 0x164FD, size: 0x8, addend: 0x0, symName: ____Z20RCTConvertVecToArrayIN2FB10LazyVectorIU8__strongP8NSStringU8__strongP11objc_objectEEEP7NSArrayRKT__block_invoke, symObjAddr: 0x323C, symBinAddr: 0xBD70, symSize: 0x8 }
+  - { offset: 0x1651B, size: 0x8, addend: 0x0, symName: __ZNKSt3__18functionIFP8NSStringP11objc_objectEEclES4_, symObjAddr: 0x32A0, symBinAddr: 0xBDD4, symSize: 0x74 }
+  - { offset: 0x16622, size: 0x8, addend: 0x0, symName: __ZNSt3__117bad_function_callD1Ev, symObjAddr: 0x3348, symBinAddr: 0xBE7C, symSize: 0x4 }
+  - { offset: 0x16644, size: 0x8, addend: 0x0, symName: __ZNSt3__117bad_function_callD1Ev, symObjAddr: 0x3348, symBinAddr: 0xBE7C, symSize: 0x4 }
+  - { offset: 0x16677, size: 0x8, addend: 0x0, symName: __ZNSt3__117bad_function_callD0Ev, symObjAddr: 0x334C, symBinAddr: 0xBE80, symSize: 0x14 }
+  - { offset: 0x194D7, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedNodesManager initWithBridge:surfacePresenter:]', symObjAddr: 0x0, symBinAddr: 0xBE94, symSize: 0xFC }
+  - { offset: 0x194E4, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedNodesManager createAnimatedNode:config:]', symObjAddr: 0x154, symBinAddr: 0xBFE8, symSize: 0x154 }
+  - { offset: 0x19509, size: 0x8, addend: 0x0, symName: '__ZZ59-[RCTNativeAnimatedNodesManager createAnimatedNode:config:]E3map', symObjAddr: 0xD1D0, symBinAddr: 0x27E80, symSize: 0x0 }
+  - { offset: 0x1951E, size: 0x8, addend: 0x0, symName: '__ZZ59-[RCTNativeAnimatedNodesManager createAnimatedNode:config:]E8mapToken', symObjAddr: 0xD1D8, symBinAddr: 0x27E88, symSize: 0x0 }
+  - { offset: 0x197EE, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedNodesManager initWithBridge:surfacePresenter:]', symObjAddr: 0x0, symBinAddr: 0xBE94, symSize: 0xFC }
+  - { offset: 0x19840, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedNodesManager isNodeManagedByFabric:]', symObjAddr: 0xFC, symBinAddr: 0xBF90, symSize: 0x58 }
+  - { offset: 0x198E1, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedNodesManager createAnimatedNode:config:].cold.1', symObjAddr: 0x2348, symBinAddr: 0x136F8, symSize: 0x14 }
+  - { offset: 0x198FD, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedNodesManager createAnimatedNode:config:].cold.1', symObjAddr: 0x2348, symBinAddr: 0x136F8, symSize: 0x14 }
+  - { offset: 0x1990F, size: 0x8, addend: 0x0, symName: '___59-[RCTNativeAnimatedNodesManager createAnimatedNode:config:]_block_invoke', symObjAddr: 0x2A8, symBinAddr: 0xC13C, symSize: 0x200 }
+  - { offset: 0x19935, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedNodesManager connectAnimatedNodes:childTag:]', symObjAddr: 0x4A8, symBinAddr: 0xC33C, symSize: 0xAC }
+  - { offset: 0x199A1, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedNodesManager disconnectAnimatedNodes:childTag:]', symObjAddr: 0x554, symBinAddr: 0xC3E8, symSize: 0xAC }
+  - { offset: 0x19A0D, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedNodesManager connectAnimatedNodeToView:viewTag:viewName:]', symObjAddr: 0x600, symBinAddr: 0xC494, symSize: 0xF8 }
+  - { offset: 0x19A79, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedNodesManager disconnectAnimatedNodeFromView:viewTag:]', symObjAddr: 0x6F8, symBinAddr: 0xC58C, symSize: 0x94 }
+  - { offset: 0x19AD6, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedNodesManager restoreDefaultValues:]', symObjAddr: 0x78C, symBinAddr: 0xC620, symSize: 0x8C }
+  - { offset: 0x19B3E, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedNodesManager dropAnimatedNode:]', symObjAddr: 0x818, symBinAddr: 0xC6AC, symSize: 0x80 }
+  - { offset: 0x19B8C, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedNodesManager setAnimatedNodeValue:value:]', symObjAddr: 0x898, symBinAddr: 0xC72C, symSize: 0xF0 }
+  - { offset: 0x19C12, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedNodesManager setAnimatedNodeOffset:offset:]', symObjAddr: 0x988, symBinAddr: 0xC81C, symSize: 0xE4 }
+  - { offset: 0x19C98, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedNodesManager flattenAnimatedNodeOffset:]', symObjAddr: 0xA6C, symBinAddr: 0xC900, symSize: 0x90 }
+  - { offset: 0x19D0F, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedNodesManager extractAnimatedNodeOffset:]', symObjAddr: 0xAFC, symBinAddr: 0xC990, symSize: 0x90 }
+  - { offset: 0x19D86, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedNodesManager getValue:saveCallback:]', symObjAddr: 0xB8C, symBinAddr: 0xCA20, symSize: 0x180 }
+  - { offset: 0x19E28, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedNodesManager updateAnimatedNodeConfig:config:]', symObjAddr: 0xD0C, symBinAddr: 0xCBA0, symSize: 0x4 }
+  - { offset: 0x19E70, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedNodesManager startAnimatingNode:nodeTag:config:endCallback:]', symObjAddr: 0xD10, symBinAddr: 0xCBA4, symSize: 0x318 }
+  - { offset: 0x19F4A, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedNodesManager stopAnimation:]', symObjAddr: 0x1028, symBinAddr: 0xCEBC, symSize: 0x170 }
+  - { offset: 0x19FA4, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedNodesManager stopAnimationsForNode:]', symObjAddr: 0x1198, symBinAddr: 0xD02C, symSize: 0x228 }
+  - { offset: 0x1A02E, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedNodesManager addAnimatedEventToView:eventName:eventMapping:]', symObjAddr: 0x13C0, symBinAddr: 0xD254, symSize: 0x2E8 }
+  - { offset: 0x1A14F, size: 0x8, addend: 0x0, symName: __ZL29RCTNormalizeAnimatedEventNameP8NSString, symObjAddr: 0x16A8, symBinAddr: 0xD53C, symSize: 0x80 }
+  - { offset: 0x1A17D, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedNodesManager removeAnimatedEventFromView:eventName:animatedNodeTag:]', symObjAddr: 0x1728, symBinAddr: 0xD5BC, symSize: 0x1E8 }
+  - { offset: 0x1A231, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedNodesManager handleAnimatedEvent:]', symObjAddr: 0x1910, symBinAddr: 0xD7A4, symSize: 0x234 }
+  - { offset: 0x1A2BB, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedNodesManager startListeningToAnimatedNodeValue:valueObserver:]', symObjAddr: 0x1B44, symBinAddr: 0xD9D8, symSize: 0x94 }
+  - { offset: 0x1A320, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedNodesManager stopListeningToAnimatedNodeValue:]', symObjAddr: 0x1BD8, symBinAddr: 0xDA6C, symSize: 0x70 }
+  - { offset: 0x1A374, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedNodesManager startAnimationLoopIfNeeded]', symObjAddr: 0x1C48, symBinAddr: 0xDADC, symSize: 0xB8 }
+  - { offset: 0x1A3A6, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedNodesManager stopAnimationLoopIfNeeded]', symObjAddr: 0x1D00, symBinAddr: 0xDB94, symSize: 0x38 }
+  - { offset: 0x1A3D8, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedNodesManager stopAnimationLoop]', symObjAddr: 0x1D38, symBinAddr: 0xDBCC, symSize: 0x3C }
+  - { offset: 0x1A40A, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedNodesManager stepAnimations:]', symObjAddr: 0x1D74, symBinAddr: 0xDC08, symSize: 0x210 }
+  - { offset: 0x1A48C, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedNodesManager getTagsOfConnectedNodesFrom:andEvent:]', symObjAddr: 0x1F84, symBinAddr: 0xDE18, symSize: 0x30C }
+  - { offset: 0x1A570, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedNodesManager updateAnimations]', symObjAddr: 0x2290, symBinAddr: 0xE124, symSize: 0x10 }
+  - { offset: 0x1A5A2, size: 0x8, addend: 0x0, symName: '___49-[RCTNativeAnimatedNodesManager updateAnimations]_block_invoke', symObjAddr: 0x22A0, symBinAddr: 0xE134, symSize: 0x50 }
+  - { offset: 0x1A5F5, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedNodesManager .cxx_destruct]', symObjAddr: 0x22F0, symBinAddr: 0xE184, symSize: 0x58 }
+  - { offset: 0x1A913, size: 0x8, addend: 0x0, symName: '+[RCTNativeAnimatedTurboModule moduleName]', symObjAddr: 0x0, symBinAddr: 0xE1DC, symSize: 0xC }
+  - { offset: 0x1A933, size: 0x8, addend: 0x0, symName: '+[RCTNativeAnimatedTurboModule __rct_export__810]', symObjAddr: 0x2D4, symBinAddr: 0xE4B0, symSize: 0xC }
+  - { offset: 0x1A95C, size: 0x8, addend: 0x0, symName: '__ZZ49+[RCTNativeAnimatedTurboModule __rct_export__810]E6config', symObjAddr: 0x4B40, symBinAddr: 0x27B30, symSize: 0x0 }
+  - { offset: 0x1A984, size: 0x8, addend: 0x0, symName: '+[RCTNativeAnimatedTurboModule __rct_export__831]', symObjAddr: 0x2E4, symBinAddr: 0xE4C0, symSize: 0xC }
+  - { offset: 0x1A9AD, size: 0x8, addend: 0x0, symName: '__ZZ49+[RCTNativeAnimatedTurboModule __rct_export__831]E6config', symObjAddr: 0x4B58, symBinAddr: 0x27B48, symSize: 0x0 }
+  - { offset: 0x1A9C9, size: 0x8, addend: 0x0, symName: '+[RCTNativeAnimatedTurboModule __rct_export__892]', symObjAddr: 0x2F4, symBinAddr: 0xE4D0, symSize: 0xC }
+  - { offset: 0x1A9F2, size: 0x8, addend: 0x0, symName: '__ZZ49+[RCTNativeAnimatedTurboModule __rct_export__892]E6config', symObjAddr: 0x4B70, symBinAddr: 0x27B60, symSize: 0x0 }
+  - { offset: 0x1AA0E, size: 0x8, addend: 0x0, symName: '+[RCTNativeAnimatedTurboModule __rct_export__963]', symObjAddr: 0x42C, symBinAddr: 0xE5F8, symSize: 0xC }
+  - { offset: 0x1AA37, size: 0x8, addend: 0x0, symName: '__ZZ49+[RCTNativeAnimatedTurboModule __rct_export__963]E6config', symObjAddr: 0x4B88, symBinAddr: 0x27B78, symSize: 0x0 }
+  - { offset: 0x1AA53, size: 0x8, addend: 0x0, symName: '+[RCTNativeAnimatedTurboModule __rct_export__1034]', symObjAddr: 0x554, symBinAddr: 0xE720, symSize: 0xC }
+  - { offset: 0x1AA7C, size: 0x8, addend: 0x0, symName: '__ZZ50+[RCTNativeAnimatedTurboModule __rct_export__1034]E6config', symObjAddr: 0x4BA0, symBinAddr: 0x27B90, symSize: 0x0 }
+  - { offset: 0x1AA98, size: 0x8, addend: 0x0, symName: '+[RCTNativeAnimatedTurboModule __rct_export__1115]', symObjAddr: 0x65C, symBinAddr: 0xE828, symSize: 0xC }
+  - { offset: 0x1AAC1, size: 0x8, addend: 0x0, symName: '__ZZ50+[RCTNativeAnimatedTurboModule __rct_export__1115]E6config', symObjAddr: 0x4BB8, symBinAddr: 0x27BA8, symSize: 0x0 }
+  - { offset: 0x1AADD, size: 0x8, addend: 0x0, symName: '+[RCTNativeAnimatedTurboModule __rct_export__1236]', symObjAddr: 0x764, symBinAddr: 0xE930, symSize: 0xC }
+  - { offset: 0x1AB06, size: 0x8, addend: 0x0, symName: '__ZZ50+[RCTNativeAnimatedTurboModule __rct_export__1236]E6config', symObjAddr: 0x4BD0, symBinAddr: 0x27BC0, symSize: 0x0 }
+  - { offset: 0x1AB22, size: 0x8, addend: 0x0, symName: '+[RCTNativeAnimatedTurboModule __rct_export__1337]', symObjAddr: 0x950, symBinAddr: 0xEAC0, symSize: 0xC }
+  - { offset: 0x1AB4B, size: 0x8, addend: 0x0, symName: '__ZZ50+[RCTNativeAnimatedTurboModule __rct_export__1337]E6config', symObjAddr: 0x4BE8, symBinAddr: 0x27BD8, symSize: 0x0 }
+  - { offset: 0x1AB67, size: 0x8, addend: 0x0, symName: '+[RCTNativeAnimatedTurboModule __rct_export__1408]', symObjAddr: 0xA24, symBinAddr: 0xEB94, symSize: 0xC }
+  - { offset: 0x1AB90, size: 0x8, addend: 0x0, symName: '__ZZ50+[RCTNativeAnimatedTurboModule __rct_export__1408]E6config', symObjAddr: 0x4C00, symBinAddr: 0x27BF0, symSize: 0x0 }
+  - { offset: 0x1ABAC, size: 0x8, addend: 0x0, symName: '+[RCTNativeAnimatedTurboModule __rct_export__1479]', symObjAddr: 0xB2C, symBinAddr: 0xEC9C, symSize: 0xC }
+  - { offset: 0x1ABD5, size: 0x8, addend: 0x0, symName: '__ZZ50+[RCTNativeAnimatedTurboModule __rct_export__1479]E6config', symObjAddr: 0x4C18, symBinAddr: 0x27C08, symSize: 0x0 }
+  - { offset: 0x1ABF1, size: 0x8, addend: 0x0, symName: '+[RCTNativeAnimatedTurboModule __rct_export__15410]', symObjAddr: 0xC34, symBinAddr: 0xEDA4, symSize: 0xC }
+  - { offset: 0x1AC1A, size: 0x8, addend: 0x0, symName: '__ZZ51+[RCTNativeAnimatedTurboModule __rct_export__15410]E6config', symObjAddr: 0x4C30, symBinAddr: 0x27C20, symSize: 0x0 }
+  - { offset: 0x1AC36, size: 0x8, addend: 0x0, symName: '+[RCTNativeAnimatedTurboModule __rct_export__16111]', symObjAddr: 0xD08, symBinAddr: 0xEE78, symSize: 0xC }
+  - { offset: 0x1AC5F, size: 0x8, addend: 0x0, symName: '__ZZ51+[RCTNativeAnimatedTurboModule __rct_export__16111]E6config', symObjAddr: 0x4C48, symBinAddr: 0x27C38, symSize: 0x0 }
+  - { offset: 0x1AC7B, size: 0x8, addend: 0x0, symName: '+[RCTNativeAnimatedTurboModule __rct_export__16812]', symObjAddr: 0xDDC, symBinAddr: 0xEF4C, symSize: 0xC }
+  - { offset: 0x1ACA4, size: 0x8, addend: 0x0, symName: '__ZZ51+[RCTNativeAnimatedTurboModule __rct_export__16812]E6config', symObjAddr: 0x4C60, symBinAddr: 0x27C50, symSize: 0x0 }
+  - { offset: 0x1ACC0, size: 0x8, addend: 0x0, symName: '+[RCTNativeAnimatedTurboModule __rct_export__17813]', symObjAddr: 0xEE8, symBinAddr: 0xF058, symSize: 0xC }
+  - { offset: 0x1ACE9, size: 0x8, addend: 0x0, symName: '__ZZ51+[RCTNativeAnimatedTurboModule __rct_export__17813]E6config', symObjAddr: 0x4C78, symBinAddr: 0x27C68, symSize: 0x0 }
+  - { offset: 0x1AD05, size: 0x8, addend: 0x0, symName: '+[RCTNativeAnimatedTurboModule __rct_export__18614]', symObjAddr: 0xFF0, symBinAddr: 0xF160, symSize: 0xC }
+  - { offset: 0x1AD2E, size: 0x8, addend: 0x0, symName: '__ZZ51+[RCTNativeAnimatedTurboModule __rct_export__18614]E6config', symObjAddr: 0x4C90, symBinAddr: 0x27C80, symSize: 0x0 }
+  - { offset: 0x1AD4A, size: 0x8, addend: 0x0, symName: '+[RCTNativeAnimatedTurboModule __rct_export__19315]', symObjAddr: 0x10C4, symBinAddr: 0xF234, symSize: 0xC }
+  - { offset: 0x1AD73, size: 0x8, addend: 0x0, symName: '__ZZ51+[RCTNativeAnimatedTurboModule __rct_export__19315]E6config', symObjAddr: 0x4CA8, symBinAddr: 0x27C98, symSize: 0x0 }
+  - { offset: 0x1AD8F, size: 0x8, addend: 0x0, symName: '+[RCTNativeAnimatedTurboModule __rct_export__20016]', symObjAddr: 0x1198, symBinAddr: 0xF308, symSize: 0xC }
+  - { offset: 0x1ADB8, size: 0x8, addend: 0x0, symName: '__ZZ51+[RCTNativeAnimatedTurboModule __rct_export__20016]E6config', symObjAddr: 0x4CC0, symBinAddr: 0x27CB0, symSize: 0x0 }
+  - { offset: 0x1ADD4, size: 0x8, addend: 0x0, symName: '+[RCTNativeAnimatedTurboModule __rct_export__20817]', symObjAddr: 0x1300, symBinAddr: 0xF45C, symSize: 0xC }
+  - { offset: 0x1ADFD, size: 0x8, addend: 0x0, symName: '__ZZ51+[RCTNativeAnimatedTurboModule __rct_export__20817]E6config', symObjAddr: 0x4CD8, symBinAddr: 0x27CC8, symSize: 0x0 }
+  - { offset: 0x1AE19, size: 0x8, addend: 0x0, symName: '+[RCTNativeAnimatedTurboModule __rct_export__21818]', symObjAddr: 0x13D4, symBinAddr: 0xF530, symSize: 0xC }
+  - { offset: 0x1AE42, size: 0x8, addend: 0x0, symName: '__ZZ51+[RCTNativeAnimatedTurboModule __rct_export__21818]E6config', symObjAddr: 0x4CF0, symBinAddr: 0x27CE0, symSize: 0x0 }
+  - { offset: 0x1AE5E, size: 0x8, addend: 0x0, symName: '+[RCTNativeAnimatedTurboModule __rct_export__23719]', symObjAddr: 0x174C, symBinAddr: 0xF880, symSize: 0xC }
+  - { offset: 0x1AE87, size: 0x8, addend: 0x0, symName: '__ZZ51+[RCTNativeAnimatedTurboModule __rct_export__23719]E6config', symObjAddr: 0x4D08, symBinAddr: 0x27CF8, symSize: 0x0 }
+  - { offset: 0x1AEA3, size: 0x8, addend: 0x0, symName: '+[RCTNativeAnimatedTurboModule __rct_export__24620]', symObjAddr: 0x18B0, symBinAddr: 0xF9E4, symSize: 0xC }
+  - { offset: 0x1AECC, size: 0x8, addend: 0x0, symName: '__ZZ51+[RCTNativeAnimatedTurboModule __rct_export__24620]E6config', symObjAddr: 0x4D20, symBinAddr: 0x27D10, symSize: 0x0 }
+  - { offset: 0x1AEE8, size: 0x8, addend: 0x0, symName: '+[RCTNativeAnimatedTurboModule __rct_export__25321]', symObjAddr: 0x19E8, symBinAddr: 0xFB0C, symSize: 0xC }
+  - { offset: 0x1AF11, size: 0x8, addend: 0x0, symName: '__ZZ51+[RCTNativeAnimatedTurboModule __rct_export__25321]E6config', symObjAddr: 0x4D38, symBinAddr: 0x27D28, symSize: 0x0 }
+  - { offset: 0x2948F, size: 0x8, addend: 0x0, symName: __ZNSt3__115allocate_sharedB8ne200100IN8facebook5react27NativeAnimatedModuleSpecJSIENS_9allocatorIS3_EEJRKNS2_15ObjCTurboModule10InitParamsEELi0EEENS_10shared_ptrIT_EERKT0_DpOT1_, symObjAddr: 0x3068, symBinAddr: 0x10AB4, symSize: 0x58 }
+  - { offset: 0x2BEE2, size: 0x8, addend: 0x0, symName: '+[RCTNativeAnimatedTurboModule moduleName]', symObjAddr: 0x0, symBinAddr: 0xE1DC, symSize: 0xC }
+  - { offset: 0x2BF12, size: 0x8, addend: 0x0, symName: '+[RCTNativeAnimatedTurboModule load]', symObjAddr: 0xC, symBinAddr: 0xE1E8, symSize: 0x4 }
+  - { offset: 0x2BF44, size: 0x8, addend: 0x0, symName: '+[RCTNativeAnimatedTurboModule load]', symObjAddr: 0xC, symBinAddr: 0xE1E8, symSize: 0x4 }
+  - { offset: 0x2BF63, size: 0x8, addend: 0x0, symName: '+[RCTNativeAnimatedTurboModule requiresMainQueueSetup]', symObjAddr: 0x10, symBinAddr: 0xE1EC, symSize: 0x8 }
+  - { offset: 0x2BF93, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedTurboModule init]', symObjAddr: 0x18, symBinAddr: 0xE1F4, symSize: 0xD8 }
+  - { offset: 0x2BFC7, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedTurboModule initialize]', symObjAddr: 0xF0, symBinAddr: 0xE2CC, symSize: 0xFC }
+  - { offset: 0x2BFF7, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedTurboModule invalidate]', symObjAddr: 0x1EC, symBinAddr: 0xE3C8, symSize: 0xD4 }
+  - { offset: 0x2C027, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedTurboModule setSurfacePresenter:]', symObjAddr: 0x2C0, symBinAddr: 0xE49C, symSize: 0x14 }
+  - { offset: 0x2C066, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedTurboModule startOperationBatch]', symObjAddr: 0x2E0, symBinAddr: 0xE4BC, symSize: 0x4 }
+  - { offset: 0x2C092, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedTurboModule finishOperationBatch]', symObjAddr: 0x2F0, symBinAddr: 0xE4CC, symSize: 0x4 }
+  - { offset: 0x2C0C0, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedTurboModule createAnimatedNode:config:]', symObjAddr: 0x300, symBinAddr: 0xE4DC, symSize: 0xA0 }
+  - { offset: 0x2C10F, size: 0x8, addend: 0x0, symName: '___58-[RCTNativeAnimatedTurboModule createAnimatedNode:config:]_block_invoke', symObjAddr: 0x3A0, symBinAddr: 0xE57C, symSize: 0x7C }
+  - { offset: 0x2C166, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedTurboModule updateAnimatedNodeConfig:config:]', symObjAddr: 0x438, symBinAddr: 0xE604, symSize: 0xA0 }
+  - { offset: 0x2C1B5, size: 0x8, addend: 0x0, symName: '___64-[RCTNativeAnimatedTurboModule updateAnimatedNodeConfig:config:]_block_invoke', symObjAddr: 0x4D8, symBinAddr: 0xE6A4, symSize: 0x7C }
+  - { offset: 0x2C20C, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedTurboModule connectAnimatedNodes:childTag:]', symObjAddr: 0x560, symBinAddr: 0xE72C, symSize: 0x50 }
+  - { offset: 0x2C25B, size: 0x8, addend: 0x0, symName: '___62-[RCTNativeAnimatedTurboModule connectAnimatedNodes:childTag:]_block_invoke', symObjAddr: 0x5B0, symBinAddr: 0xE77C, symSize: 0xAC }
+  - { offset: 0x2C2B2, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedTurboModule disconnectAnimatedNodes:childTag:]', symObjAddr: 0x668, symBinAddr: 0xE834, symSize: 0x50 }
+  - { offset: 0x2C301, size: 0x8, addend: 0x0, symName: '___65-[RCTNativeAnimatedTurboModule disconnectAnimatedNodes:childTag:]_block_invoke', symObjAddr: 0x6B8, symBinAddr: 0xE884, symSize: 0xAC }
+  - { offset: 0x2C358, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedTurboModule startAnimatingNode:nodeTag:config:endCallback:]', symObjAddr: 0x770, symBinAddr: 0xE93C, symSize: 0xD8 }
+  - { offset: 0x2C3C5, size: 0x8, addend: 0x0, symName: '___78-[RCTNativeAnimatedTurboModule startAnimatingNode:nodeTag:config:endCallback:]_block_invoke', symObjAddr: 0x848, symBinAddr: 0xEA14, symSize: 0xAC }
+  - { offset: 0x2C43A, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedTurboModule stopAnimation:]', symObjAddr: 0x95C, symBinAddr: 0xEACC, symSize: 0x50 }
+  - { offset: 0x2C47A, size: 0x8, addend: 0x0, symName: '___46-[RCTNativeAnimatedTurboModule stopAnimation:]_block_invoke', symObjAddr: 0x9AC, symBinAddr: 0xEB1C, symSize: 0x78 }
+  - { offset: 0x2C4C2, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedTurboModule setAnimatedNodeValue:value:]', symObjAddr: 0xA30, symBinAddr: 0xEBA0, symSize: 0x50 }
+  - { offset: 0x2C511, size: 0x8, addend: 0x0, symName: '___59-[RCTNativeAnimatedTurboModule setAnimatedNodeValue:value:]_block_invoke', symObjAddr: 0xA80, symBinAddr: 0xEBF0, symSize: 0xAC }
+  - { offset: 0x2C568, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedTurboModule setAnimatedNodeOffset:offset:]', symObjAddr: 0xB38, symBinAddr: 0xECA8, symSize: 0x50 }
+  - { offset: 0x2C5B7, size: 0x8, addend: 0x0, symName: '___61-[RCTNativeAnimatedTurboModule setAnimatedNodeOffset:offset:]_block_invoke', symObjAddr: 0xB88, symBinAddr: 0xECF8, symSize: 0xAC }
+  - { offset: 0x2C60E, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedTurboModule flattenAnimatedNodeOffset:]', symObjAddr: 0xC40, symBinAddr: 0xEDB0, symSize: 0x50 }
+  - { offset: 0x2C64E, size: 0x8, addend: 0x0, symName: '___58-[RCTNativeAnimatedTurboModule flattenAnimatedNodeOffset:]_block_invoke', symObjAddr: 0xC90, symBinAddr: 0xEE00, symSize: 0x78 }
+  - { offset: 0x2C696, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedTurboModule extractAnimatedNodeOffset:]', symObjAddr: 0xD14, symBinAddr: 0xEE84, symSize: 0x50 }
+  - { offset: 0x2C6D6, size: 0x8, addend: 0x0, symName: '___58-[RCTNativeAnimatedTurboModule extractAnimatedNodeOffset:]_block_invoke', symObjAddr: 0xD64, symBinAddr: 0xEED4, symSize: 0x78 }
+  - { offset: 0x2C71E, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedTurboModule connectAnimatedNodeToView:viewTag:]', symObjAddr: 0xDE8, symBinAddr: 0xEF58, symSize: 0x50 }
+  - { offset: 0x2C76D, size: 0x8, addend: 0x0, symName: '___66-[RCTNativeAnimatedTurboModule connectAnimatedNodeToView:viewTag:]_block_invoke', symObjAddr: 0xE38, symBinAddr: 0xEFA8, symSize: 0xB0 }
+  - { offset: 0x2C7C4, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedTurboModule disconnectAnimatedNodeFromView:viewTag:]', symObjAddr: 0xEF4, symBinAddr: 0xF064, symSize: 0x50 }
+  - { offset: 0x2C813, size: 0x8, addend: 0x0, symName: '___71-[RCTNativeAnimatedTurboModule disconnectAnimatedNodeFromView:viewTag:]_block_invoke', symObjAddr: 0xF44, symBinAddr: 0xF0B4, symSize: 0xAC }
+  - { offset: 0x2C86A, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedTurboModule restoreDefaultValues:]', symObjAddr: 0xFFC, symBinAddr: 0xF16C, symSize: 0x50 }
+  - { offset: 0x2C8AA, size: 0x8, addend: 0x0, symName: '___53-[RCTNativeAnimatedTurboModule restoreDefaultValues:]_block_invoke', symObjAddr: 0x104C, symBinAddr: 0xF1BC, symSize: 0x78 }
+  - { offset: 0x2C8F2, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedTurboModule dropAnimatedNode:]', symObjAddr: 0x10D0, symBinAddr: 0xF240, symSize: 0x50 }
+  - { offset: 0x2C932, size: 0x8, addend: 0x0, symName: '___49-[RCTNativeAnimatedTurboModule dropAnimatedNode:]_block_invoke', symObjAddr: 0x1120, symBinAddr: 0xF290, symSize: 0x78 }
+  - { offset: 0x2C97A, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedTurboModule startListeningToAnimatedNodeValue:]', symObjAddr: 0x11A4, symBinAddr: 0xF314, symSize: 0xB4 }
+  - { offset: 0x2C9C9, size: 0x8, addend: 0x0, symName: '___66-[RCTNativeAnimatedTurboModule startListeningToAnimatedNodeValue:]_block_invoke', symObjAddr: 0x1258, symBinAddr: 0xF3C8, symSize: 0x94 }
+  - { offset: 0x2CA20, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedTurboModule stopListeningToAnimatedNodeValue:]', symObjAddr: 0x130C, symBinAddr: 0xF468, symSize: 0x50 }
+  - { offset: 0x2CA60, size: 0x8, addend: 0x0, symName: '___65-[RCTNativeAnimatedTurboModule stopListeningToAnimatedNodeValue:]_block_invoke', symObjAddr: 0x135C, symBinAddr: 0xF4B8, symSize: 0x78 }
+  - { offset: 0x2CBD7, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedTurboModule addAnimatedEventToView:eventName:eventMapping:]', symObjAddr: 0x13E0, symBinAddr: 0xF53C, symSize: 0x2C8 }
+  - { offset: 0x2CF4E, size: 0x8, addend: 0x0, symName: '___78-[RCTNativeAnimatedTurboModule addAnimatedEventToView:eventName:eventMapping:]_block_invoke', symObjAddr: 0x16A8, symBinAddr: 0xF804, symSize: 0x7C }
+  - { offset: 0x2CFB4, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedTurboModule removeAnimatedEventFromView:eventName:animatedNodeTag:]', symObjAddr: 0x1758, symBinAddr: 0xF88C, symSize: 0xA4 }
+  - { offset: 0x2D012, size: 0x8, addend: 0x0, symName: '___86-[RCTNativeAnimatedTurboModule removeAnimatedEventFromView:eventName:animatedNodeTag:]_block_invoke', symObjAddr: 0x17FC, symBinAddr: 0xF930, symSize: 0xB4 }
+  - { offset: 0x2D078, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedTurboModule getValue:saveValueCallback:]', symObjAddr: 0x18BC, symBinAddr: 0xF9F0, symSize: 0xA0 }
+  - { offset: 0x2D0C7, size: 0x8, addend: 0x0, symName: '___59-[RCTNativeAnimatedTurboModule getValue:saveValueCallback:]_block_invoke', symObjAddr: 0x195C, symBinAddr: 0xFA90, symSize: 0x7C }
+  - { offset: 0x2D11E, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedTurboModule queueAndExecuteBatchedOperations:]', symObjAddr: 0x19F4, symBinAddr: 0xFB18, symSize: 0x4 }
+  - { offset: 0x2D156, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedTurboModule queueFlushedOperationBlock:]', symObjAddr: 0x19F8, symBinAddr: 0xFB1C, symSize: 0xBC }
+  - { offset: 0x2D1F4, size: 0x8, addend: 0x0, symName: '___59-[RCTNativeAnimatedTurboModule queueFlushedOperationBlock:]_block_invoke', symObjAddr: 0x1AB4, symBinAddr: 0xFBD8, symSize: 0x2C }
+  - { offset: 0x2D247, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedTurboModule queueOperationBlock:]', symObjAddr: 0x1AE0, symBinAddr: 0xFC04, symSize: 0xBC }
+  - { offset: 0x2D2B2, size: 0x8, addend: 0x0, symName: '___52-[RCTNativeAnimatedTurboModule queueOperationBlock:]_block_invoke', symObjAddr: 0x1B9C, symBinAddr: 0xFCC0, symSize: 0xC }
+  - { offset: 0x2D305, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedTurboModule queuePreOperationBlock:]', symObjAddr: 0x1BA8, symBinAddr: 0xFCCC, symSize: 0xBC }
+  - { offset: 0x2D370, size: 0x8, addend: 0x0, symName: '___55-[RCTNativeAnimatedTurboModule queuePreOperationBlock:]_block_invoke', symObjAddr: 0x1C64, symBinAddr: 0xFD88, symSize: 0xC }
+  - { offset: 0x2D3C3, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedTurboModule addOperationBlock:]', symObjAddr: 0x1C70, symBinAddr: 0xFD94, symSize: 0x5C }
+  - { offset: 0x2D406, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedTurboModule addPreOperationBlock:]', symObjAddr: 0x1CCC, symBinAddr: 0xFDF0, symSize: 0x5C }
+  - { offset: 0x2D449, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedTurboModule flushOperationQueues]', symObjAddr: 0x1D28, symBinAddr: 0xFE4C, symSize: 0x134 }
+  - { offset: 0x2D4B6, size: 0x8, addend: 0x0, symName: '___52-[RCTNativeAnimatedTurboModule flushOperationQueues]_block_invoke', symObjAddr: 0x1E5C, symBinAddr: 0xFF80, symSize: 0x1E0 }
+  - { offset: 0x2D56E, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedTurboModule willMountComponentsWithRootTag:]', symObjAddr: 0x209C, symBinAddr: 0x10160, symSize: 0x54 }
+  - { offset: 0x2D5CE, size: 0x8, addend: 0x0, symName: '___63-[RCTNativeAnimatedTurboModule willMountComponentsWithRootTag:]_block_invoke', symObjAddr: 0x20F0, symBinAddr: 0x101B4, symSize: 0xD0 }
+  - { offset: 0x2D637, size: 0x8, addend: 0x0, symName: '___63-[RCTNativeAnimatedTurboModule willMountComponentsWithRootTag:]_block_invoke_2', symObjAddr: 0x21C0, symBinAddr: 0x10284, symSize: 0x128 }
+  - { offset: 0x2D6AC, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedTurboModule didMountComponentsWithRootTag:]', symObjAddr: 0x22E8, symBinAddr: 0x103AC, symSize: 0x54 }
+  - { offset: 0x2D6FF, size: 0x8, addend: 0x0, symName: '___62-[RCTNativeAnimatedTurboModule didMountComponentsWithRootTag:]_block_invoke', symObjAddr: 0x233C, symBinAddr: 0x10400, symSize: 0xD0 }
+  - { offset: 0x2D768, size: 0x8, addend: 0x0, symName: '___62-[RCTNativeAnimatedTurboModule didMountComponentsWithRootTag:]_block_invoke_2', symObjAddr: 0x240C, symBinAddr: 0x104D0, symSize: 0x128 }
+  - { offset: 0x2D7DD, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedTurboModule supportedEvents]', symObjAddr: 0x2534, symBinAddr: 0x105F8, symSize: 0xC }
+  - { offset: 0x2D80F, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedTurboModule animatedNode:didUpdateValue:]', symObjAddr: 0x2540, symBinAddr: 0x10604, symSize: 0x134 }
+  - { offset: 0x2D863, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedTurboModule userDrivenAnimationEnded:]', symObjAddr: 0x2674, symBinAddr: 0x10738, symSize: 0xCC }
+  - { offset: 0x2D8A6, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedTurboModule eventDispatcherWillDispatchEvent:]', symObjAddr: 0x2740, symBinAddr: 0x10804, symSize: 0x8C }
+  - { offset: 0x2D8FD, size: 0x8, addend: 0x0, symName: '___65-[RCTNativeAnimatedTurboModule eventDispatcherWillDispatchEvent:]_block_invoke', symObjAddr: 0x27CC, symBinAddr: 0x10890, symSize: 0x140 }
+  - { offset: 0x2DA28, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedTurboModule getTurboModule:]', symObjAddr: 0x290C, symBinAddr: 0x109D0, symSize: 0x3C }
+  - { offset: 0x2DAF0, size: 0x8, addend: 0x0, symName: '-[RCTNativeAnimatedTurboModule .cxx_destruct]', symObjAddr: 0x2948, symBinAddr: 0x10A0C, symSize: 0x78 }
+  - { offset: 0x2DB21, size: 0x8, addend: 0x0, symName: _RCTNativeAnimatedTurboModuleCls, symObjAddr: 0x29C0, symBinAddr: 0x10A84, symSize: 0xC }
+  - { offset: 0x2DE5D, size: 0x8, addend: 0x0, symName: ____ZNK2JS20NativeAnimatedModule12EventMapping15nativeEventPathEv_block_invoke, symObjAddr: 0x2B18, symBinAddr: 0x10A90, symSize: 0x1C }
+  - { offset: 0x2E08B, size: 0x8, addend: 0x0, symName: ____Z20RCTConvertVecToArrayIN2FB10LazyVectorIU8__strongP8NSStringU8__strongP11objc_objectEEEP7NSArrayRKT__block_invoke, symObjAddr: 0x2F44, symBinAddr: 0x10AAC, symSize: 0x8 }
+  - { offset: 0x2E398, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react27NativeAnimatedModuleSpecJSIENS_9allocatorIS3_EEEC2B8ne200100IJRKNS2_15ObjCTurboModule10InitParamsEES5_Li0EEES5_DpOT_, symObjAddr: 0x30C0, symBinAddr: 0x10B0C, symSize: 0x4C }
+  - { offset: 0x2E551, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react27NativeAnimatedModuleSpecJSIENS_9allocatorIS3_EEED1Ev, symObjAddr: 0x310C, symBinAddr: 0x10B58, symSize: 0x14 }
+  - { offset: 0x2E573, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react27NativeAnimatedModuleSpecJSIENS_9allocatorIS3_EEED1Ev, symObjAddr: 0x310C, symBinAddr: 0x10B58, symSize: 0x14 }
+  - { offset: 0x2E5A8, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react27NativeAnimatedModuleSpecJSIENS_9allocatorIS3_EEED0Ev, symObjAddr: 0x3120, symBinAddr: 0x10B6C, symSize: 0x24 }
+  - { offset: 0x2E672, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react27NativeAnimatedModuleSpecJSIENS_9allocatorIS3_EEE16__on_zero_sharedEv, symObjAddr: 0x3144, symBinAddr: 0x10B90, symSize: 0xC }
+  - { offset: 0x2E69A, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react27NativeAnimatedModuleSpecJSIENS_9allocatorIS3_EEE16__on_zero_sharedEv, symObjAddr: 0x3144, symBinAddr: 0x10B90, symSize: 0xC }
+  - { offset: 0x2E6B7, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react27NativeAnimatedModuleSpecJSIENS_9allocatorIS3_EEE16__on_zero_sharedEv, symObjAddr: 0x3144, symBinAddr: 0x10B90, symSize: 0xC }
+  - { offset: 0x2E6D4, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react27NativeAnimatedModuleSpecJSIENS_9allocatorIS3_EEE16__on_zero_sharedEv, symObjAddr: 0x3144, symBinAddr: 0x10B90, symSize: 0xC }
+  - { offset: 0x2E6FF, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react27NativeAnimatedModuleSpecJSIENS_9allocatorIS3_EEE21__on_zero_shared_weakEv, symObjAddr: 0x3150, symBinAddr: 0x10B9C, symSize: 0x4 }
+  - { offset: 0x2E730, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react27NativeAnimatedModuleSpecJSIENS_9allocatorIS3_EEE21__on_zero_shared_weakEv, symObjAddr: 0x3150, symBinAddr: 0x10B9C, symSize: 0x4 }
+  - { offset: 0x2E751, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react27NativeAnimatedModuleSpecJSIENS_9allocatorIS3_EEE21__on_zero_shared_weakEv, symObjAddr: 0x3150, symBinAddr: 0x10B9C, symSize: 0x4 }
+  - { offset: 0x2E773, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react27NativeAnimatedModuleSpecJSIENS_9allocatorIS3_EEE21__on_zero_shared_weakEv, symObjAddr: 0x3150, symBinAddr: 0x10B9C, symSize: 0x4 }
+  - { offset: 0x2E7A7, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react27NativeAnimatedModuleSpecJSIENS_9allocatorIS3_EEE21__on_zero_shared_weakEv, symObjAddr: 0x3150, symBinAddr: 0x10B9C, symSize: 0x4 }
+  - { offset: 0x313C2, size: 0x8, addend: 0x0, symName: '-[RCTObjectAnimatedNode performUpdate]', symObjAddr: 0x0, symBinAddr: 0x10BA0, symSize: 0x100 }
+  - { offset: 0x31491, size: 0x8, addend: 0x0, symName: '-[RCTObjectAnimatedNode performUpdate]', symObjAddr: 0x0, symBinAddr: 0x10BA0, symSize: 0x100 }
+  - { offset: 0x314D0, size: 0x8, addend: 0x0, symName: '-[RCTObjectAnimatedNode _performUpdateHelperDictionary:]', symObjAddr: 0x100, symBinAddr: 0x10CA0, symSize: 0x19C }
+  - { offset: 0x31537, size: 0x8, addend: 0x0, symName: '-[RCTObjectAnimatedNode _performUpdateHelperArray:]', symObjAddr: 0x29C, symBinAddr: 0x10E3C, symSize: 0x174 }
+  - { offset: 0x3159E, size: 0x8, addend: 0x0, symName: '-[RCTObjectAnimatedNode _convertValue:]', symObjAddr: 0x410, symBinAddr: 0x10FB0, symSize: 0x1B4 }
+  - { offset: 0x31633, size: 0x8, addend: 0x0, symName: '-[RCTObjectAnimatedNode value]', symObjAddr: 0x5C4, symBinAddr: 0x11164, symSize: 0x10 }
+  - { offset: 0x31667, size: 0x8, addend: 0x0, symName: '-[RCTObjectAnimatedNode .cxx_destruct]', symObjAddr: 0x5D4, symBinAddr: 0x11174, symSize: 0x14 }
+  - { offset: 0x31873, size: 0x8, addend: 0x0, symName: '-[RCTPropsAnimatedNode initWithTag:config:]', symObjAddr: 0x0, symBinAddr: 0x11188, symSize: 0xB8 }
+  - { offset: 0x3197C, size: 0x8, addend: 0x0, symName: '-[RCTPropsAnimatedNode initWithTag:config:]', symObjAddr: 0x0, symBinAddr: 0x11188, symSize: 0xB8 }
+  - { offset: 0x319CE, size: 0x8, addend: 0x0, symName: '-[RCTPropsAnimatedNode isManagedByFabric]', symObjAddr: 0xB8, symBinAddr: 0x11240, symSize: 0x10 }
+  - { offset: 0x31A02, size: 0x8, addend: 0x0, symName: '-[RCTPropsAnimatedNode connectToView:viewName:bridge:surfacePresenter:]', symObjAddr: 0xC8, symBinAddr: 0x11250, symSize: 0xD8 }
+  - { offset: 0x31A93, size: 0x8, addend: 0x0, symName: '-[RCTPropsAnimatedNode disconnectFromView:]', symObjAddr: 0x1A0, symBinAddr: 0x11328, symSize: 0x78 }
+  - { offset: 0x31ACE, size: 0x8, addend: 0x0, symName: '-[RCTPropsAnimatedNode updateView]', symObjAddr: 0x218, symBinAddr: 0x113A0, symSize: 0x148 }
+  - { offset: 0x31AFE, size: 0x8, addend: 0x0, symName: '-[RCTPropsAnimatedNode restoreDefaultValues]', symObjAddr: 0x360, symBinAddr: 0x114E8, symSize: 0x17C }
+  - { offset: 0x31B43, size: 0x8, addend: 0x0, symName: '-[RCTPropsAnimatedNode propertyNameForParentTag:]', symObjAddr: 0x4DC, symBinAddr: 0x11664, symSize: 0x14C }
+  - { offset: 0x31B9B, size: 0x8, addend: 0x0, symName: ___Block_byref_object_copy_, symObjAddr: 0x628, symBinAddr: 0x117B0, symSize: 0x10 }
+  - { offset: 0x31BC0, size: 0x8, addend: 0x0, symName: ___Block_byref_object_dispose_, symObjAddr: 0x638, symBinAddr: 0x117C0, symSize: 0x8 }
+  - { offset: 0x31BDF, size: 0x8, addend: 0x0, symName: '___49-[RCTPropsAnimatedNode propertyNameForParentTag:]_block_invoke', symObjAddr: 0x640, symBinAddr: 0x117C8, symSize: 0x84 }
+  - { offset: 0x31C55, size: 0x8, addend: 0x0, symName: ___copy_helper_block_ea8_32s40r, symObjAddr: 0x6C4, symBinAddr: 0x1184C, symSize: 0x34 }
+  - { offset: 0x31C7E, size: 0x8, addend: 0x0, symName: ___destroy_helper_block_ea8_32s40r, symObjAddr: 0x6F8, symBinAddr: 0x11880, symSize: 0x2C }
+  - { offset: 0x31C9C, size: 0x8, addend: 0x0, symName: '-[RCTPropsAnimatedNode performUpdate]', symObjAddr: 0x724, symBinAddr: 0x118AC, symSize: 0x434 }
+  - { offset: 0x31D86, size: 0x8, addend: 0x0, symName: '-[RCTPropsAnimatedNode .cxx_destruct]', symObjAddr: 0xB58, symBinAddr: 0x11CE0, symSize: 0x74 }
+  - { offset: 0x320C0, size: 0x8, addend: 0x0, symName: '-[RCTSpringAnimation initWithId:config:forNode:callBack:]', symObjAddr: 0x0, symBinAddr: 0x11D54, symSize: 0x160 }
+  - { offset: 0x322F9, size: 0x8, addend: 0x0, symName: '-[RCTSpringAnimation initWithId:config:forNode:callBack:]', symObjAddr: 0x0, symBinAddr: 0x11D54, symSize: 0x160 }
+  - { offset: 0x32369, size: 0x8, addend: 0x0, symName: '-[RCTSpringAnimation resetAnimationConfig:]', symObjAddr: 0x160, symBinAddr: 0x11EB4, symSize: 0x270 }
+  - { offset: 0x323B7, size: 0x8, addend: 0x0, symName: '-[RCTSpringAnimation init]', symObjAddr: 0x3D0, symBinAddr: 0x12124, symSize: 0x44 }
+  - { offset: 0x324B6, size: 0x8, addend: 0x0, symName: '-[RCTSpringAnimation startAnimation]', symObjAddr: 0x414, symBinAddr: 0x12168, symSize: 0x14 }
+  - { offset: 0x324E4, size: 0x8, addend: 0x0, symName: '-[RCTSpringAnimation stopAnimation]', symObjAddr: 0x428, symBinAddr: 0x1217C, symSize: 0x160 }
+  - { offset: 0x3252D, size: 0x8, addend: 0x0, symName: '-[RCTSpringAnimation stepAnimationWithTime:]', symObjAddr: 0x588, symBinAddr: 0x122DC, symSize: 0x2A4 }
+  - { offset: 0x3269C, size: 0x8, addend: 0x0, symName: '-[RCTSpringAnimation onUpdate:]', symObjAddr: 0x82C, symBinAddr: 0x12580, symSize: 0x28 }
+  - { offset: 0x326DB, size: 0x8, addend: 0x0, symName: '-[RCTSpringAnimation animationId]', symObjAddr: 0x854, symBinAddr: 0x125A8, symSize: 0x8 }
+  - { offset: 0x3270F, size: 0x8, addend: 0x0, symName: '-[RCTSpringAnimation setAnimationId:]', symObjAddr: 0x85C, symBinAddr: 0x125B0, symSize: 0xC }
+  - { offset: 0x3274C, size: 0x8, addend: 0x0, symName: '-[RCTSpringAnimation valueNode]', symObjAddr: 0x868, symBinAddr: 0x125BC, symSize: 0x8 }
+  - { offset: 0x32780, size: 0x8, addend: 0x0, symName: '-[RCTSpringAnimation setValueNode:]', symObjAddr: 0x870, symBinAddr: 0x125C4, symSize: 0xC }
+  - { offset: 0x327BD, size: 0x8, addend: 0x0, symName: '-[RCTSpringAnimation animationHasBegun]', symObjAddr: 0x87C, symBinAddr: 0x125D0, symSize: 0x8 }
+  - { offset: 0x327F1, size: 0x8, addend: 0x0, symName: '-[RCTSpringAnimation setAnimationHasBegun:]', symObjAddr: 0x884, symBinAddr: 0x125D8, symSize: 0x8 }
+  - { offset: 0x32829, size: 0x8, addend: 0x0, symName: '-[RCTSpringAnimation animationHasFinished]', symObjAddr: 0x88C, symBinAddr: 0x125E0, symSize: 0x8 }
+  - { offset: 0x3285D, size: 0x8, addend: 0x0, symName: '-[RCTSpringAnimation setAnimationHasFinished:]', symObjAddr: 0x894, symBinAddr: 0x125E8, symSize: 0x8 }
+  - { offset: 0x32895, size: 0x8, addend: 0x0, symName: '-[RCTSpringAnimation .cxx_destruct]', symObjAddr: 0x89C, symBinAddr: 0x125F0, symSize: 0x3C }
+  - { offset: 0x32A7E, size: 0x8, addend: 0x0, symName: '-[RCTStyleAnimatedNode initWithTag:config:]', symObjAddr: 0x0, symBinAddr: 0x1262C, symSize: 0xB8 }
+  - { offset: 0x32B22, size: 0x8, addend: 0x0, symName: '-[RCTStyleAnimatedNode initWithTag:config:]', symObjAddr: 0x0, symBinAddr: 0x1262C, symSize: 0xB8 }
+  - { offset: 0x32B74, size: 0x8, addend: 0x0, symName: '-[RCTStyleAnimatedNode propsDictionary]', symObjAddr: 0xB8, symBinAddr: 0x126E4, symSize: 0x10 }
+  - { offset: 0x32BA8, size: 0x8, addend: 0x0, symName: '-[RCTStyleAnimatedNode performUpdate]', symObjAddr: 0xC8, symBinAddr: 0x126F4, symSize: 0xCC }
+  - { offset: 0x32BE8, size: 0x8, addend: 0x0, symName: '___37-[RCTStyleAnimatedNode performUpdate]_block_invoke', symObjAddr: 0x194, symBinAddr: 0x127C0, symSize: 0x280 }
+  - { offset: 0x32CDD, size: 0x8, addend: 0x0, symName: '-[RCTStyleAnimatedNode .cxx_destruct]', symObjAddr: 0x424, symBinAddr: 0x12A40, symSize: 0x14 }
+  - { offset: 0x32F9A, size: 0x8, addend: 0x0, symName: '-[RCTSubtractionAnimatedNode performUpdate]', symObjAddr: 0x0, symBinAddr: 0x12A54, symSize: 0x1D8 }
+  - { offset: 0x33012, size: 0x8, addend: 0x0, symName: '-[RCTSubtractionAnimatedNode performUpdate]', symObjAddr: 0x0, symBinAddr: 0x12A54, symSize: 0x1D8 }
+  - { offset: 0x33242, size: 0x8, addend: 0x0, symName: '-[RCTTrackingAnimatedNode initWithTag:config:]', symObjAddr: 0x0, symBinAddr: 0x12C2C, symSize: 0x17C }
+  - { offset: 0x332FD, size: 0x8, addend: 0x0, symName: '-[RCTTrackingAnimatedNode initWithTag:config:]', symObjAddr: 0x0, symBinAddr: 0x12C2C, symSize: 0x17C }
+  - { offset: 0x3334F, size: 0x8, addend: 0x0, symName: '-[RCTTrackingAnimatedNode onDetachedFromNode:]', symObjAddr: 0x17C, symBinAddr: 0x12DA8, symSize: 0x98 }
+  - { offset: 0x3338E, size: 0x8, addend: 0x0, symName: '-[RCTTrackingAnimatedNode performUpdate]', symObjAddr: 0x214, symBinAddr: 0x12E40, symSize: 0x11C }
+  - { offset: 0x333CD, size: 0x8, addend: 0x0, symName: '-[RCTTrackingAnimatedNode .cxx_destruct]', symObjAddr: 0x330, symBinAddr: 0x12F5C, symSize: 0x68 }
+  - { offset: 0x335CA, size: 0x8, addend: 0x0, symName: '-[RCTTransformAnimatedNode initWithTag:config:]', symObjAddr: 0x0, symBinAddr: 0x12FC4, symSize: 0xB8 }
+  - { offset: 0x33663, size: 0x8, addend: 0x0, symName: '-[RCTTransformAnimatedNode initWithTag:config:]', symObjAddr: 0x0, symBinAddr: 0x12FC4, symSize: 0xB8 }
+  - { offset: 0x336B5, size: 0x8, addend: 0x0, symName: '-[RCTTransformAnimatedNode propsDictionary]', symObjAddr: 0xB8, symBinAddr: 0x1307C, symSize: 0x10 }
+  - { offset: 0x336E9, size: 0x8, addend: 0x0, symName: '-[RCTTransformAnimatedNode performUpdate]', symObjAddr: 0xC8, symBinAddr: 0x1308C, symSize: 0x384 }
+  - { offset: 0x337B2, size: 0x8, addend: 0x0, symName: '-[RCTTransformAnimatedNode .cxx_destruct]', symObjAddr: 0x44C, symBinAddr: 0x13410, symSize: 0x14 }
+  - { offset: 0x339BE, size: 0x8, addend: 0x0, symName: '-[RCTValueAnimatedNode initWithTag:config:]', symObjAddr: 0x0, symBinAddr: 0x13424, symSize: 0x14C }
+  - { offset: 0x33AC4, size: 0x8, addend: 0x0, symName: '-[RCTValueAnimatedNode initWithTag:config:]', symObjAddr: 0x0, symBinAddr: 0x13424, symSize: 0x14C }
+  - { offset: 0x33B16, size: 0x8, addend: 0x0, symName: '-[RCTValueAnimatedNode flattenOffset]', symObjAddr: 0x14C, symBinAddr: 0x13570, symSize: 0x28 }
+  - { offset: 0x33B44, size: 0x8, addend: 0x0, symName: '-[RCTValueAnimatedNode extractOffset]', symObjAddr: 0x174, symBinAddr: 0x13598, symSize: 0x28 }
+  - { offset: 0x33B72, size: 0x8, addend: 0x0, symName: '-[RCTValueAnimatedNode value]', symObjAddr: 0x19C, symBinAddr: 0x135C0, symSize: 0x20 }
+  - { offset: 0x33BA4, size: 0x8, addend: 0x0, symName: '-[RCTValueAnimatedNode animatedObject]', symObjAddr: 0x1BC, symBinAddr: 0x135E0, symSize: 0x8 }
+  - { offset: 0x33BD4, size: 0x8, addend: 0x0, symName: '-[RCTValueAnimatedNode setValue:]', symObjAddr: 0x1C4, symBinAddr: 0x135E8, symSize: 0x98 }
+  - { offset: 0x33C13, size: 0x8, addend: 0x0, symName: '-[RCTValueAnimatedNode valueObserver]', symObjAddr: 0x25C, symBinAddr: 0x13680, symSize: 0x20 }
+  - { offset: 0x33C47, size: 0x8, addend: 0x0, symName: '-[RCTValueAnimatedNode setValueObserver:]', symObjAddr: 0x27C, symBinAddr: 0x136A0, symSize: 0x14 }
+  - { offset: 0x33C84, size: 0x8, addend: 0x0, symName: '-[RCTValueAnimatedNode offset]', symObjAddr: 0x290, symBinAddr: 0x136B4, symSize: 0x10 }
+  - { offset: 0x33CB6, size: 0x8, addend: 0x0, symName: '-[RCTValueAnimatedNode setOffset:]', symObjAddr: 0x2A0, symBinAddr: 0x136C4, symSize: 0x10 }
+  - { offset: 0x33CF3, size: 0x8, addend: 0x0, symName: '-[RCTValueAnimatedNode .cxx_destruct]', symObjAddr: 0x2B0, symBinAddr: 0x136D4, symSize: 0x10 }
+...

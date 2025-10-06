@@ -1,0 +1,14 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     '/Users/uk-aplatts/Development/InjuryIQ/ios/DerivedData/Build/Intermediates.noindex/ArchiveIntermediates/InjuryIQ/IntermediateBuildFilesPath/UninstalledProducts/iphoneos/ReactAppDependencyProvider.framework/ReactAppDependencyProvider'
+relocations:
+  - { offset: 0x33, size: 0x8, addend: 0x0, symName: _ReactAppDependencyProviderVersionString, symObjAddr: 0x0, symBinAddr: 0x42C8, symSize: 0x0 }
+  - { offset: 0x67, size: 0x8, addend: 0x0, symName: _ReactAppDependencyProviderVersionNumber, symObjAddr: 0x38, symBinAddr: 0x4300, symSize: 0x0 }
+  - { offset: 0xA3, size: 0x8, addend: 0x0, symName: '-[RCTAppDependencyProvider URLRequestHandlerClassNames]', symObjAddr: 0x0, symBinAddr: 0x4000, symSize: 0xC }
+  - { offset: 0xEA, size: 0x8, addend: 0x0, symName: '-[RCTAppDependencyProvider URLRequestHandlerClassNames]', symObjAddr: 0x0, symBinAddr: 0x4000, symSize: 0xC }
+  - { offset: 0x11A, size: 0x8, addend: 0x0, symName: '-[RCTAppDependencyProvider imageDataDecoderClassNames]', symObjAddr: 0xC, symBinAddr: 0x400C, symSize: 0xC }
+  - { offset: 0x14A, size: 0x8, addend: 0x0, symName: '-[RCTAppDependencyProvider imageURLLoaderClassNames]', symObjAddr: 0x18, symBinAddr: 0x4018, symSize: 0xC }
+  - { offset: 0x17A, size: 0x8, addend: 0x0, symName: '-[RCTAppDependencyProvider unstableModulesRequiringMainQueueSetup]', symObjAddr: 0x24, symBinAddr: 0x4024, symSize: 0xC }
+  - { offset: 0x1AA, size: 0x8, addend: 0x0, symName: '-[RCTAppDependencyProvider thirdPartyFabricComponents]', symObjAddr: 0x30, symBinAddr: 0x4030, symSize: 0xC }
+  - { offset: 0x1DA, size: 0x8, addend: 0x0, symName: '-[RCTAppDependencyProvider moduleProviders]', symObjAddr: 0x3C, symBinAddr: 0x403C, symSize: 0xC }
+...

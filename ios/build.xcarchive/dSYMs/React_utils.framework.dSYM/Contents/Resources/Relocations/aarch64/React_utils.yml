@@ -1,0 +1,80 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     '/Users/uk-aplatts/Development/InjuryIQ/ios/DerivedData/Build/Intermediates.noindex/ArchiveIntermediates/InjuryIQ/IntermediateBuildFilesPath/UninstalledProducts/iphoneos/React_utils.framework/React_utils'
+relocations:
+  - { offset: 0x33, size: 0x8, addend: 0x0, symName: _React_utilsVersionString, symObjAddr: 0x0, symBinAddr: 0x63B0, symSize: 0x0 }
+  - { offset: 0x67, size: 0x8, addend: 0x0, symName: _React_utilsVersionNumber, symObjAddr: 0x30, symBinAddr: 0x63E0, symSize: 0x0 }
+  - { offset: 0xA3, size: 0x8, addend: 0x0, symName: __ZN8facebook5react23convertFollyDynamicToIdERKN5folly7dynamicE, symObjAddr: 0x0, symBinAddr: 0x4000, symSize: 0x28C }
+  - { offset: 0xFA, size: 0x8, addend: 0x0, symName: __ZNSt3__119piecewise_constructE, symObjAddr: 0x1643, symBinAddr: 0x640B, symSize: 0x0 }
+  - { offset: 0xAAE6, size: 0x8, addend: 0x0, symName: __ZNSt3__120__throw_length_errorB8ne200100EPKc, symObjAddr: 0xB04, symBinAddr: 0x4A68, symSize: 0x50 }
+  - { offset: 0xAC09, size: 0x8, addend: 0x0, symName: __ZNSt3__119__allocate_at_leastB8ne200100INS_9allocatorIN5folly7dynamicEEEEENS_19__allocation_resultINS_16allocator_traitsIT_E7pointerEEERS7_m, symObjAddr: 0xDBC, symBinAddr: 0x4D20, symSize: 0x44 }
+  - { offset: 0xACAE, size: 0x8, addend: 0x0, symName: __ZNSt3__134__uninitialized_allocator_relocateB8ne200100INS_9allocatorIN5folly7dynamicEEEPS3_EEvRT_T0_S8_S8_, symObjAddr: 0xE00, symBinAddr: 0x4D64, symSize: 0x68 }
+  - { offset: 0xACC1, size: 0x8, addend: 0x0, symName: __ZNSt3__134__uninitialized_allocator_relocateB8ne200100INS_9allocatorIN5folly7dynamicEEEPS3_EEvRT_T0_S8_S8_, symObjAddr: 0xE00, symBinAddr: 0x4D64, symSize: 0x68 }
+  - { offset: 0xAD1B, size: 0x8, addend: 0x0, symName: __ZNSt3__134__uninitialized_allocator_relocateB8ne200100INS_9allocatorIN5folly7dynamicEEEPS3_EEvRT_T0_S8_S8_, symObjAddr: 0xE00, symBinAddr: 0x4D64, symSize: 0x68 }
+  - { offset: 0xC53C, size: 0x8, addend: 0x0, symName: __ZSt28__throw_bad_array_new_lengthB8ne200100v, symObjAddr: 0xB78, symBinAddr: 0x4ADC, symSize: 0x28 }
+  - { offset: 0xEDEC, size: 0x8, addend: 0x0, symName: __ZN5folly6detail16throw_exception_INS_9TypeErrorEJPKcNS_7dynamic4TypeEEEEvDpT0_, symObjAddr: 0x974, symBinAddr: 0x5E1C, symSize: 0x68 }
+  - { offset: 0xFE9F, size: 0x8, addend: 0x0, symName: __ZN5folly15throw_exceptionINS_9TypeErrorEEEvOT_, symObjAddr: 0x9DC, symBinAddr: 0x5E84, symSize: 0x34 }
+  - { offset: 0x11496, size: 0x8, addend: 0x0, symName: __ZN8facebook5react23convertFollyDynamicToIdERKN5folly7dynamicE, symObjAddr: 0x0, symBinAddr: 0x4000, symSize: 0x28C }
+  - { offset: 0x1192E, size: 0x8, addend: 0x0, symName: __ZN8facebook5react23convertIdToFollyDynamicEP11objc_object, symObjAddr: 0x28C, symBinAddr: 0x428C, symSize: 0x45C }
+  - { offset: 0x121E8, size: 0x8, addend: 0x0, symName: __ZN8facebook5react27extractKeysFromFollyDynamicERKN5folly7dynamicE, symObjAddr: 0x848, symBinAddr: 0x4848, symSize: 0x12C }
+  - { offset: 0x12499, size: 0x8, addend: 0x0, symName: __ZN8facebook5react23convertFollyDynamicToIdERKN5folly7dynamicE.cold.1, symObjAddr: 0x1388, symBinAddr: 0x5EB8, symSize: 0x1C }
+  - { offset: 0x12C6D, size: 0x8, addend: 0x0, symName: __ZNSt3__112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEC2B8ne200100EPKcm, symObjAddr: 0xBA0, symBinAddr: 0x4B04, symSize: 0x9C }
+  - { offset: 0x12E90, size: 0x8, addend: 0x0, symName: __ZNSt3__16vectorIN5folly7dynamicENS_9allocatorIS2_EEE9push_backB8ne200100EOS2_, symObjAddr: 0xC3C, symBinAddr: 0x4BA0, symSize: 0x44 }
+  - { offset: 0x12E9B, size: 0x8, addend: 0x0, symName: __ZNSt3__16vectorIN5folly7dynamicENS_9allocatorIS2_EEE9push_backB8ne200100EOS2_, symObjAddr: 0xC3C, symBinAddr: 0x4BA0, symSize: 0x44 }
+  - { offset: 0x12FB6, size: 0x8, addend: 0x0, symName: ___Block_byref_object_copy_, symObjAddr: 0x6E8, symBinAddr: 0x46E8, symSize: 0xC }
+  - { offset: 0x12FDF, size: 0x8, addend: 0x0, symName: ___Block_byref_object_dispose_, symObjAddr: 0x6F4, symBinAddr: 0x46F4, symSize: 0x8 }
+  - { offset: 0x1309A, size: 0x8, addend: 0x0, symName: ____ZN8facebook5react23convertIdToFollyDynamicEP11objc_object_block_invoke, symObjAddr: 0x6FC, symBinAddr: 0x46FC, symSize: 0x130 }
+  - { offset: 0x13315, size: 0x8, addend: 0x0, symName: __ZNSt3__112__hash_tableINS_17__hash_value_typeIN5folly7dynamicES3_EENS_22__unordered_map_hasherIS3_S4_NS2_6detail13DynamicHasherENS6_15DynamicKeyEqualELb1EEENS_21__unordered_map_equalIS3_S4_S8_S7_Lb1EEENS_9allocatorIS4_EEE25__emplace_unique_key_argsIS3_JRKNS_21piecewise_construct_tENS_5tupleIJOS3_EEENSJ_IJEEEEEENS_4pairINS_15__hash_iteratorIPNS_11__hash_nodeIS4_PvEEEEbEERKT_DpOT0_, symObjAddr: 0xEB4, symBinAddr: 0x4E18, symSize: 0x25C }
+  - { offset: 0x13A84, size: 0x8, addend: 0x0, symName: ___copy_helper_block_ea8_32r, symObjAddr: 0x82C, symBinAddr: 0x482C, symSize: 0x10 }
+  - { offset: 0x13AAD, size: 0x8, addend: 0x0, symName: ___destroy_helper_block_ea8_32r, symObjAddr: 0x83C, symBinAddr: 0x483C, symSize: 0xC }
+  - { offset: 0x13C05, size: 0x8, addend: 0x0, symName: __ZNSt3__112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEC2B8ne200100ILi0EEEPKc, symObjAddr: 0xA4C, symBinAddr: 0x49B0, symSize: 0xA4 }
+  - { offset: 0x13E5D, size: 0x8, addend: 0x0, symName: __ZNSt3__112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE20__throw_length_errorB8ne200100Ev, symObjAddr: 0xAF0, symBinAddr: 0x4A54, symSize: 0x14 }
+  - { offset: 0x13E74, size: 0x8, addend: 0x0, symName: __ZN5folly9TypeErrorC1EOS0_, symObjAddr: 0xA14, symBinAddr: 0x4978, symSize: 0x24 }
+  - { offset: 0x13ECE, size: 0x8, addend: 0x0, symName: __ZN5folly9TypeErrorD1Ev, symObjAddr: 0xA10, symBinAddr: 0x4974, symSize: 0x4 }
+  - { offset: 0x13EF0, size: 0x8, addend: 0x0, symName: __ZN5folly9TypeErrorD1Ev, symObjAddr: 0xA10, symBinAddr: 0x4974, symSize: 0x4 }
+  - { offset: 0x13F2B, size: 0x8, addend: 0x0, symName: __ZN5folly9TypeErrorD0Ev, symObjAddr: 0xA38, symBinAddr: 0x499C, symSize: 0x14 }
+  - { offset: 0x140FF, size: 0x8, addend: 0x0, symName: __ZNSt3__112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE20__throw_length_errorB8ne200100Ev, symObjAddr: 0xAF0, symBinAddr: 0x4A54, symSize: 0x14 }
+  - { offset: 0x14116, size: 0x8, addend: 0x0, symName: __ZNSt3__120__throw_length_errorB8ne200100EPKc, symObjAddr: 0xB04, symBinAddr: 0x4A68, symSize: 0x50 }
+  - { offset: 0x14121, size: 0x8, addend: 0x0, symName: __ZNSt12length_errorC1B8ne200100EPKc, symObjAddr: 0xB54, symBinAddr: 0x4AB8, symSize: 0x24 }
+  - { offset: 0x1427D, size: 0x8, addend: 0x0, symName: __ZNSt3__16vectorIN5folly7dynamicENS_9allocatorIS2_EEE24__emplace_back_slow_pathIJS2_EEEPS2_DpOT_, symObjAddr: 0xC80, symBinAddr: 0x4BE4, symSize: 0x128 }
+  - { offset: 0x14699, size: 0x8, addend: 0x0, symName: __ZNSt3__114__split_bufferIN5folly7dynamicERNS_9allocatorIS2_EEED2Ev, symObjAddr: 0xE68, symBinAddr: 0x4DCC, symSize: 0x4C }
+  - { offset: 0x14812, size: 0x8, addend: 0x0, symName: __ZNSt3__16vectorIN5folly7dynamicENS_9allocatorIS2_EEE20__throw_length_errorB8ne200100Ev, symObjAddr: 0xDA8, symBinAddr: 0x4D0C, symSize: 0x14 }
+  - { offset: 0x14829, size: 0x8, addend: 0x0, symName: __ZNSt3__119__allocate_at_leastB8ne200100INS_9allocatorIN5folly7dynamicEEEEENS_19__allocation_resultINS_16allocator_traitsIT_E7pointerEEERS7_m, symObjAddr: 0xDBC, symBinAddr: 0x4D20, symSize: 0x44 }
+  - { offset: 0x14EB2, size: 0x8, addend: 0x0, symName: __ZNSt3__112__hash_tableINS_17__hash_value_typeIN5folly7dynamicES3_EENS_22__unordered_map_hasherIS3_S4_NS2_6detail13DynamicHasherENS6_15DynamicKeyEqualELb1EEENS_21__unordered_map_equalIS3_S4_S8_S7_Lb1EEENS_9allocatorIS4_EEE8__rehashILb1EEEvm, symObjAddr: 0x1110, symBinAddr: 0x5074, symSize: 0xDC }
+  - { offset: 0x14FA8, size: 0x8, addend: 0x0, symName: __ZNSt3__122__hash_node_destructorINS_9allocatorINS_11__hash_nodeINS_17__hash_value_typeIN5folly7dynamicES5_EEPvEEEEEclB8ne200100EPS8_, symObjAddr: 0x133C, symBinAddr: 0x52A0, symSize: 0x4C }
+  - { offset: 0x15128, size: 0x8, addend: 0x0, symName: __ZNSt3__112__hash_tableINS_17__hash_value_typeIN5folly7dynamicES3_EENS_22__unordered_map_hasherIS3_S4_NS2_6detail13DynamicHasherENS6_15DynamicKeyEqualELb1EEENS_21__unordered_map_equalIS3_S4_S8_S7_Lb1EEENS_9allocatorIS4_EEE11__do_rehashILb1EEEvm, symObjAddr: 0x11EC, symBinAddr: 0x5150, symSize: 0x150 }
+  - { offset: 0x1552A, size: 0x8, addend: 0x0, symName: __ZNSt3__122__hash_node_destructorINS_9allocatorINS_11__hash_nodeINS_17__hash_value_typeIN5folly7dynamicES5_EEPvEEEEEclB8ne200100EPS8_, symObjAddr: 0x133C, symBinAddr: 0x52A0, symSize: 0x4C }
+  - { offset: 0x17E08, size: 0x8, addend: 0x0, symName: __ZN8facebook5react20defineReadOnlyGlobalERNS_3jsi7RuntimeERKNSt3__112basic_stringIcNS4_11char_traitsIcEENS4_9allocatorIcEEEEONS1_5ValueE, symObjAddr: 0x0, symBinAddr: 0x52EC, symSize: 0x454 }
+  - { offset: 0x1DDE5, size: 0x8, addend: 0x0, symName: __ZNSt3__1plB8ne200100IcNS_11char_traitsIcEENS_9allocatorIcEEEENS_12basic_stringIT_T0_T1_EEOS9_PKS6_, symObjAddr: 0x454, symBinAddr: 0x5740, symSize: 0x5C }
+  - { offset: 0x212C9, size: 0x8, addend: 0x0, symName: __ZN8facebook5react20defineReadOnlyGlobalERNS_3jsi7RuntimeERKNSt3__112basic_stringIcNS4_11char_traitsIcEENS4_9allocatorIcEEEEONS1_5ValueE, symObjAddr: 0x0, symBinAddr: 0x52EC, symSize: 0x454 }
+  - { offset: 0x22C8C, size: 0x8, addend: 0x0, symName: __ZNK8facebook3jsi6Object11setPropertyINS0_5ValueEEEvRNS0_7RuntimeEPKcOT_, symObjAddr: 0x4B0, symBinAddr: 0x579C, symSize: 0xAC }
+  - { offset: 0x22EC6, size: 0x8, addend: 0x0, symName: __ZNK8facebook3jsi8Function12callWithThisIJRNS0_6ObjectENS0_6StringES4_EEENS0_5ValueERNS0_7RuntimeERKS3_DpOT_, symObjAddr: 0x55C, symBinAddr: 0x5848, symSize: 0x1BC }
+  - { offset: 0x259B1, size: 0x8, addend: 0x0, symName: __ZNSt3__125__throw_bad_function_callB8ne200100Ev, symObjAddr: 0x25C, symBinAddr: 0x5C60, symSize: 0x34 }
+  - { offset: 0x268C6, size: 0x8, addend: 0x0, symName: __ZN8facebook5react19LowPriorityExecutor7executeEONSt3__18functionIFvvEEE, symObjAddr: 0x0, symBinAddr: 0x5A04, symSize: 0x18C }
+  - { offset: 0x26C0F, size: 0x8, addend: 0x0, symName: __ZNSt3__110__function12__value_funcIFvvEEC2B8ne200100EOS3_, symObjAddr: 0x1E8, symBinAddr: 0x5BEC, symSize: 0x64 }
+  - { offset: 0x26D88, size: 0x8, addend: 0x0, symName: ____ZN8facebook5react19LowPriorityExecutor7executeEONSt3__18functionIFvvEEE_block_invoke, symObjAddr: 0x18C, symBinAddr: 0x5B90, symSize: 0x20 }
+  - { offset: 0x26DC5, size: 0x8, addend: 0x0, symName: ____ZN8facebook5react19LowPriorityExecutor7executeEONSt3__18functionIFvvEEE_block_invoke, symObjAddr: 0x18C, symBinAddr: 0x5B90, symSize: 0x20 }
+  - { offset: 0x26DE2, size: 0x8, addend: 0x0, symName: ____ZN8facebook5react19LowPriorityExecutor7executeEONSt3__18functionIFvvEEE_block_invoke, symObjAddr: 0x18C, symBinAddr: 0x5B90, symSize: 0x20 }
+  - { offset: 0x26E0E, size: 0x8, addend: 0x0, symName: ___copy_helper_block_ea8_32c27_ZTSNSt3__18functionIFvvEEE, symObjAddr: 0x1AC, symBinAddr: 0x5BB0, symSize: 0xC }
+  - { offset: 0x26E19, size: 0x8, addend: 0x0, symName: ___copy_helper_block_ea8_32c27_ZTSNSt3__18functionIFvvEEE, symObjAddr: 0x1AC, symBinAddr: 0x5BB0, symSize: 0xC }
+  - { offset: 0x26E91, size: 0x8, addend: 0x0, symName: __ZNSt3__110__function12__value_funcIFvvEEC2B8ne200100ERKS3_, symObjAddr: 0x2A8, symBinAddr: 0x5CAC, symSize: 0x64 }
+  - { offset: 0x26EDB, size: 0x8, addend: 0x0, symName: ___destroy_helper_block_ea8_32c27_ZTSNSt3__18functionIFvvEEE, symObjAddr: 0x1B8, symBinAddr: 0x5BBC, symSize: 0x30 }
+  - { offset: 0x26FEC, size: 0x8, addend: 0x0, symName: __ZNSt3__117bad_function_callD1Ev, symObjAddr: 0x290, symBinAddr: 0x5C94, symSize: 0x4 }
+  - { offset: 0x2700E, size: 0x8, addend: 0x0, symName: __ZNSt3__117bad_function_callD1Ev, symObjAddr: 0x290, symBinAddr: 0x5C94, symSize: 0x4 }
+  - { offset: 0x27042, size: 0x8, addend: 0x0, symName: __ZNSt3__117bad_function_callD0Ev, symObjAddr: 0x294, symBinAddr: 0x5C98, symSize: 0x14 }
+  - { offset: 0x290C0, size: 0x8, addend: 0x0, symName: __ZN8facebook5react6detail27wrappedManagedObjectDeleterEPv, symObjAddr: 0x0, symBinAddr: 0x5D10, symSize: 0x1C }
+  - { offset: 0x2911C, size: 0x8, addend: 0x0, symName: '-[RCTInternalGenericWeakWrapper object]', symObjAddr: 0x2C, symBinAddr: 0x5D2C, symSize: 0x18 }
+  - { offset: 0x29153, size: 0x8, addend: 0x0, symName: '-[RCTInternalGenericWeakWrapper setObject:]', symObjAddr: 0x44, symBinAddr: 0x5D44, symSize: 0xC }
+  - { offset: 0x29194, size: 0x8, addend: 0x0, symName: '-[RCTInternalGenericWeakWrapper .cxx_destruct]', symObjAddr: 0x50, symBinAddr: 0x5D50, symSize: 0x8 }
+  - { offset: 0x2BCFC, size: 0x8, addend: 0x0, symName: __ZN8facebook5react15RunLoopObserverC2ENS1_8ActivityENSt3__18weak_ptrIKvEE, symObjAddr: 0x0, symBinAddr: 0x5D58, symSize: 0x2C }
+  - { offset: 0x2D31B, size: 0x8, addend: 0x0, symName: __ZN8facebook5react15RunLoopObserverC2ENS1_8ActivityENSt3__18weak_ptrIKvEE, symObjAddr: 0x0, symBinAddr: 0x5D58, symSize: 0x2C }
+  - { offset: 0x2D490, size: 0x8, addend: 0x0, symName: __ZNK8facebook5react15RunLoopObserver11setDelegateEPKNS1_8DelegateE, symObjAddr: 0x2C, symBinAddr: 0x5D84, symSize: 0x8 }
+  - { offset: 0x2D55A, size: 0x8, addend: 0x0, symName: __ZNK8facebook5react15RunLoopObserver6enableEv, symObjAddr: 0x34, symBinAddr: 0x5D8C, symSize: 0x24 }
+  - { offset: 0x2D669, size: 0x8, addend: 0x0, symName: __ZNK8facebook5react15RunLoopObserver7disableEv, symObjAddr: 0x58, symBinAddr: 0x5DB0, symSize: 0x20 }
+  - { offset: 0x2D778, size: 0x8, addend: 0x0, symName: __ZNK8facebook5react15RunLoopObserver17activityDidChangeENS1_8ActivityE, symObjAddr: 0x78, symBinAddr: 0x5DD0, symSize: 0x28 }
+  - { offset: 0x2D888, size: 0x8, addend: 0x0, symName: __ZNK8facebook5react15RunLoopObserver8getOwnerEv, symObjAddr: 0xA0, symBinAddr: 0x5DF8, symSize: 0x24 }
+  - { offset: 0x2D8B1, size: 0x8, addend: 0x0, symName: __ZNK8facebook5react15RunLoopObserver8getOwnerEv, symObjAddr: 0xA0, symBinAddr: 0x5DF8, symSize: 0x24 }
+  - { offset: 0x2D8D7, size: 0x8, addend: 0x0, symName: __ZNK8facebook5react15RunLoopObserver8getOwnerEv, symObjAddr: 0xA0, symBinAddr: 0x5DF8, symSize: 0x24 }
+  - { offset: 0x2D939, size: 0x8, addend: 0x0, symName: __ZN8facebook5react15RunLoopObserverD1Ev, symObjAddr: 0xC4, symBinAddr: 0x5ED4, symSize: 0x4 }
+  - { offset: 0x2D962, size: 0x8, addend: 0x0, symName: __ZN8facebook5react15RunLoopObserverD0Ev, symObjAddr: 0xC8, symBinAddr: 0x5ED8, symSize: 0x4 }
+...

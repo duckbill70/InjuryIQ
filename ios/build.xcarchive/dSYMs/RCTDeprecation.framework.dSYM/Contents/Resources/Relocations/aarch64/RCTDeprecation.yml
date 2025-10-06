@@ -1,0 +1,7 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     '/Users/uk-aplatts/Development/InjuryIQ/ios/DerivedData/Build/Intermediates.noindex/ArchiveIntermediates/InjuryIQ/IntermediateBuildFilesPath/UninstalledProducts/iphoneos/RCTDeprecation.framework/RCTDeprecation'
+relocations:
+  - { offset: 0x33, size: 0x8, addend: 0x0, symName: _RCTDeprecationVersionString, symObjAddr: 0x0, symBinAddr: 0x4000, symSize: 0x0 }
+  - { offset: 0x67, size: 0x8, addend: 0x0, symName: _RCTDeprecationVersionNumber, symObjAddr: 0x30, symBinAddr: 0x4030, symSize: 0x0 }
+...

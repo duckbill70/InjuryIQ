@@ -1,0 +1,75 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     '/Users/uk-aplatts/Development/InjuryIQ/ios/DerivedData/Build/Intermediates.noindex/ArchiveIntermediates/InjuryIQ/IntermediateBuildFilesPath/UninstalledProducts/iphoneos/RNPermissions.framework/RNPermissions'
+relocations:
+  - { offset: 0x33, size: 0x8, addend: 0x0, symName: _RNPermissionsVersionString, symObjAddr: 0x0, symBinAddr: 0x5648, symSize: 0x0 }
+  - { offset: 0x67, size: 0x8, addend: 0x0, symName: _RNPermissionsVersionNumber, symObjAddr: 0x30, symBinAddr: 0x5678, symSize: 0x0 }
+  - { offset: 0xA3, size: 0x8, addend: 0x0, symName: '+[RNPermissions moduleName]', symObjAddr: 0x0, symBinAddr: 0x4000, symSize: 0xC }
+  - { offset: 0x121, size: 0x8, addend: 0x0, symName: '+[RNPermissions __rct_export__3220]', symObjAddr: 0x368, symBinAddr: 0x4368, symSize: 0xC }
+  - { offset: 0x14C, size: 0x8, addend: 0x0, symName: '__ZZ35+[RNPermissions __rct_export__3220]E6config', symObjAddr: 0x1898, symBinAddr: 0xC870, symSize: 0x0 }
+  - { offset: 0x1C2, size: 0x8, addend: 0x0, symName: '+[RNPermissions __rct_export__3431]', symObjAddr: 0x640, symBinAddr: 0x4640, symSize: 0xC }
+  - { offset: 0x1ED, size: 0x8, addend: 0x0, symName: '__ZZ35+[RNPermissions __rct_export__3431]E6config', symObjAddr: 0x18B0, symBinAddr: 0xC888, symSize: 0x0 }
+  - { offset: 0x209, size: 0x8, addend: 0x0, symName: '+[RNPermissions __rct_export__3502]', symObjAddr: 0x704, symBinAddr: 0x4704, symSize: 0xC }
+  - { offset: 0x234, size: 0x8, addend: 0x0, symName: '__ZZ35+[RNPermissions __rct_export__3502]E6config', symObjAddr: 0x18C8, symBinAddr: 0xC8A0, symSize: 0x0 }
+  - { offset: 0x250, size: 0x8, addend: 0x0, symName: '+[RNPermissions __rct_export__3703]', symObjAddr: 0xA4C, symBinAddr: 0x4A4C, symSize: 0xC }
+  - { offset: 0x27B, size: 0x8, addend: 0x0, symName: '__ZZ35+[RNPermissions __rct_export__3703]E6config', symObjAddr: 0x18E0, symBinAddr: 0xC8B8, symSize: 0x0 }
+  - { offset: 0x297, size: 0x8, addend: 0x0, symName: '+[RNPermissions __rct_export__3864]', symObjAddr: 0xA78, symBinAddr: 0x4A78, symSize: 0xC }
+  - { offset: 0x2C2, size: 0x8, addend: 0x0, symName: '__ZZ35+[RNPermissions __rct_export__3864]E6config', symObjAddr: 0x18F8, symBinAddr: 0xC8D0, symSize: 0x0 }
+  - { offset: 0x2DE, size: 0x8, addend: 0x0, symName: '+[RNPermissions __rct_export__4065]', symObjAddr: 0xAA4, symBinAddr: 0x4AA4, symSize: 0xC }
+  - { offset: 0x309, size: 0x8, addend: 0x0, symName: '__ZZ35+[RNPermissions __rct_export__4065]E6config', symObjAddr: 0x1910, symBinAddr: 0xC8E8, symSize: 0x0 }
+  - { offset: 0x325, size: 0x8, addend: 0x0, symName: '+[RNPermissions __rct_export__4166]', symObjAddr: 0xAD0, symBinAddr: 0x4AD0, symSize: 0xC }
+  - { offset: 0x350, size: 0x8, addend: 0x0, symName: '__ZZ35+[RNPermissions __rct_export__4166]E6config', symObjAddr: 0x1928, symBinAddr: 0xC900, symSize: 0x0 }
+  - { offset: 0x36C, size: 0x8, addend: 0x0, symName: '+[RNPermissions __rct_export__4297]', symObjAddr: 0xAFC, symBinAddr: 0x4AFC, symSize: 0xC }
+  - { offset: 0x397, size: 0x8, addend: 0x0, symName: '__ZZ35+[RNPermissions __rct_export__4297]E6config', symObjAddr: 0x1940, symBinAddr: 0xC918, symSize: 0x0 }
+  - { offset: 0xEE37, size: 0x8, addend: 0x0, symName: __ZNSt3__115allocate_sharedB8ne200100IN8facebook5react26NativeRNPermissionsSpecJSIENS_9allocatorIS3_EEJRKNS2_15ObjCTurboModule10InitParamsEELi0EEENS_10shared_ptrIT_EERKT0_DpOT1_, symObjAddr: 0xC24, symBinAddr: 0x4C24, symSize: 0x58 }
+  - { offset: 0x11BF1, size: 0x8, addend: 0x0, symName: '+[RNPermissions moduleName]', symObjAddr: 0x0, symBinAddr: 0x4000, symSize: 0xC }
+  - { offset: 0x11C22, size: 0x8, addend: 0x0, symName: '+[RNPermissions load]', symObjAddr: 0xC, symBinAddr: 0x400C, symSize: 0x4 }
+  - { offset: 0x11C55, size: 0x8, addend: 0x0, symName: '+[RNPermissions load]', symObjAddr: 0xC, symBinAddr: 0x400C, symSize: 0x4 }
+  - { offset: 0x11C75, size: 0x8, addend: 0x0, symName: '+[RNPermissions requiresMainQueueSetup]', symObjAddr: 0x10, symBinAddr: 0x4010, symSize: 0x8 }
+  - { offset: 0x11CC8, size: 0x8, addend: 0x0, symName: '-[RNPermissions methodQueue]', symObjAddr: 0x18, symBinAddr: 0x4018, symSize: 0xC }
+  - { offset: 0x11CFC, size: 0x8, addend: 0x0, symName: '-[RNPermissions methodQueue]', symObjAddr: 0x18, symBinAddr: 0x4018, symSize: 0xC }
+  - { offset: 0x11D0E, size: 0x8, addend: 0x0, symName: '-[RNPermissions checkUsageDescriptionKeys:]', symObjAddr: 0x24, symBinAddr: 0x4024, symSize: 0x4 }
+  - { offset: 0x11D46, size: 0x8, addend: 0x0, symName: '-[RNPermissions checkPermissionHandler:]', symObjAddr: 0x28, symBinAddr: 0x4028, symSize: 0x6C }
+  - { offset: 0x11D8C, size: 0x8, addend: 0x0, symName: '-[RNPermissions handlerForPermission:]', symObjAddr: 0x94, symBinAddr: 0x4094, symSize: 0x8 }
+  - { offset: 0x11DD4, size: 0x8, addend: 0x0, symName: '-[RNPermissions stringForStatus:]', symObjAddr: 0x9C, symBinAddr: 0x409C, symSize: 0x28 }
+  - { offset: 0x11E15, size: 0x8, addend: 0x0, symName: '-[RNPermissions lockHandler:]', symObjAddr: 0xC4, symBinAddr: 0x40C4, symSize: 0xB4 }
+  - { offset: 0x11E6C, size: 0x8, addend: 0x0, symName: '-[RNPermissions unlockHandler:]', symObjAddr: 0x178, symBinAddr: 0x4178, symSize: 0x54 }
+  - { offset: 0x11EAF, size: 0x8, addend: 0x0, symName: '+[RNPermissions flagAsRequested:]', symObjAddr: 0x1CC, symBinAddr: 0x41CC, symSize: 0xF8 }
+  - { offset: 0x11F0D, size: 0x8, addend: 0x0, symName: '+[RNPermissions isFlaggedAsRequested:]', symObjAddr: 0x2C4, symBinAddr: 0x42C4, symSize: 0xA4 }
+  - { offset: 0x11F6F, size: 0x8, addend: 0x0, symName: '-[RNPermissions openSettings:resolve:reject:]', symObjAddr: 0x374, symBinAddr: 0x4374, symSize: 0x1B4 }
+  - { offset: 0x11FED, size: 0x8, addend: 0x0, symName: '___45-[RNPermissions openSettings:resolve:reject:]_block_invoke', symObjAddr: 0x528, symBinAddr: 0x4528, symSize: 0xA4 }
+  - { offset: 0x1207E, size: 0x8, addend: 0x0, symName: ___copy_helper_block_ea8_32s40b48b, symObjAddr: 0x5CC, symBinAddr: 0x45CC, symSize: 0x44 }
+  - { offset: 0x120A7, size: 0x8, addend: 0x0, symName: ___destroy_helper_block_ea8_32s40s48s, symObjAddr: 0x610, symBinAddr: 0x4610, symSize: 0x30 }
+  - { offset: 0x120C6, size: 0x8, addend: 0x0, symName: '-[RNPermissions check:resolve:reject:]', symObjAddr: 0x64C, symBinAddr: 0x464C, symSize: 0xB8 }
+  - { offset: 0x12150, size: 0x8, addend: 0x0, symName: '-[RNPermissions request:resolve:reject:]', symObjAddr: 0x710, symBinAddr: 0x4710, symSize: 0x1D4 }
+  - { offset: 0x121F3, size: 0x8, addend: 0x0, symName: '___40-[RNPermissions request:resolve:reject:]_block_invoke', symObjAddr: 0x8E4, symBinAddr: 0x48E4, symSize: 0x64 }
+  - { offset: 0x1227E, size: 0x8, addend: 0x0, symName: ___copy_helper_block_ea8_32s40s48b, symObjAddr: 0x948, symBinAddr: 0x4948, symSize: 0x3C }
+  - { offset: 0x122A7, size: 0x8, addend: 0x0, symName: '___40-[RNPermissions request:resolve:reject:]_block_invoke.31', symObjAddr: 0x984, symBinAddr: 0x4984, symSize: 0xC8 }
+  - { offset: 0x12340, size: 0x8, addend: 0x0, symName: '-[RNPermissions checkNotifications:reject:]', symObjAddr: 0xA58, symBinAddr: 0x4A58, symSize: 0x20 }
+  - { offset: 0x123A3, size: 0x8, addend: 0x0, symName: '-[RNPermissions requestNotifications:resolve:reject:]', symObjAddr: 0xA84, symBinAddr: 0x4A84, symSize: 0x20 }
+  - { offset: 0x12412, size: 0x8, addend: 0x0, symName: '-[RNPermissions openPhotoPicker:reject:]', symObjAddr: 0xAB0, symBinAddr: 0x4AB0, symSize: 0x20 }
+  - { offset: 0x12475, size: 0x8, addend: 0x0, symName: '-[RNPermissions checkLocationAccuracy:reject:]', symObjAddr: 0xADC, symBinAddr: 0x4ADC, symSize: 0x20 }
+  - { offset: 0x124D8, size: 0x8, addend: 0x0, symName: '-[RNPermissions requestLocationAccuracy:resolve:reject:]', symObjAddr: 0xB08, symBinAddr: 0x4B08, symSize: 0x20 }
+  - { offset: 0x12601, size: 0x8, addend: 0x0, symName: '-[RNPermissions getTurboModule:]', symObjAddr: 0xB28, symBinAddr: 0x4B28, symSize: 0x3C }
+  - { offset: 0x126C9, size: 0x8, addend: 0x0, symName: '-[RNPermissions checkMultiple:resolve:reject:]', symObjAddr: 0xB64, symBinAddr: 0x4B64, symSize: 0x20 }
+  - { offset: 0x12738, size: 0x8, addend: 0x0, symName: '-[RNPermissions requestMultiple:resolve:reject:]', symObjAddr: 0xB84, symBinAddr: 0x4B84, symSize: 0x20 }
+  - { offset: 0x127A7, size: 0x8, addend: 0x0, symName: '-[RNPermissions canScheduleExactAlarms:reject:]', symObjAddr: 0xBA4, symBinAddr: 0x4BA4, symSize: 0x20 }
+  - { offset: 0x1280A, size: 0x8, addend: 0x0, symName: '-[RNPermissions canUseFullScreenIntent:reject:]', symObjAddr: 0xBC4, symBinAddr: 0x4BC4, symSize: 0x20 }
+  - { offset: 0x1286D, size: 0x8, addend: 0x0, symName: '-[RNPermissions shouldShowRequestRationale:resolve:reject:]', symObjAddr: 0xBE4, symBinAddr: 0x4BE4, symSize: 0x20 }
+  - { offset: 0x128DC, size: 0x8, addend: 0x0, symName: '-[RNPermissions handlers]', symObjAddr: 0xC04, symBinAddr: 0x4C04, symSize: 0x8 }
+  - { offset: 0x12912, size: 0x8, addend: 0x0, symName: '-[RNPermissions setHandlers:]', symObjAddr: 0xC0C, symBinAddr: 0x4C0C, symSize: 0xC }
+  - { offset: 0x12952, size: 0x8, addend: 0x0, symName: '-[RNPermissions .cxx_destruct]', symObjAddr: 0xC18, symBinAddr: 0x4C18, symSize: 0xC }
+  - { offset: 0x12BB1, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react26NativeRNPermissionsSpecJSIENS_9allocatorIS3_EEEC2B8ne200100IJRKNS2_15ObjCTurboModule10InitParamsEES5_Li0EEES5_DpOT_, symObjAddr: 0xC7C, symBinAddr: 0x4C7C, symSize: 0x4C }
+  - { offset: 0x12D6C, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react26NativeRNPermissionsSpecJSIENS_9allocatorIS3_EEED1Ev, symObjAddr: 0xCC8, symBinAddr: 0x4CC8, symSize: 0x14 }
+  - { offset: 0x12D8E, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react26NativeRNPermissionsSpecJSIENS_9allocatorIS3_EEED1Ev, symObjAddr: 0xCC8, symBinAddr: 0x4CC8, symSize: 0x14 }
+  - { offset: 0x12DC3, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react26NativeRNPermissionsSpecJSIENS_9allocatorIS3_EEED0Ev, symObjAddr: 0xCDC, symBinAddr: 0x4CDC, symSize: 0x24 }
+  - { offset: 0x12E8D, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react26NativeRNPermissionsSpecJSIENS_9allocatorIS3_EEE16__on_zero_sharedEv, symObjAddr: 0xD00, symBinAddr: 0x4D00, symSize: 0xC }
+  - { offset: 0x12EB6, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react26NativeRNPermissionsSpecJSIENS_9allocatorIS3_EEE16__on_zero_sharedEv, symObjAddr: 0xD00, symBinAddr: 0x4D00, symSize: 0xC }
+  - { offset: 0x12ED4, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react26NativeRNPermissionsSpecJSIENS_9allocatorIS3_EEE16__on_zero_sharedEv, symObjAddr: 0xD00, symBinAddr: 0x4D00, symSize: 0xC }
+  - { offset: 0x12EF2, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react26NativeRNPermissionsSpecJSIENS_9allocatorIS3_EEE16__on_zero_sharedEv, symObjAddr: 0xD00, symBinAddr: 0x4D00, symSize: 0xC }
+  - { offset: 0x12F1E, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react26NativeRNPermissionsSpecJSIENS_9allocatorIS3_EEE21__on_zero_shared_weakEv, symObjAddr: 0xD0C, symBinAddr: 0x4D0C, symSize: 0x4 }
+  - { offset: 0x12F50, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react26NativeRNPermissionsSpecJSIENS_9allocatorIS3_EEE21__on_zero_shared_weakEv, symObjAddr: 0xD0C, symBinAddr: 0x4D0C, symSize: 0x4 }
+  - { offset: 0x12F71, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react26NativeRNPermissionsSpecJSIENS_9allocatorIS3_EEE21__on_zero_shared_weakEv, symObjAddr: 0xD0C, symBinAddr: 0x4D0C, symSize: 0x4 }
+  - { offset: 0x12F93, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react26NativeRNPermissionsSpecJSIENS_9allocatorIS3_EEE21__on_zero_shared_weakEv, symObjAddr: 0xD0C, symBinAddr: 0x4D0C, symSize: 0x4 }
+  - { offset: 0x12FC6, size: 0x8, addend: 0x0, symName: __ZNSt3__120__shared_ptr_emplaceIN8facebook5react26NativeRNPermissionsSpecJSIENS_9allocatorIS3_EEE21__on_zero_shared_weakEv, symObjAddr: 0xD0C, symBinAddr: 0x4D0C, symSize: 0x4 }
+...

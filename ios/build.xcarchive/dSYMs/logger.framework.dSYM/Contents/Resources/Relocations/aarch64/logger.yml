@@ -1,0 +1,24 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     '/Users/uk-aplatts/Development/InjuryIQ/ios/DerivedData/Build/Intermediates.noindex/ArchiveIntermediates/InjuryIQ/IntermediateBuildFilesPath/UninstalledProducts/iphoneos/logger.framework/logger'
+relocations:
+  - { offset: 0x33, size: 0x8, addend: 0x0, symName: _loggerVersionString, symObjAddr: 0x0, symBinAddr: 0x4730, symSize: 0x0 }
+  - { offset: 0x67, size: 0x8, addend: 0x0, symName: _loggerVersionNumber, symObjAddr: 0x28, symBinAddr: 0x4758, symSize: 0x0 }
+  - { offset: 0x103, size: 0x8, addend: 0x0, symName: __ZL19_reactnativelogfunc, symObjAddr: 0x1B9C8, symBinAddr: 0xC0E0, symSize: 0x0 }
+  - { offset: 0x3619, size: 0x8, addend: 0x0, symName: __ZNSt3__124__put_character_sequenceB8ne200100IcNS_11char_traitsIcEEEERNS_13basic_ostreamIT_T0_EES7_PKS4_m, symObjAddr: 0x22C, symBinAddr: 0x422C, symSize: 0x168 }
+  - { offset: 0x48BA, size: 0x8, addend: 0x0, symName: __ZNSt3__1lsB8ne200100INS_11char_traitsIcEEEERNS_13basic_ostreamIcT_EES6_PKc, symObjAddr: 0x1F8, symBinAddr: 0x41F8, symSize: 0x34 }
+  - { offset: 0x4DF8, size: 0x8, addend: 0x0, symName: __ZNSt3__116__pad_and_outputB8ne200100IcNS_11char_traitsIcEEEENS_19ostreambuf_iteratorIT_T0_EES6_PKS4_S8_S8_RNS_8ios_baseES4_, symObjAddr: 0x394, symBinAddr: 0x4394, symSize: 0x13C }
+  - { offset: 0x5479, size: 0x8, addend: 0x0, symName: __ZNSt3__120__throw_length_errorB8ne200100EPKc, symObjAddr: 0x590, symBinAddr: 0x4590, symSize: 0x50 }
+  - { offset: 0x6682, size: 0x8, addend: 0x0, symName: _set_react_native_logfunc, symObjAddr: 0x0, symBinAddr: 0x4000, symSize: 0xC }
+  - { offset: 0x66C7, size: 0x8, addend: 0x0, symName: _react_native_log_info, symObjAddr: 0xC, symBinAddr: 0x400C, symSize: 0x20 }
+  - { offset: 0x6735, size: 0x8, addend: 0x0, symName: __react_native_log_default, symObjAddr: 0xA0, symBinAddr: 0x40A0, symSize: 0x158 }
+  - { offset: 0x691C, size: 0x8, addend: 0x0, symName: __react_native_log, symObjAddr: 0x2C, symBinAddr: 0x402C, symSize: 0x14 }
+  - { offset: 0x6958, size: 0x8, addend: 0x0, symName: _react_native_log_warn, symObjAddr: 0x40, symBinAddr: 0x4040, symSize: 0x20 }
+  - { offset: 0x69C6, size: 0x8, addend: 0x0, symName: _react_native_log_error, symObjAddr: 0x60, symBinAddr: 0x4060, symSize: 0x20 }
+  - { offset: 0x6A34, size: 0x8, addend: 0x0, symName: _react_native_log_fatal, symObjAddr: 0x80, symBinAddr: 0x4080, symSize: 0x20 }
+  - { offset: 0x6E7F, size: 0x8, addend: 0x0, symName: __ZNSt3__112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEC2B8ne200100Emc, symObjAddr: 0x4E0, symBinAddr: 0x44E0, symSize: 0x9C }
+  - { offset: 0x70B3, size: 0x8, addend: 0x0, symName: __ZNSt3__112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE20__throw_length_errorB8ne200100Ev, symObjAddr: 0x57C, symBinAddr: 0x457C, symSize: 0x14 }
+  - { offset: 0x720E, size: 0x8, addend: 0x0, symName: __ZNSt3__112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE20__throw_length_errorB8ne200100Ev, symObjAddr: 0x57C, symBinAddr: 0x457C, symSize: 0x14 }
+  - { offset: 0x7226, size: 0x8, addend: 0x0, symName: __ZNSt3__120__throw_length_errorB8ne200100EPKc, symObjAddr: 0x590, symBinAddr: 0x4590, symSize: 0x50 }
+  - { offset: 0x7231, size: 0x8, addend: 0x0, symName: __ZNSt12length_errorC1B8ne200100EPKc, symObjAddr: 0x5E0, symBinAddr: 0x45E0, symSize: 0x24 }
+...

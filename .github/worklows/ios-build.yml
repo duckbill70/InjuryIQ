@@ -1,0 +1,52 @@
+name: iOS Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install JS dependencies
+        run: npm ci
+
+      - name: Install CocoaPods
+        run: |
+          cd ios
+          pod install
+
+      - name: Build iOS app
+        run: |
+          xcodebuild archive \
+            -workspace ios/InjuryIQ.xcworkspace \
+            -scheme InjuryIQ \
+            -destination generic/platform=iOS \
+            -archivePath ios/build.xcarchive \
+            -derivedDataPath ios/DerivedData \
+            -resultBundlePath ios/resultbundle.xcresult \
+            -IDEPostProgressNotifications=YES \
+            CODE_SIGN_IDENTITY=- \
+            AD_HOC_CODE_SIGNING_ALLOWED=YES \
+            CODE_SIGN_STYLE=Automatic \
+            DEVELOPMENT_TEAM=KS86K6AD9K \
+            COMPILER_INDEX_STORE_ENABLE=NO \
+            -hideShellScriptEnvironment
+
+      # Optional: Upload build artifacts
+      - name: Upload Archive
+        uses: actions/upload-artifact@v3
+        with:
+          name: ios-build
+          path: ios/build.xcarchive

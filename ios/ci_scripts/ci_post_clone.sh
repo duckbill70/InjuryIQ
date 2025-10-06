@@ -1,9 +1,10 @@
-#!/bin/bash
-set -ex
+#!/bin/sh
 
-echo "Running post-clone script"
+# Install Node, CocoaPods, and yarn using Homebrew.
+brew install node
+brew install cocoapods
+brew install yarn
 
-cd "$(git rev-parse --show-toplevel)"
-npm ci || { echo "npm ci failed"; exit 1; }
-
-echo "post-clone script completed successfully"
+# Install dependencies
+yarn
+pod install

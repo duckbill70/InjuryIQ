@@ -36,6 +36,7 @@
 /* Begin PBXFileReference section */
 		05D456A85B204E82AB84B3A0 /* FontAwesome6_Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = FontAwesome6_Regular.ttf; path = "../node_modules/react-native-vector-icons/Fonts/FontAwesome6_Regular.ttf"; sourceTree = "<group>"; };
 		0650B5372E71842800DC2AD4 /* InjuryIQ.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = InjuryIQ.entitlements; path = InjuryIQ/InjuryIQ.entitlements; sourceTree = "<group>"; };
+		069DC4782E940DB800EE9E1E /* ci_pre_xcodebuild.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = ci_pre_xcodebuild.sh; sourceTree = "<group>"; };
 		06AE9E2F2E686A9A00EE0892 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		1154A09F964A490B9E1E6AF5 /* MaterialCommunityIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = MaterialCommunityIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/MaterialCommunityIcons.ttf"; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* InjuryIQ.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = InjuryIQ.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -76,6 +77,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		069DC4772E940D7C00EE9E1E /* ci_scripts */ = {
+			isa = PBXGroup;
+			children = (
+				069DC4782E940DB800EE9E1E /* ci_pre_xcodebuild.sh */,
+			);
+			path = ci_scripts;
+			sourceTree = "<group>";
+		};
 		13B07FAE1A68108700A75B9A /* InjuryIQ */ = {
 			isa = PBXGroup;
 			children = (
@@ -126,6 +135,7 @@
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
+				069DC4772E940D7C00EE9E1E /* ci_scripts */,
 				13B07FAE1A68108700A75B9A /* InjuryIQ */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				83CBBA001A601CBA00E9B192 /* Products */,

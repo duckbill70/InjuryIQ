@@ -56,8 +56,9 @@ yarn-error.log
 # Bundle artifact
 *.jsbundle
 
-# Ruby / CocoaPods
+# Ruby / CocoaPods but include the build files
 **/Pods/
+!ios/Pods/Target Support Files/Pods-InjuryIQ/**
 /vendor/bundle/
 
 # Temporary files created by Metro to check the health of the file watcher

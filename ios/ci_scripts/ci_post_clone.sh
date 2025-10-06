@@ -1,7 +1,9 @@
-#!/bin/sh
+#!/bin/bash
+set -ex
 
-#  ci_post_clone.sh
-#  InjuryIQ
-#
-#  Created by Platts Andrew on 06/10/2025.
-#  
+echo "Running post-clone script"
+
+cd "$(git rev-parse --show-toplevel)"
+npm ci || { echo "npm ci failed"; exit 1; }
+
+echo "post-clone script completed successfully"

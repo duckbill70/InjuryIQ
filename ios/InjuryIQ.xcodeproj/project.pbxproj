@@ -37,6 +37,7 @@
 		05D456A85B204E82AB84B3A0 /* FontAwesome6_Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = FontAwesome6_Regular.ttf; path = "../node_modules/react-native-vector-icons/Fonts/FontAwesome6_Regular.ttf"; sourceTree = "<group>"; };
 		0650B5372E71842800DC2AD4 /* InjuryIQ.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = InjuryIQ.entitlements; path = InjuryIQ/InjuryIQ.entitlements; sourceTree = "<group>"; };
 		069DC4782E940DB800EE9E1E /* ci_pre_xcodebuild.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = ci_pre_xcodebuild.sh; sourceTree = "<group>"; };
+		069DC4792E94204E00EE9E1E /* ci_post_clone.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = ci_post_clone.sh; sourceTree = "<group>"; };
 		06AE9E2F2E686A9A00EE0892 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		1154A09F964A490B9E1E6AF5 /* MaterialCommunityIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = MaterialCommunityIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/MaterialCommunityIcons.ttf"; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* InjuryIQ.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = InjuryIQ.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -81,6 +82,7 @@
 			isa = PBXGroup;
 			children = (
 				069DC4782E940DB800EE9E1E /* ci_pre_xcodebuild.sh */,
+				069DC4792E94204E00EE9E1E /* ci_post_clone.sh */,
 			);
 			path = ci_scripts;
 			sourceTree = "<group>";

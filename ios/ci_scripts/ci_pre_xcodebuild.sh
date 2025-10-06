@@ -1,7 +1,7 @@
-#!/bin/bash
-set -e
-echo "Running pre-xcodebuild script"
-# Added comment to force refresh
-cd "$(dirname "$0")/../ios"
-npm ci
-pod install
+#!/bin/sh
+
+#  ci_pre_xcodebuild.sh
+#  InjuryIQ
+#
+#  Created by Platts Andrew on 06/10/2025.
+#  

@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>InjuryIQ.ipa</key>
+	<array>
+		<dict>
+			<key>architectures</key>
+			<array>
+				<string>arm64</string>
+			</array>
+			<key>buildNumber</key>
+			<string>1</string>
+			<key>certificate</key>
+			<dict>
+				<key>SHA1</key>
+				<string>B2D795C48ECD975DFE65E24F680006EBF8CCC2B1</string>
+				<key>dateExpires</key>
+				<string>07/10/2026</string>
+				<key>type</key>
+				<string>Apple Distribution</string>
+			</dict>
+			<key>embeddedBinaries</key>
+			<array>
+				<dict>
+					<key>architectures</key>
+					<array>
+						<string>arm64</string>
+					</array>
+					<key>buildNumber</key>
+					<string>0.12.0</string>
+					<key>certificate</key>
+					<dict>
+						<key>SHA1</key>
+						<string>B2D795C48ECD975DFE65E24F680006EBF8CCC2B1</string>
+						<key>dateExpires</key>
+						<string>07/10/2026</string>
+						<key>type</key>
+						<string>Apple Distribution</string>
+					</dict>
+					<key>name</key>
+					<string>hermes.framework</string>
+					<key>symbols</key>
+					<true/>
+					<key>team</key>
+					<dict>
+						<key>id</key>
+						<string>KS86K6AD9K</string>
+						<key>name</key>
+						<string>Andrew Platts</string>
+					</dict>
+					<key>versionNumber</key>
+					<string>0.12.0</string>
+				</dict>
+			</array>
+			<key>entitlements</key>
+			<dict>
+				<key>application-identifier</key>
+				<string>KS86K6AD9K.org.InjuryIQ</string>
+				<key>beta-reports-active</key>
+				<true/>
+				<key>com.apple.developer.team-identifier</key>
+				<string>KS86K6AD9K</string>
+				<key>com.apple.developer.weatherkit</key>
+				<true/>
+				<key>get-task-allow</key>
+				<false/>
+			</dict>
+			<key>name</key>
+			<string>InjuryIQ.app</string>
+			<key>profile</key>
+			<dict>
+				<key>UUID</key>
+				<string>c9b6780d-3752-4948-8cdd-71bc4adf7a9a</string>
+				<key>dateExpires</key>
+				<string>07/10/2026</string>
+				<key>name</key>
+				<string>iOS Team Store Provisioning Profile: org.InjuryIQ</string>
+			</dict>
+			<key>symbols</key>
+			<true/>
+			<key>team</key>
+			<dict>
+				<key>id</key>
+				<string>KS86K6AD9K</string>
+				<key>name</key>
+				<string>Andrew Platts</string>
+			</dict>
+			<key>versionNumber</key>
+			<string>1.0</string>
+		</dict>
+	</array>
+</dict>
+</plist>

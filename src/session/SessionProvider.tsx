@@ -293,13 +293,13 @@ function SessionBody({ children, expectedHz, writerRef, userMeta }: { children: 
 
 	// inside SessionBody in SessionProvider.tsx (after you have `a`, `b`, and writerRef)
 	// a?.stats and b?.stats come from DualImuProvider/useImuIngress
-	//useEffect(() => {
-	//	const w = writerRef.current;
-	//	if (!w) return;
-	//	// push latest stats (undefined -> null internally)
-	//	w.setStatsA(a?.stats);
-	//	w.setStatsB(b?.stats);
-	//}, [a?.stats, b?.stats, writerRef]);
+	useEffect(() => {
+		const w = writerRef.current;
+		if (!w) return;
+		// push latest stats (undefined -> null internally)
+		w.setStatsA(a?.stats);
+		w.setStatsB(b?.stats);
+	}, [a?.stats, b?.stats, writerRef]);
 
 	const startRecording = useCallback(async () => {
 		if (sessionActive) return; // already running

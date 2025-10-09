@@ -119,16 +119,16 @@ andrew@clearwatertech.co bbn832vapp?
 
 
 # Clear and reset from root
-watchman watch-del-all || true
-rm -rf $TMPDIR/metro-* $TMPDIR/react-*
-cd ios && pod install && cd ..
-npx react-native run-ios
+    watchman watch-del-all || true
+    rm -rf $TMPDIR/metro-* $TMPDIR/react-*
+    cd ios && pod install && cd ..
+    npx react-native run-ios
 
 # To set the icon
-npx react-native set-icon --platform ios --path ./assets/app-icon-1024.png
+    npx react-native set-icon --platform ios --path ./assets/app-icon-1024.png
 
 # To check my plist files are okay
-find . \( -path "./Pods" -o -path "./Build" -o -path "./DerivedData" -o -name "*.xcarchive" -o -name "*.xcresult" \) -prune -o \ -name "Info.plist" -type f -exec plutil -convert xml1 {} \; -exec plutil -lint {} \;
+    find . \( -path "./Pods" -o -path "./Build" -o -path "./DerivedData" -o -name "*.xcarchive" -o -name "*.xcresult" \) -prune -o \ -name "Info.plist" -type f -exec plutil -convert xml1 {} \; -exec plutil -lint {} \;
 
 # Open xcode
-open InjuryIQ.xcworkspace
+    open InjuryIQ.xcworkspace

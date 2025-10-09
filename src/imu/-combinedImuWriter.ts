@@ -301,44 +301,14 @@ export function createCombinedImuWriter(opts: FactoryOptions) {
 	let started = false;
 	let filePath: string | null = null;
 
-	// --- session timing ---
-	let sessionStartMs: number | null = null;
-
-	// (optional: to make duration ignore paused time)
-	let pausedAtMs: number | null = null;
-	let totalPausedMs = 0;
-
-	// --- session-scoped counters & cadence ---
-	let totalPacketsA = 0;
-	let totalPacketsB = 0;
-
-	const wallEveryMs = 2000; // periodic absolute anchor (2s)
-	let lastWallA = 0;
-	let lastWallB = 0;
-
 	// State snapshots for header
 	let stateA: unknown = null;
 	let stateB: unknown = null;
 
 	let paused = false;
-	const segments: Array<{ type: 'start' | 'pause' | 'resume' | 'stop'; t: number }> = [];
+	const segments: Array<{type: 'start' | 'pause' | 'resume' | 'stop'; t: number}> = [];
 
 	const filename = `${sessionName}__${isoForFilename()}.ndjson`;
-
-	function maybeAnchor(src: 'A' | 'B', t: number) {
-		const now = Date.now();
-		const last = src === 'A' ? lastWallA : lastWallB;
-		if (now - last >= wallEveryMs) {
-			low?.append({
-				type: 'tick',
-				src,
-				t, // your packet timeline (you currently use Date.now())
-				wallClock: new Date(now).toISOString(), // absolute anchor
-			});
-			if (src === 'A') lastWallA = now;
-			else lastWallB = now;
-		}
-	}
 
 	async function start() {
 		if (started && low) {
@@ -349,10 +319,6 @@ export function createCombinedImuWriter(opts: FactoryOptions) {
 		low = writer;
 		filePath = info.path;
 		started = true;
-
-		if (sessionStartMs == null) sessionStartMs = Date.now(); // <-- set start
-		pausedAtMs = null;
-		totalPausedMs = 0;
 
 		// Header row includes schemas for optional 1Hz rows (stats/gps)
 		low.append({
@@ -373,7 +339,7 @@ export function createCombinedImuWriter(opts: FactoryOptions) {
 				cadence: 1, // Hz
 			},
 		});
-		segments.push({ type: 'start', t: Date.now() });
+		segments.push({type: 'start', t: Date.now()});
 
 		if (__DEV__) console.log('[CombinedWriter] started', { path: filePath, idA, idB, expectedHz });
 	}
@@ -388,38 +354,29 @@ export function createCombinedImuWriter(opts: FactoryOptions) {
 
 		for (let i = 0; i < batch.length; i++) {
 			const pkt = batch[i];
-
-			// periodic wall-clock anchor for this stream
-			maybeAnchor(src, pkt.t);
-
 			low.append({
 				t: pkt.t,
 				src,
 				imu_b64: pkt.b64,
 			});
 		}
-
-		if (src === 'A') totalPacketsA += batch.length;
-		else totalPacketsB += batch.length;
 	}
 
 	function pause() {
 		if (!paused) {
-			paused = true;
-			segments.push({ type: 'pause', t: Date.now() });
+			paused = true
+			segments.push({type: 'pause', t: Date.now()})
 		}
 	}
 
 	function resume() {
 		if (paused) {
-			paused = false;
-			segments.push({ type: 'resume', t: Date.now() });
+			paused = false
+			segments.push({type: 'resume', t: Date.now()})
 		}
 	}
 
-	function isPaused() {
-		return paused;
-	}
+	function isPaused() { return paused };
 
 	function onBatchA(batch?: RawPacket[] | null) {
 		if (paused || !batch?.length) return;
@@ -452,38 +409,11 @@ export function createCombinedImuWriter(opts: FactoryOptions) {
 		low?.setGps(gps ?? null, reason);
 	}
 
-	/** NEW: explicit lifecycle/device event logger */
-	function onDeviceEvent(ev: { t: number; which?: 'A' | 'B'; event: 'dropped' | 'resumed' | 'session_start' | 'session_stop' | 'session_paused' | 'session_resumed' }) {
-		// If your writer uses a different appender, replace `low?.append` with that.
-		low?.append({
-			type: ev.which ? 'device_event' : 'session_event',
-			src: ev.which,
-			event: ev.event,
-			t: ev.t,
-			createdAt: new Date().toISOString(),
-		});
-	}
-
-	function computeActiveDurationMs(): number {
-
-		if (!segments.length) return 0;
-
-		let activeMS = 0
-		let lastStart = segments.find(s => s.type === 'start')?.t ?? segments[0]?.t ?? Date.now()
-
-		for (const seg of segments ) {
-			if (seg.type === 'pause'){
-				activeMS += seg.t - lastStart
-				lastStart = 0
-			} else if (seg.type === 'resume') {
-				lastStart = seg.t
-			}
-		}
-
-		if (lastStart) activeMS += Date.now() - lastStart
-
-		return activeMS
-
+	/** Explicit device/session events */
+	function onDeviceEvent(ev: { t: number; which?: 'A' | 'B'; event: string }) {
+		if (!started || !low) return;
+		const row: NdjsonRow = ev.which ? { t: ev.t, type: 'device_event', which: ev.which, event: ev.event } : { t: ev.t, type: 'session_event', event: ev.event };
+		low.append(row);
 	}
 
 	async function stop(reason: 'user' | 'timeout' | 'error' | 'appBackground' = 'user'): Promise<StopResult> {
@@ -492,34 +422,15 @@ export function createCombinedImuWriter(opts: FactoryOptions) {
 			return { path: filePath ?? `${dirAbs}/${filename}`, rows: 0, bytes: 0 };
 		}
 
-		segments.push({ type: 'stop', t: Date.now() });
-
-		const stoppedAtIso = new Date().toISOString();
-
-		// if you have a reliable session start ms, prefer that; else keep a simple now-based duration
-		//const durationSec = Math.max(0, Math.round((Date.now() - /* yourSessionStartMs */ Date.now()) / 1000));
-		const durationSec = Math.round(computeActiveDurationMs() / 1000)
-
-		const fileTotals = low.getCounts ? low.getCounts() : undefined;
-
-		// If your code stores snapshots in stateA/stateB (fed by setStatsA/B), keep using those:
-		const avgHzA = (stateA as any)?.measuredHz ?? null;
-		const avgHzB = (stateB as any)?.measuredHz ?? null;
-		const lossA = (stateA as any)?.lossPercent ?? null;
-		const lossB = (stateB as any)?.lossPercent ?? null;
+		segments.push({type: 'stop', t: Date.now()});
 
 		if (low) {
-			//const totals = low.getCounts();
+			const totals = low.getCounts();
 			low.append({
 				type: 'stop',
-				stoppedAt: stoppedAtIso,
+				stoppedAt: new Date().toISOString(),
 				reason,
-				durationSec,
-				totals: {
-					...(fileTotals ? { file: fileTotals } : {}), // preserve your rows/bytes if you have them
-					A: { packets: totalPacketsA, avgHz: avgHzA, lossPercent: lossA },
-					B: { packets: totalPacketsB, avgHz: avgHzB, lossPercent: lossB },
-				},
+				totals,
 				lastState: { A: stateA ?? null, B: stateB ?? null },
 			});
 		}
@@ -527,10 +438,6 @@ export function createCombinedImuWriter(opts: FactoryOptions) {
 		started = false;
 		const summary = await low!.stop();
 		low = null;
-		totalPacketsA = 0;
-		totalPacketsB = 0;
-		lastWallA = 0;
-		lastWallB = 0;
 
 		if (__DEV__) console.log('[CombinedWriter] stopped', summary);
 		return summary;

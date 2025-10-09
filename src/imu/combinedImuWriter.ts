@@ -304,10 +304,6 @@ export function createCombinedImuWriter(opts: FactoryOptions) {
 	// --- session timing ---
 	let sessionStartMs: number | null = null;
 
-	// (optional: to make duration ignore paused time)
-	let pausedAtMs: number | null = null;
-	let totalPausedMs = 0;
-
 	// --- session-scoped counters & cadence ---
 	let totalPacketsA = 0;
 	let totalPacketsB = 0;
@@ -503,10 +499,10 @@ export function createCombinedImuWriter(opts: FactoryOptions) {
 		const fileTotals = low.getCounts ? low.getCounts() : undefined;
 
 		// If your code stores snapshots in stateA/stateB (fed by setStatsA/B), keep using those:
-		const avgHzA = (stateA as any)?.measuredHz ?? null;
-		const avgHzB = (stateB as any)?.measuredHz ?? null;
-		const lossA = (stateA as any)?.lossPercent ?? null;
-		const lossB = (stateB as any)?.lossPercent ?? null;
+		//const avgHzA = (stateA as any)?.measuredHz ?? null;
+		//const avgHzB = (stateB as any)?.measuredHz ?? null;
+		//const lossA = (stateA as any)?.lossPercent ?? null;
+		//const lossB = (stateB as any)?.lossPercent ?? null;
 
 		if (low) {
 			//const totals = low.getCounts();
@@ -517,8 +513,10 @@ export function createCombinedImuWriter(opts: FactoryOptions) {
 				durationSec,
 				totals: {
 					...(fileTotals ? { file: fileTotals } : {}), // preserve your rows/bytes if you have them
-					A: { packets: totalPacketsA, avgHz: avgHzA, lossPercent: lossA },
-					B: { packets: totalPacketsB, avgHz: avgHzB, lossPercent: lossB },
+					//A: { packets: totalPacketsA, avgHz: avgHzA, lossPercent: lossA },
+					//B: { packets: totalPacketsB, avgHz: avgHzB, lossPercent: lossB },
+					A: { packets: totalPacketsA },
+					B: { packets: totalPacketsB },
 				},
 				lastState: { A: stateA ?? null, B: stateB ?? null },
 			});

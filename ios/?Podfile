@@ -1,0 +1,92 @@
+ENV['RCT_NEW_ARCH_ENABLED'] = '1'
+
+# Resolve react_native_pods.rb with node to allow for hoisting
+require Pod::Executable.execute_command('node', ['-p',
+  'require.resolve(
+    "react-native/scripts/react_native_pods.rb",
+    {paths: [process.argv[1]]},
+  )', __dir__]).strip
+#require_relative '../node_modules/react-native/scripts/react_native_pods.rb'
+
+# platform :ios, min_ios_version_supported
+# New Code Added when building initially
+platform :ios, '16.0'
+
+
+# OLD Code : use_frameworks!
+# --- IMPORTANT: make pods static (silences hermes.framework dSYM demand)
+# If you *must* force dynamic later, set USE_FRAMEWORKS=dynamic in CI env once this is stable.
+linkage = (ENV['USE_FRAMEWORKS']&.to_sym) || :static
+use_frameworks! :linkage => linkage
+
+
+prepare_react_native_project!
+
+linkage = ENV['USE_FRAMEWORKS']
+if linkage != nil
+  Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
+  use_frameworks! :linkage => linkage.to_sym
+end
+
+# ios/Podfile
+permissions_path = '../node_modules/react-native-permissions/ios'
+
+target 'InjuryIQ' do
+
+  config = use_native_modules!
+
+  # Add when we included GoogleSignIn
+  pod 'GTMSessionFetcher/Core', '~> 3.4'
+
+  use_react_native!(
+    :path => config[:reactNativePath],
+    :hermes_enabled => true,
+    :fabric_enabled => false,
+    # An absolute path to your application root.
+    :app_path => "#{Pod::Config.instance.installation_root}/.."
+  )
+
+  post_install do |installer|
+    # https://github.com/facebook/react-native/blob/main/packages/react-native/scripts/react_native_pods.rb#L197-L202
+    react_native_post_install(
+      installer,
+      config[:reactNativePath],
+      :mac_catalyst_enabled => false,
+      # :ccache_enabled => true
+    )
+
+  # Force all pods to the same minimum iOS target (matches your Podfile's `platform`)
+  minimum_ios = '16.0'  # bump to '14.0' if you prefer
+    installer.pods_project.targets.each do |t|
+      t.build_configurations.each do |config|
+        config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = minimum_ios
+        # (Sometimes helpful if a pod is missing Swift version)
+        config.build_settings['SWIFT_VERSION'] ||= '5.0'
+
+        # Ensure Release pods produce dSYMs (symbolication)
+        if config.name == 'Release'
+          config.build_settings['DEBUG_INFORMATION_FORMAT'] = 'dwarf-with-dsym'
+        end
+
+      end
+    end
+
+    # (Optional) If you still see the warning, uncomment this to strip
+    # DebugSymbolsPath from Hermes’ Info.plist at build time.
+    # app_target = installer.aggregate_targets
+    #   .flat_map(&:user_project)
+    #   .flat_map(&:targets)
+    #   .find { |t| t.name == 'InjuryIQ' }
+    # if app_target
+    #   phase = app_target.new_shell_script_build_phase('Fix Hermes dSYM Claim')
+    #   phase.shell_script = %q{
+    #     HERMES_PLIST="${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/hermes.framework/Info.plist"
+    #     if [ -f "$HERMES_PLIST" ]; then
+    #       /usr/libexec/PlistBuddy -c "Delete :DebugSymbolsPath" "$HERMES_PLIST" || true
+    #     fi
+    #   }
+    # end
+
+  end
+
+end

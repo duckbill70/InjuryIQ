@@ -117,7 +117,7 @@ andrew@clearwatertech.co bbn832vapp?
 # In another termial (use the name of the phone as defined in xcode, wifi must be running on both devices)
     npx react-native run-ios "Dev iPhone"
 
-
+cd ios 
 # Clear and reset from root
     watchman watch-del-all || true
     rm -rf $TMPDIR/metro-* $TMPDIR/react-*

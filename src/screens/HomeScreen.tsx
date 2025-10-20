@@ -38,16 +38,16 @@ export default function HomeScreen() {
 					<SessionStatusPanel />
 				</View>
 
+				{/* Sport Manager */}
+				<View style={{ marginBottom: 10 }}>
+					<SportStatusPanel />
+				</View>
+
 				{/* Device Boxes */}
 
 				<View style={{ marginBottom: 10, flexDirection: 'row', justifyContent: 'space-between' }}>
 					{entryA ? <DeviceBox key={entryA.id} item={entryA} /> : <Placeholder />}
 					{entryB ? <DeviceBox key={entryB.id} item={entryB} /> : <Placeholder />}
-				</View>
-
-				{/* Sport Manager */}
-				<View style={{ marginBottom: 10 }}>
-					<SportStatusPanel />
 				</View>
 
 				{/* Status Manager */}

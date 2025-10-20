@@ -4,8 +4,6 @@ import { useIsFocused } from '@react-navigation/native';
 import { DataTable, IconButton } from 'react-native-paper';
 import Share from 'react-native-share';
 import RNFS from 'react-native-fs';
-import dayjs from 'dayjs';
-
 import { listCreatedFiles, type FileInfo } from './fileUtils';
 import { useTheme } from '../theme/ThemeContext';
 import { getNDJSONDuration } from './getNDJSONDuration';
@@ -47,7 +45,7 @@ function RowInfo({ filePath, file, theme }) {
 		getSportFromNDJSON(filePath).then((result) => {
 			if (mounted) setSport(result ?? 'N/A');
 		});
-
+		
 		//getNDJSONDuration(filePath).then((result) => {
 		//	if (mounted) {
 		//		if (result.durationSeconds !== undefined) {
@@ -57,7 +55,7 @@ function RowInfo({ filePath, file, theme }) {
 		//		}
 		//	}
 		//});
-
+		
 		return () => {
 			mounted = false;
 		};
@@ -82,9 +80,7 @@ export default function FileTable() {
 	const { theme } = useTheme();
 	const isFocused = useIsFocused();
 
-	const itemsPerPage = 20;
-
-	const currentMonthYear = dayjs().format('MMMM YYYY'); // e.g., "October 20
+	const itemsPerPage = 6;
 
 	useEffect(() => {
 		(async () => {
@@ -149,59 +145,58 @@ export default function FileTable() {
 		}
 	}
 
-	const getMonthYearIfDifferent = (mtime) => {
-		const current = dayjs();
-		const fileDate = dayjs(mtime);
-
-		const isSameMonthYear = current.isSame(fileDate, 'month') && current.isSame(fileDate, 'year');
-
-		return isSameMonthYear ? null : fileDate.format('MMMM YYYY'); // e.g., "September 2025"
-	};
-
 	return (
-		<ScrollView style={{ marginVertical: 10 }}>
+		<ScrollView style={{ backgroundColor: 'white', marginBottom: 20 }}>
 			<DataTable>
+				<DataTable.Header>
+					<DataTable.Title style={{ justifyContent: 'flex-start' }} sortDirection={sortKey === 'mtime' ? (sortDesc ? 'descending' : 'ascending') : undefined} onPress={() => toggleSort('mtime')}>
+						<Text style={[theme?.textStyles?.body, { color: theme?.colors?.black, fontWeight: 'bold' }]}>Modified</Text>
+					</DataTable.Title>
 
-				<Text style={[theme?.textStyles?.body2, { color: theme?.colors?.white, fontWeight: 'bold', marginHorizontal: 10 }]}>{currentMonthYear}</Text>
+					<DataTable.Title numeric sortDirection={sortKey === 'size' ? (sortDesc ? 'descending' : 'ascending') : undefined} onPress={() => toggleSort('size')}>
+						<Text style={[theme?.textStyles?.body, { color: theme?.colors?.black, fontWeight: 'bold' }]}>Size</Text>
+					</DataTable.Title>
+
+					<DataTable.Title numeric style={{ justifyContent: 'center' }}>
+						<Text style={[theme?.textStyles?.body, { color: theme?.colors?.black, fontWeight: 'bold' }]}>Action</Text>
+					</DataTable.Title>
+				</DataTable.Header>
 
 				{pageItems.map((f) => (
-					<View style={{ flexDirection: 'column' }}>
+					<DataTable.Row key={f.path} style={[styles.card, {margin: 5}]}>
+						<DataTable.Cell>
+							<RowInfo filePath={f.path} file={f} theme={theme} />
+						</DataTable.Cell>
 
-						{getMonthYearIfDifferent(f?.mtime) ? <Text style={[theme?.textStyles?.body2, { color: theme?.colors?.white, fontWeight: 'bold', marginHorizontal: 10 }]}>{getMonthYearIfDifferent(f.mtime)}</Text> : null}
+						<DataTable.Cell numeric>
+							<Text style={[theme?.textStyles?.body2, { color: theme?.colors?.black, fontWeight: 'bold' }]}>{bytes(f.size)}</Text>
+						</DataTable.Cell>
 
-						<DataTable.Row key={f.path} style={[styles.card, { margin: 5 }]}>
-							<View style={{ flexDirection: 'row', justifyContent: 'space-between', alignContent: 'center', width: '100%' }}>
-								<RowInfo filePath={f.path} file={f} theme={theme} />
-								<View style={{ flexDirection: 'row', alignItems: 'center' }}>
-									<Text style={[theme?.textStyles?.body2, { color: theme?.colors?.black, fontWeight: 'bold' }]}>{bytes(f.size)}</Text>
-								</View>
-								<View style={{ flexDirection: 'row', alignItems: 'center' }}>
-									<IconButton mode='contained-tonal' icon='share-variant' iconColor='green' onPress={() => Share.open({ url: 'file://' + f.path }).catch(() => {})} size={25} />
-									<IconButton mode='contained-tonal' icon='delete' iconColor='red' onPress={() => handleDelete(f.path)} size={25} style={{ marginLeft: 8 }} />
-								</View>
+						<DataTable.Cell numeric>
+							<View style={{ flexDirection: 'row', alignItems: 'center' }}>
+								<IconButton mode='contained-tonal' icon='share-variant' iconColor='green' onPress={() => Share.open({ url: 'file://' + f.path }).catch(() => {})} size={25} />
+								<IconButton mode='contained-tonal' icon='delete' iconColor='red' onPress={() => handleDelete(f.path)} size={25} style={{ marginLeft: 8 }} />
 							</View>
-						</DataTable.Row>
-					</View>
+						</DataTable.Cell>
+					</DataTable.Row>
 				))}
 
-				<View style={{ flexDirection: 'column', alignItems: 'flex-end' }}>
-					<DataTable.Pagination
-						theme={{
-							colors: {
-								primary: theme?.colors?.primary, //'#FF8212',
-								onSurfaceVariant: theme?.colors?.primary, //'#FF8212',
-							},
-						}}
-						page={page}
-						numberOfPages={Math.max(1, Math.ceil(sorted.length / itemsPerPage))}
-						onPageChange={setPage}
-						label={`${sorted.length ? from + 1 : 0}-${to} of ${sorted.length}`}
-						numberOfItemsPerPage={itemsPerPage}
-						numberOfItemsPerPageList={[itemsPerPage]}
-						showFastPaginationControls
-						selectPageDropdownLabel='Rows per page'
-					/>
-				</View>
+				<DataTable.Pagination
+					theme={{
+						colors: {
+							primary: theme?.colors?.primary, //'#FF8212',
+							onSurfaceVariant: theme?.colors?.primary, //'#FF8212',
+						},
+					}}
+					page={page}
+					numberOfPages={Math.max(1, Math.ceil(sorted.length / itemsPerPage))}
+					onPageChange={setPage}
+					label={`${sorted.length ? from + 1 : 0}-${to} of ${sorted.length}`}
+					numberOfItemsPerPage={itemsPerPage}
+					numberOfItemsPerPageList={[itemsPerPage]}
+					showFastPaginationControls
+					selectPageDropdownLabel='Rows per page'
+				/>
 			</DataTable>
 		</ScrollView>
 	);
@@ -209,16 +204,13 @@ export default function FileTable() {
 
 const styles = StyleSheet.create({
 	card: {
-		marginHorizontal: 8,
 		borderRadius: 12,
 		padding: 12,
 		borderWidth: 0.5,
 		borderColor: '#6b7280',
 		borderStyle: 'solid',
 		borderBottomWidth: 0.5, // explicitly set
-		borderBottomColor: '#6b7280', // match your border color
-		backgroundColor: 'white',
-		opacity: 0.9,
+  		borderBottomColor: '#6b7280', // match your border color
 	},
 	rowBetween: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
 	rowCenter: { flexDirection: 'row', alignItems: 'center' },

@@ -21,21 +21,20 @@ export default function RecordingsScreen() {
 
 	return (
 
-			<ScrollView style={{ flex: 1, paddingVertical: 60, paddingHorizontal: 10, backgroundColor: 'teal' }}>
+			<View style={{ flex: 1, paddingVertical: 60, backgroundColor: 'teal' }}>
 				{/* <Text>Other screen!</Text>
 				<Text>Param: {route.params?.someParam}</Text> */}
 
 				{/* Header */}
-				<View style={{ marginBottom: 10 }}>
+				<View style={{ marginBottom: 10, paddingHorizontal: 10 }}>
 					<SessionStatusPanel />
 				</View>
 
 				{/* File Content */}
-				<View style={{ marginBottom: 10 }}>
-					<FileTable />
-				</View>
+				<FileTable />
+
 				
-			</ScrollView>
+			</View>
 
 	);
 }

@@ -165,7 +165,7 @@ export default function FileTable() {
 				<Text style={[theme?.textStyles?.body2, { color: theme?.colors?.white, fontWeight: 'bold', marginHorizontal: 10 }]}>{currentMonthYear}</Text>
 
 				{pageItems.map((f) => (
-					<View style={{ flexDirection: 'column' }}>
+					<View key={f.path} style={{ flexDirection: 'column' }}>
 
 						{getMonthYearIfDifferent(f?.mtime) ? <Text style={[theme?.textStyles?.body2, { color: theme?.colors?.white, fontWeight: 'bold', marginHorizontal: 10 }]}>{getMonthYearIfDifferent(f.mtime)}</Text> : null}
 

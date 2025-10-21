@@ -5,12 +5,12 @@ import type { RootStackParamList } from './AppNavigator';
 import { BluetoothSearchingIcon, Bluetooth, LogOut, CassetteTape, ArrowBigLeft } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 
+import DeviceInfo from 'react-native-device-info';
 
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 
 dayjs.extend(utc);
-
 
 import { useAuth } from '../auth/AuthProvider';
 import { useTheme } from '../theme/ThemeContext';
@@ -25,47 +25,55 @@ export default function SettingsScreen() {
 	const { user, signOut } = useAuth();
 	const { theme } = useTheme();
 
+	const version = DeviceInfo.getVersion(); // e.g. "1.0.0"
+	const buildNumber = DeviceInfo.getBuildNumber(); // e.g. "42"
+
 	return (
+		<View style={{ flex: 1, paddingVertical: 60, paddingHorizontal: 10, backgroundColor: 'teal' }}>
+			{/* Header */}
+			<View style={{ marginBottom: 10 }}>
+				<SessionStatusPanel />
+			</View>
 
-			<ScrollView style={{ flex: 1, paddingVertical: 60, paddingHorizontal: 10, backgroundColor: 'teal' }}>
-				{/* Header */}
-				<View style={{ marginBottom: 10 }}>
-					<SessionStatusPanel />
+			{/* Product Info */}
+			<View style={[styles.card, {marginBottom: 10}]}>
+				<Text style={[styles.bold, {color: theme?.colors?.white}]}>
+					Version {version} (Build {buildNumber})
+				</Text>
+			</View>
+
+			{/* Content */}
+			<View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 }}>
+				{/* Sign Out */}
+				<TouchableOpacity onPress={() => signOut()} style={[theme.viewStyles.button]}>
+					<LogOut size={18} color='white' />
+					<Text style={styles.btnLabel}>Logout</Text>
+				</TouchableOpacity>
+			</View>
+
+			{/* Footer */}
+			<View style={{ marginBottom: 10, paddingHorizontal: 5 }}>
+				<View style={{ flexDirection: 'row', marginBottom: 5 }}>
+					<Text style={[theme.textStyles.body, { color: 'white', minWidth: 125 }]}>email:</Text>
+					<Text style={[theme.textStyles.body, { color: 'white' }]}>{user?.email ?? 'Anonymous'}</Text>
 				</View>
 
-				{/* Content */}
-				<View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 }}>
-					{/* Sign Out */}
-					<TouchableOpacity onPress={() => signOut()} style={[theme.viewStyles.button]}>
-						<LogOut size={18} color='white' />
-						<Text style={styles.btnLabel}>Logout</Text>
-					</TouchableOpacity>
+				<View style={{ flexDirection: 'row', marginBottom: 5 }}>
+					<Text style={[theme.textStyles.body, { color: 'white', minWidth: 125 }]}>UID:</Text>
+					<Text style={[theme.textStyles.body, { color: 'white' }]}>{user?.uid}</Text>
 				</View>
 
-				{/* Footer */}
-				<View style={{ marginBottom: 10, paddingHorizontal: 5 }}>
-					<View style={{ flexDirection: 'row', marginBottom: 5 }}>
-						<Text style={[theme.textStyles.body2, { color: 'white', minWidth: 125 }]}>email:</Text>
-						<Text style={[theme.textStyles.body2, { color: 'white' }]}>{user?.email ?? 'Anonymous'}</Text>
-					</View>
-
-					<View style={{ flexDirection: 'row', marginBottom: 5 }}>
-						<Text style={[theme.textStyles.body2, { color: 'white', minWidth: 125 }]}>UID:</Text>
-						<Text style={[theme.textStyles.body2, { color: 'white' }]}>{user?.uid}</Text>
-					</View>
-
-					<View style={{ flexDirection: 'row', marginBottom: 5 }}>
-						<Text style={[theme.textStyles.body2, { color: 'white', minWidth: 125 }]}>Last Sign In:</Text>
-						<Text style={[theme.textStyles.body2, { color: 'white' }]}>{dayjs.utc(user?.metadata.lastSignInTime).format('DD/MM/YYYY HH:mm')}</Text>
-					</View>
-
-					<View style={{ flexDirection: 'row', marginBottom: 5 }}>
-						<Text style={[theme.textStyles.body2, { color: 'white', minWidth: 125 }]}>Name:</Text>
-						<Text style={[theme.textStyles.body2, { color: 'white' }]}>{user?.displayName ?? 'unknown'}</Text>
-					</View>
+				<View style={{ flexDirection: 'row', marginBottom: 5 }}>
+					<Text style={[theme.textStyles.body, { color: 'white', minWidth: 125 }]}>Last Sign In:</Text>
+					<Text style={[theme.textStyles.body, { color: 'white' }]}>{dayjs.utc(user?.metadata.lastSignInTime).format('DD/MM/YYYY HH:mm')}</Text>
 				</View>
-			</ScrollView>
 
+				<View style={{ flexDirection: 'row', marginBottom: 5 }}>
+					<Text style={[theme.textStyles.body, { color: 'white', minWidth: 125 }]}>Name:</Text>
+					<Text style={[theme.textStyles.body, { color: 'white' }]}>{user?.displayName ?? 'unknown'}</Text>
+				</View>
+			</View>
+		</View>
 	);
 }
 

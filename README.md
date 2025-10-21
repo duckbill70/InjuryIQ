@@ -132,3 +132,9 @@ cd ios
 
 # Open xcode
     open InjuryIQ.xcworkspace
+
+# Run On a Simulator Only
+    ./run-ios-simulator.sh
+
+# Run on Physical Device
+    ./run-ios-device.sh

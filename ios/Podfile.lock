@@ -2469,7 +2469,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - RNDeviceInfo (14.0.4):
+  - RNDeviceInfo (14.1.1):
     - React-Core
   - RNFBApp (23.4.0):
     - Firebase/CoreOnly (= 12.3.0)
@@ -3313,7 +3313,7 @@ SPEC CHECKSUMS:
   ReactCommon: e5df435ef0892875b7d503fbe3ec73a1a3712049
   RecaptchaInterop: 11e0b637842dfb48308d242afc3f448062325aba
   RNBootSplash: e4435c7c7f814bcb27dc7a8531e3e80bcfee7dcb
-  RNDeviceInfo: d863506092aef7e7af3a1c350c913d867d795047
+  RNDeviceInfo: bcce8752b5043a623fe3c26789679b473f705d3c
   RNFBApp: 8d27c7545e7e06d78974e204ff95f207a60a5cb2
   RNFBAuth: 532fc90de38b99d8bd9de4f81a8b5179cf582fd2
   RNFS: 89de7d7f4c0f6bafa05343c578f61118c8282ed8

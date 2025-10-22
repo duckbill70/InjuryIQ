@@ -23,7 +23,7 @@ function Dot({ on = false }: { on?: boolean }) {
 
 export default function SessionStatusPanel() {
 	const { theme } = useTheme();
-	const { entryA, entryB, a, b, startRecording, stopRecording, sport, stateA, stateB, isPaused, togglePause, sessionActive, collecting } = useSession();
+	const { entryA, entryB, a, b, startRecording, stopRecording, sport, stateA, stateB, isPaused, togglePause, sessionActive } = useSession();
 	const { scanning, startScan, isPoweredOn } = useBle();
 
 	//const recording = !!(a?.collect || b?.collect);

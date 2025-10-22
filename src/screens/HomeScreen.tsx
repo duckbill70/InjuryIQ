@@ -1,16 +1,16 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView, ImageBackground, StyleSheet } from 'react-native';
+import { View, ScrollView } from 'react-native';
 //import { SafeAreaView } from 'react-native-safe-area-context';
-import { BluetoothSearchingIcon, Bluetooth, LogOut, CassetteTape } from 'lucide-react-native';
+//import { BluetoothSearchingIcon, Bluetooth, LogOut, CassetteTape } from 'lucide-react-native';
 
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from './AppNavigator';
+//import { useNavigation } from '@react-navigation/native';
+//import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+//import { RootStackParamList } from './AppNavigator';
 
-type HomeNav = NativeStackNavigationProp<RootStackParamList, 'Home'>;
+//type HomeNav = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 
-import { useAuth } from '../auth/AuthProvider';
-import { useBle } from '../ble/BleProvider';
+//import { useAuth } from '../auth/AuthProvider';
+//import { useBle } from '../ble/BleProvider';
 import { useSession } from '../session/SessionProvider';
 //import ImuDualControlBox from '../components/ImuDualControlBox';
 import DeviceBox from '../components/DeviceBox';
@@ -23,11 +23,11 @@ import FatiguePanel from '../components/FatiguePanel';
 import { StepCountDisplay } from '../components/StepCountDisplay';
 
 export default function HomeScreen() {
-	const { user, signOut } = useAuth();
-	const navigation = useNavigation<HomeNav>();
+	//const { user, signOut } = useAuth();
+	//const navigation = useNavigation<HomeNav>();
 	const { theme } = useTheme();
-	const { scanning, startScan, isPoweredOn } = useBle();
-	const { entryA, entryB, writerRef, expectedHz } = useSession();
+	//const { scanning, startScan, isPoweredOn } = useBle();
+	const { entryA, entryB } = useSession();
 
 	//<ImageBackground source={require('../../assets/padel-tennis-2.png')} style={{ ...StyleSheet.absoluteFillObject }} imageStyle={{ resizeMode: 'cover' }}>{content}</ImageBackground>
 

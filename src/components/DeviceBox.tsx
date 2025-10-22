@@ -4,8 +4,8 @@ import type { Device, Characteristic } from 'react-native-ble-plx';
 import { useTheme } from '../theme/ThemeContext';
 import { useRssi } from '../ble/useRssi';
 import { useBatteryPercent } from '../ble/useBatteryPercent';
-import { useStateControl, StateMode } from '../ble/useStateControl';
-import { useDualImu } from '../imu/DualImuProvider';
+//import { useStateControl } from '../ble/useStateControl';
+//import { useDualImu } from '../imu/DualImuProvider';
 import { Activity, Cpu, Lightbulb } from 'lucide-react-native';
 import {
 	BatteryWarning,
@@ -123,7 +123,7 @@ const rssiToBars = (rssi: number | null): number => {
 	return 0;
 };
 
-function stateModeToTint(mode: number | null | undefined, fallback: string) {
+{/* function stateModeToTint(mode: number | null | undefined, fallback: string) {
 	switch (mode) {
 		case StateMode.Amber:
 			return '#FFB300'; // amber
@@ -144,11 +144,11 @@ function stateModeToTint(mode: number | null | undefined, fallback: string) {
 		default:
 			return fallback; // when unknown
 	}
-}
+} */}
 
 export default function DeviceBox({ item, placeholder = false }: Props) {
 	const { theme } = useTheme();
-	const { a, b, entryA, entryB } = useDualImu();
+	//const { a, b, entryA, entryB } = useDualImu();
 
 	// Always call hooks - use dummy values when item is null
 	const rssi = useRssi(item?.device, 1000);
@@ -156,10 +156,11 @@ export default function DeviceBox({ item, placeholder = false }: Props) {
 		item || { id: '', device: {} as Device, services: [], characteristicsByService: {} }, 
 		{ subscribe: !!item, intervalMs: 15000 }
 	);
-	const stateResult = useStateControl(
-		item || { id: '', device: {} as Device, services: [], characteristicsByService: {} }, 
-		{ subscribe: false, intervalMs: 0 }
-	);
+	
+	//const stateResult = useStateControl(
+	//	item || { id: '', device: {} as Device, services: [], characteristicsByService: {} }, 
+	//	{ subscribe: false, intervalMs: 0 }
+	//);
 
 	// Compute values with useMemo before early return
 	const pct: number | null = item && supportedBat && !errorBat ? percent ?? null : null;

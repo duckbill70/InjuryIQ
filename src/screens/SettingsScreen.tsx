@@ -1,9 +1,9 @@
 import React from 'react';
-import { View, Text, ScrollView, ImageBackground, StyleSheet, TouchableOpacity } from 'react-native';
-import { RouteProp, useRoute } from '@react-navigation/native';
-import type { RootStackParamList } from './AppNavigator';
-import { BluetoothSearchingIcon, Bluetooth, LogOut, CassetteTape, ArrowBigLeft } from 'lucide-react-native';
-import { useNavigation } from '@react-navigation/native';
+import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
+//import { RouteProp } from '@react-navigation/native';
+//import type { RootStackParamList } from './AppNavigator';
+import { LogOut } from 'lucide-react-native';
+//import { useNavigation } from '@react-navigation/native';
 
 import DeviceInfo from 'react-native-device-info';
 
@@ -17,11 +17,11 @@ import { useTheme } from '../theme/ThemeContext';
 
 import SessionStatusPanel from '../components/SessionStatusPanel';
 
-type Settings = RouteProp<RootStackParamList, 'Settings'>;
+//type Settings = RouteProp<RootStackParamList, 'Settings'>;
 
 export default function SettingsScreen() {
-	const route = useRoute<Settings>();
-	const navigation = useNavigation();
+	//const route = useRoute<Settings>();
+	//const navigation = useNavigation();
 	const { user, signOut } = useAuth();
 	const { theme } = useTheme();
 

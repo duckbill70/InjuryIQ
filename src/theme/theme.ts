@@ -36,8 +36,13 @@ type ViewStyles = {
 	// Device layouts
 	devicesRow: ViewStyle;
 	deviceContainer: ViewStyle;
+	deviceContainerLarge: ViewStyle;
 	deviceHeader: ViewStyle;
+	deviceHeaderLarge: ViewStyle;
+	deviceHeaderIcon: ViewStyle;
 	deviceContent: ViewStyle;
+	deviceContentLarge: ViewStyle;
+	mainContent: ViewStyle;
 	deviceButton: ViewStyle;
 	// Common layouts
 	rowBetween: ViewStyle;
@@ -252,7 +257,32 @@ export const lightTheme = {
 			position: 'relative',
 			minHeight: 60,
 		},
+		deviceContainerLarge: {
+			backgroundColor: 'white',
+			opacity: 0.9,
+			padding: 12,
+			flex: 1,
+			borderRadius: 8,
+			elevation: 2,
+			shadowColor: '#000',
+			shadowOffset: { width: 0, height: 1 },
+			shadowOpacity: 0.2,
+			shadowRadius: 2,
+			minHeight: 120,
+			maxHeight: 120,
+			justifyContent: 'space-between',
+		},
 		deviceHeader: {
+			position: 'absolute',
+			top: 6,
+			right: 6,
+			zIndex: 1,
+		},
+		deviceHeaderLarge: {
+			marginBottom: 8,
+			paddingBottom: 8,
+		},
+		deviceHeaderIcon: {
 			position: 'absolute',
 			top: 6,
 			right: 6,
@@ -264,6 +294,15 @@ export const lightTheme = {
 			alignItems: 'center',
 			justifyContent: 'center',
 			flex: 1,
+		},
+		deviceContentLarge: {
+			flex: 1,
+			flexDirection: 'row',
+			alignItems: 'stretch',
+		},
+		mainContent: {
+			flex: 1,
+			justifyContent: 'space-between',
 		},
 		deviceButton: {
 			flex: 1,
@@ -401,6 +440,22 @@ export const darkTheme = {
 		deviceContainer: {
 			...lightTheme.viewStyles.deviceContainer,
 			backgroundColor: '#2C2C2E',
+		},
+		deviceContainerLarge: {
+			...lightTheme.viewStyles.deviceContainerLarge,
+			backgroundColor: '#2C2C2E',
+		},
+		deviceHeaderLarge: {
+			...lightTheme.viewStyles.deviceHeaderLarge,
+		},
+		deviceHeaderIcon: {
+			...lightTheme.viewStyles.deviceHeaderIcon,
+		},
+		deviceContentLarge: {
+			...lightTheme.viewStyles.deviceContentLarge,
+		},
+		mainContent: {
+			...lightTheme.viewStyles.mainContent,
 		},
 		deviceButton: {
 			...lightTheme.viewStyles.deviceButton,

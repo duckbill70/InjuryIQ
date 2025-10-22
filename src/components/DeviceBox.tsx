@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text } from 'react-native';
 import type { Device, Characteristic } from 'react-native-ble-plx';
 import { useTheme } from '../theme/ThemeContext';
 import { useRssi } from '../ble/useRssi';
@@ -215,7 +215,7 @@ export default function DeviceBox({ item, placeholder = false }: Props) {
 	// If this is a placeholder or no item, render the placeholder view
 	if (placeholder || !item) {
 		return (
-			<View style={[styles.deviceContainer, theme.viewStyles.placeholder]}>
+			<View style={[theme.viewStyles.deviceContainerLarge, theme.viewStyles.placeholder]}>
 				<View style={theme.viewStyles.placeholderContent}>
 					<Text style={theme.textStyles.placeholderText}>No Device</Text>
 					<Text style={theme.textStyles.placeholderSubText}>Waiting for connection...</Text>
@@ -227,16 +227,16 @@ export default function DeviceBox({ item, placeholder = false }: Props) {
 	const bars = rssiToBars(rssi);
 
 	return (
-		<View style={styles.deviceContainer}>
+		<View style={theme.viewStyles.deviceContainerLarge}>
 			{/* Device Name */}
-			<View style={styles.deviceHeader}>
+			<View style={theme.viewStyles.deviceHeaderLarge}>
 				<Text style={theme.textStyles.deviceName}>
 					{item.name || 'Unknown Device'}
 				</Text>
 			</View>
 
 			{/* Main Content */}
-			<View style={styles.deviceContent}>
+			<View style={theme.viewStyles.deviceContentLarge}>
 				{/* Service Status Icons - Left Side */}
 				<View style={theme.viewStyles.servicesSection}>
 					{serviceStates.map(({ key, Icon, present, active }) => {
@@ -252,7 +252,7 @@ export default function DeviceBox({ item, placeholder = false }: Props) {
 				</View>
 
 				{/* Main Content Area */}
-				<View style={styles.mainContent}>
+				<View style={theme.viewStyles.mainContent}>
 					{/* Battery Level - Prominent Display */}
 					<View style={theme.viewStyles.batterySection}>
 						<BattIcon size={28} color={battColor} />
@@ -277,63 +277,6 @@ export default function DeviceBox({ item, placeholder = false }: Props) {
 		</View>
 	);
 }
-
-const styles = StyleSheet.create({
-	deviceContainer: {
-		backgroundColor: 'white',
-		opacity: 0.9,
-		padding: 12,
-		flex: 1,
-		borderRadius: 8,
-		elevation: 2,
-		shadowColor: '#000',
-		shadowOffset: { width: 0, height: 1 },
-		shadowOpacity: 0.2,
-		shadowRadius: 2,
-		minHeight: 120,
-		maxHeight: 120,
-		justifyContent: 'space-between',
-	},
-	deviceHeader: {
-		marginBottom: 8,
-		paddingBottom: 8,
-	},
-	deviceContent: {
-		flex: 1,
-		flexDirection: 'row',
-		alignItems: 'stretch',
-	},
-	mainContent: {
-		flex: 1,
-		justifyContent: 'space-between',
-	},
-	placeholder: {
-		backgroundColor: 'transparent',
-		borderStyle: 'dashed',
-		borderColor: 'rgba(255, 255, 255, 0.6)',
-		borderWidth: 2,
-		elevation: 0,
-		shadowOpacity: 0,
-		minHeight: 120,
-		maxHeight: 120,
-		justifyContent: 'center',
-	},
-	placeholderContent: {
-		flex: 1,
-		justifyContent: 'center',
-		alignItems: 'center',
-	},
-	placeholderText: {
-		fontSize: 16,
-		fontWeight: '600',
-		color: 'rgba(255, 255, 255, 0.8)',
-		marginBottom: 4,
-	},
-	placeholderSubText: {
-		fontSize: 12,
-		color: 'rgba(255, 255, 255, 0.6)',
-	},
-});
 
 function SignalBars({
 	bars,

@@ -48,7 +48,7 @@ export default function SessionStatusPanel() {
 				</View>
 				<View style={theme.viewStyles.rowCenter}>
 					<Dot on={sessionActive} />
-					<Text style={[theme.textStyles.xsmall, { marginLeft: 6 }]}>{sessionActive ? 'Collecting' : 'Idle'}</Text>
+					<Text style={[theme.textStyles.body2, { marginLeft: 6 }]}>{sessionActive ? 'Collecting' : 'Idle'}</Text>
 				</View>
 			</View>
 
@@ -56,22 +56,22 @@ export default function SessionStatusPanel() {
 			<View style={[theme.viewStyles.rowBetween, { marginTop: 6 }]}>
 				<View style={theme.viewStyles.deviceCol}>
 					<View style={{ flexDirection: 'row', alignItems: 'center', maxWidth: '80%' }}>
-						<Text style={[theme.textStyles.xsmall, theme.textStyles.mono, theme.textStyles.dim, { paddingRight: 8 }]}>Device A</Text>
+						<Text style={[theme.textStyles.body2, theme.textStyles.mono, theme.textStyles.dim, { paddingRight: 8 }]}>Device A</Text>
 						<Dot on={!!entryA?.id && stateA.value !== StateMode.Off} />
 					</View>
 					<Text style={theme.textStyles.body2}>{entryA?.device.name ?? '—'}</Text>
-					<Text style={[theme.textStyles.xsmall, theme.textStyles.dim, { minWidth: 120, textAlign: 'left' }]}>
+					<Text style={[theme.textStyles.body2, theme.textStyles.dim, { minWidth: 120, textAlign: 'left' }]}>
 						{hzA.toFixed(1)} Hz • {lossA.toFixed(1)}% loss
 					</Text>
 				</View>
 
 				<View style={theme.viewStyles.deviceCol}>
 					<View style={{ flexDirection: 'row', alignItems: 'center', maxWidth: '80%' }}>
-						<Text style={[theme.textStyles.xsmall, theme.textStyles.mono, theme.textStyles.dim, { paddingRight: 8 }]}>Device B</Text>
+						<Text style={[theme.textStyles.body2, theme.textStyles.mono, theme.textStyles.dim, { paddingRight: 8 }]}>Device B</Text>
 						<Dot on={!!entryB?.id && stateB.value !== StateMode.Off} />
 					</View>
 					<Text style={theme.textStyles.body2}>{entryB?.device.name ?? '—'}</Text>
-					<Text style={[theme.textStyles.xsmall, theme.textStyles.dim, { minWidth: 120, textAlign: 'left' }]}>
+					<Text style={[theme.textStyles.body2, theme.textStyles.dim, { minWidth: 120, textAlign: 'left' }]}>
 						{hzB.toFixed(1)} Hz • {lossB.toFixed(1)}% loss
 					</Text>
 				</View>

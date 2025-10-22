@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { View, Text, ImageBackground, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import type { Device, Characteristic } from 'react-native-ble-plx';
 import { useTheme } from '../theme/ThemeContext';
 import { useRssi } from '../ble/useRssi';
@@ -25,7 +25,11 @@ type ConnectedDeviceLike = {
 	characteristicsByService: Record<string, Characteristic[]>;
 };
 
-type Props = { item: ConnectedDeviceLike; height?: number };
+type Props = { 
+	item?: ConnectedDeviceLike; 
+	height?: number; 
+	placeholder?: boolean;
+};
 
 const SIG_BASE = '0000xxxx-0000-1000-8000-00805f9b34fb';
 const toLower = (u?: string | null) => (u ? u.toLowerCase() : '');
@@ -142,44 +146,27 @@ function stateModeToTint(mode: number | null | undefined, fallback: string) {
 	}
 }
 
-export default function DeviceBox({ item, height = 175 }: Props) {
+export default function DeviceBox({ item, placeholder = false }: Props) {
 	const { theme } = useTheme();
+	const { a, b, entryA, entryB } = useDualImu();
 
-	// RSSI polling
-	const rssi = useRssi(item.device, 1000);
-	const bars = rssiToBars(rssi);
+	// Always call hooks - use dummy values when item is null
+	const rssi = useRssi(item?.device, 1000);
+	const { percent, supported: supportedBat, error: errorBat } = useBatteryPercent(
+		item || { id: '', device: {} as Device, services: [], characteristicsByService: {} }, 
+		{ subscribe: !!item, intervalMs: 15000 }
+	);
+	const stateResult = useStateControl(
+		item || { id: '', device: {} as Device, services: [], characteristicsByService: {} }, 
+		{ subscribe: false, intervalMs: 0 }
+	);
 
-	// Battery (notify if available; fallback poll)
-	const {
-		percent,
-		supported: supportedBat,
-		error: errorBat,
-	} = useBatteryPercent(item, { subscribe: true, intervalMs: 15000 });
-
-	// Only show a number if supported and no error
-	const pct: number | null =
-		supportedBat && !errorBat ? percent ?? null : null;
-	const {
-		Icon: BattIcon,
-		color: battColor,
-		label: battLabel,
-	} = useMemo(() => selectBatteryIcon(pct), [pct]);
-
-	// State Control (no subscribe here to avoid duplicate monitors; control box can subscribe)
-	const {
-		value: valueState,
-		supported: supportedState,
-		error: errorState,
-	} = useStateControl(item, { subscribe: false, intervalMs: 0 });
-
-	// 🔁 IMU stats FROM PROVIDER (no new subscription!)
-	const { a, b, entryA, entryB } = useDualImu(); // ensure DeviceBox is rendered inside DualImuProvider
-	const session =
-		item.id === entryA?.id ? a : item.id === entryB?.id ? b : null;
-	const hz = session?.stats.measuredHz ?? 0;
-	const loss = session?.stats.lossPercent ?? 0;
+	// Compute values with useMemo before early return
+	const pct: number | null = item && supportedBat && !errorBat ? percent ?? null : null;
+	const { Icon: BattIcon, color: battColor } = useMemo(() => selectBatteryIcon(pct), [pct]);
 
 	const serviceStates = useMemo(() => {
+		if (!item) return [];
 		const out: Array<{
 			key: ServiceKey;
 			label: string;
@@ -210,121 +197,142 @@ export default function DeviceBox({ item, height = 175 }: Props) {
 			});
 		});
 		return out;
-	}, [item.services, item.characteristicsByService]);
-
-	//const primary = theme?.colors?.primary ?? '#1e90ff';
-	//const muted = '#9ca3af';
-	//const border = '#e5e7eb';
+	}, [item]);
 
 	function selectBatteryIcon(p: number | null) {
 		if (p == null)
-			return { Icon: BatteryIcon, color: theme?.colors?.muted, label: '—' }; // gray-400
+			return { Icon: BatteryIcon, color: '#9CA3AF', label: '—' };
 		if (p <= 15)
-			return { Icon: BatteryWarning, color: theme?.colors?.danger, label: `${p}%` }; // red-500
+			return { Icon: BatteryWarning, color: '#EF4444', label: `${p}%` };
 		if (p <= 35)
-			return { Icon: BatteryLow, color: theme?.colors?.mid, label: `${p}%` }; // amber-500
+			return { Icon: BatteryLow, color: '#F59E0B', label: `${p}%` };
 		if (p <= 75)
-			return { Icon: BatteryMedium, color: theme?.colors?.warn, label: `${p}%` }; // yellow-500
-		return { Icon: BatteryFull, color: theme?.colors?.good, label: `${p}%` }; // emerald-500
+			return { Icon: BatteryMedium, color: '#EAB308', label: `${p}%` };
+		return { Icon: BatteryFull, color: '#22C55E', label: `${p}%` };
 	}
 
-	return (
-		<View
-			style={[
-				theme.viewStyles.card,
-				{
-					height,
-					//flex: 0.48,
-					width: '45%',
-					flexDirection: 'column',
-					justifyContent: 'space-evenly',
-					backgroundColor: theme?.colors?.white,
-					opacity: 0.9,
-					paddingVertical: 8,
-				},
-			]}
-		>
-			{/* Title */}
-			<View style={{ alignItems: 'center' }}>
-				<Text style={theme.textStyles.body2}>
-					{item.name || 'Unknown device'}
-				</Text>
-			</View>
-
-			{/* RSSI */}
-			<View
-				style={{
-					flexDirection: 'row',
-					alignItems: 'center',
-					justifyContent: 'center',
-					columnGap: 4,
-				}}
-			>
-				<SignalBars
-					bars={bars}
-					color={theme?.colors?.primary}
-					dimColor={theme?.colors?.border}
-				/>
-				<Text style={theme.textStyles.body2}>
-					{rssi != null ? `${rssi} dBm` : '—'}
-				</Text>
-			</View>
-
-			{/* Battery */}
-			<View style={{ alignItems: 'center' }}>
-				<View
-					style={{
-						flexDirection: 'row',
-						alignItems: 'center',
-						gap: 4,
-					}}
-				>
-					<BattIcon size={30} color={battColor} strokeWidth={2} />
-					<Text style={theme.textStyles.body2}>
-						{supportedBat ? percent ?? '—' : 'N/A'}%
-					</Text>
+	// If this is a placeholder or no item, render the placeholder view
+	if (placeholder || !item) {
+		return (
+			<View style={[styles.deviceContainer, theme.viewStyles.placeholder]}>
+				<View style={theme.viewStyles.placeholderContent}>
+					<Text style={theme.textStyles.placeholderText}>No Device</Text>
+					<Text style={theme.textStyles.placeholderSubText}>Waiting for connection...</Text>
 				</View>
-				{/* !!errorBat && (
-					<Text
-						style={[
-							theme.textStyles.body2,
-							{ fontSize: 8, color: 'tomato' },
-						]}
-					>
-						{errorBat}
-					</Text>
-				) */}
+			</View>
+		);
+	}
+
+	const bars = rssiToBars(rssi);
+
+	return (
+		<View style={styles.deviceContainer}>
+			{/* Device Name */}
+			<View style={styles.deviceHeader}>
+				<Text style={theme.textStyles.deviceName}>
+					{item.name || 'Unknown Device'}
+				</Text>
 			</View>
 
-			{/* Service Icons */}
-			<View>
-				<View
-					style={{
-						flexDirection: 'row',
-						justifyContent: 'space-around',
-						alignItems: 'center',
-					}}
-				>
+			{/* Main Content */}
+			<View style={styles.deviceContent}>
+				{/* Service Status Icons - Left Side */}
+				<View style={theme.viewStyles.servicesSection}>
 					{serviceStates.map(({ key, Icon, present, active }) => {
 						const iconColor = present
 							? active
-								? theme?.colors?.primary
-								: theme?.colors?.muted
-							: theme?.colors?.border;
+								? '#22C55E'
+								: '#F59E0B'
+							: '#E5E7EB';
 						return (
-							<View
-								key={key}
-								style={{ alignItems: 'center' }}
-							>
-								<Icon size={20} color={iconColor} />
-							</View>
+							<Icon key={key} size={16} color={iconColor} />
 						);
 					})}
+				</View>
+
+				{/* Main Content Area */}
+				<View style={styles.mainContent}>
+					{/* Battery Level - Prominent Display */}
+					<View style={theme.viewStyles.batterySection}>
+						<BattIcon size={28} color={battColor} />
+						<Text style={[theme.textStyles.batteryPercentage, { color: battColor }]}>
+							{supportedBat ? percent ?? '—' : 'N/A'}%
+						</Text>
+					</View>
+
+					{/* Signal Strength */}
+					<View style={theme.viewStyles.signalSection}>
+						<SignalBars
+							bars={bars}
+							color="#22C55E"
+							dimColor="#E5E7EB"
+						/>
+						<Text style={theme.textStyles.signalText}>
+							{rssi != null ? `${rssi} dBm` : '—'}
+						</Text>
+					</View>
 				</View>
 			</View>
 		</View>
 	);
 }
+
+const styles = StyleSheet.create({
+	deviceContainer: {
+		backgroundColor: 'white',
+		opacity: 0.9,
+		padding: 12,
+		flex: 1,
+		borderRadius: 8,
+		elevation: 2,
+		shadowColor: '#000',
+		shadowOffset: { width: 0, height: 1 },
+		shadowOpacity: 0.2,
+		shadowRadius: 2,
+		minHeight: 120,
+		maxHeight: 120,
+		justifyContent: 'space-between',
+	},
+	deviceHeader: {
+		marginBottom: 8,
+		paddingBottom: 8,
+	},
+	deviceContent: {
+		flex: 1,
+		flexDirection: 'row',
+		alignItems: 'stretch',
+	},
+	mainContent: {
+		flex: 1,
+		justifyContent: 'space-between',
+	},
+	placeholder: {
+		backgroundColor: 'transparent',
+		borderStyle: 'dashed',
+		borderColor: 'rgba(255, 255, 255, 0.6)',
+		borderWidth: 2,
+		elevation: 0,
+		shadowOpacity: 0,
+		minHeight: 120,
+		maxHeight: 120,
+		justifyContent: 'center',
+	},
+	placeholderContent: {
+		flex: 1,
+		justifyContent: 'center',
+		alignItems: 'center',
+	},
+	placeholderText: {
+		fontSize: 16,
+		fontWeight: '600',
+		color: 'rgba(255, 255, 255, 0.8)',
+		marginBottom: 4,
+	},
+	placeholderSubText: {
+		fontSize: 12,
+		color: 'rgba(255, 255, 255, 0.6)',
+	},
+});
 
 function SignalBars({
 	bars,

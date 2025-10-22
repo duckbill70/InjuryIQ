@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, TouchableOpacity, Text, Platform } from 'react-native';
+import { View, TouchableOpacity, Text } from 'react-native';
 
 import { useSession } from '../session/SessionProvider';
 import { useTheme } from '../theme/ThemeContext';
@@ -10,7 +10,6 @@ interface SportSegmentedControlProps {
 	sport: SportType;
 	setSport: (sport: SportType) => void;
 	recording: boolean;
-	btntheme: any; // Replace with your actual theme type if available
 }
 
 const sports: { value: SportType; label: string }[] = [
@@ -20,7 +19,7 @@ const sports: { value: SportType; label: string }[] = [
 	{ value: 'tennis', label: 'Tennis' },
 ];
 
-function SportSegmentedControl({ sport, setSport, recording, btntheme }: SportSegmentedControlProps) {
+function SportSegmentedControl({ sport, setSport, recording }: SportSegmentedControlProps) {
 
 	const { theme } = useTheme();
 
@@ -29,7 +28,7 @@ function SportSegmentedControl({ sport, setSport, recording, btntheme }: SportSe
 			{sports.map(({ value, label }) => (
 				<TouchableOpacity
 					key={value}
-					style={[btntheme.btn, {
+					style={[theme.viewStyles.actionButton, {
 						flex: 1,
 						alignItems: 'center',
 						backgroundColor: value === sport ? theme?.colors?.teal : theme?.colors?.muted,
@@ -40,7 +39,7 @@ function SportSegmentedControl({ sport, setSport, recording, btntheme }: SportSe
 					onPress={() => setSport(value)}
 					disabled={recording}
 				>
-					<Text style={btntheme.btnLabel}>{label}</Text>
+					<Text style={theme.textStyles.buttonLabel}>{label}</Text>
 				</TouchableOpacity>
 			))}
 		</View>
@@ -48,7 +47,7 @@ function SportSegmentedControl({ sport, setSport, recording, btntheme }: SportSe
 }
 
 export default function SportStatusPanel() {
-	//const { theme } = useTheme();
+	const { theme } = useTheme();
 	const { a, b } = useSession();
 
 	// sport
@@ -57,33 +56,9 @@ export default function SportStatusPanel() {
 	const recording = !!(a?.collect || b?.collect);
 
 	return (
-		<View style={[styles.card, { backgroundColor: 'white', opacity: 0.9 }]}>
+		<View style={[theme.viewStyles.panelContainer, { backgroundColor: 'white', opacity: 0.9 }]}>
 			{/*--- Sport? ---*/}
-			<SportSegmentedControl sport={sport} setSport={setSport} recording={recording} btntheme={styles} />
+			<SportSegmentedControl sport={sport} setSport={setSport} recording={recording} />
 		</View>
 	);
 }
-
-const styles = StyleSheet.create({
-	card: {
-		borderRadius: 12,
-		padding: 12,
-		borderWidth: 1,
-		borderColor: '#e5e7eb',
-	},
-	rowBetween: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-	rowCenter: { flexDirection: 'row', alignItems: 'center' },
-	deviceCol: { maxWidth: '48%' },
-	bold: { fontWeight: '700' },
-	dim: { color: '#6b7280' },
-	mono: { fontFamily: Platform.select({ ios: 'Menlo', android: 'monospace' }) },
-	btn: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		gap: 6,
-		paddingVertical: 8,
-		paddingHorizontal: 12,
-		borderRadius: 10,
-	},
-	btnLabel: { color: 'white', fontWeight: '600' },
-});

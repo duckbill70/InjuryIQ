@@ -20,6 +20,7 @@ import SessionStatusPanel from '../components/SessionStatusPanel';
 import DeviceStatusPanel from '../components/DeviceStatusPanel';
 import SportStatusPanel from '../components/SportStatusPanel';
 import FatiguePanel from '../components/FatiguePanel';
+import { StepCountDisplay } from '../components/StepCountDisplay';
 
 export default function HomeScreen() {
 	const { user, signOut } = useAuth();
@@ -45,9 +46,9 @@ export default function HomeScreen() {
 
 				{/* Device Boxes */}
 
-				<View style={{ marginBottom: 10, flexDirection: 'row', justifyContent: 'space-between' }}>
-					{entryA ? <DeviceBox key={entryA.id} item={entryA} /> : <Placeholder />}
-					{entryB ? <DeviceBox key={entryB.id} item={entryB} /> : <Placeholder />}
+				<View style={{ marginBottom: 10, flexDirection: 'row', justifyContent: 'space-between', gap: 12 }}>
+					<DeviceBox key={entryA?.id || 'placeholder-a'} item={entryA} placeholder={!entryA} />
+					<DeviceBox key={entryB?.id || 'placeholder-b'} item={entryB} placeholder={!entryB} />
 				</View>
 
 				{/* Status Manager */}
@@ -59,6 +60,12 @@ export default function HomeScreen() {
 				<View style={{ marginBottom: 10 }}>
 					<FatiguePanel />
 				</View>
+				
+				{/* Step Panel */}
+				<View style={{ marginBottom: 10 }}>
+					<StepCountDisplay />
+				</View>
+				
 
 				{/* Footer 
 				<View style={{ margin: 10, borderColor: theme.colors.dgrey, borderTopWidth: 1, paddingTop: 10, }} >
@@ -68,23 +75,5 @@ export default function HomeScreen() {
 				</View> */}
 			</ScrollView>
 
-	);
-}
-
-function Placeholder() {
-	return (
-		<View
-			style={{
-				//flex: 0.48,
-				width: '45%',
-				borderStyle: 'dashed',
-				borderColor: 'white',
-				borderWidth: 1,
-				//backgroundColor: 'rgba(90, 200, 250, 0.6)',
-				height: 175,
-				marginHorizontal: 5,
-				borderRadius: 8,
-			}}
-		/>
 	);
 }

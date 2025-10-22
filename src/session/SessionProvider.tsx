@@ -97,9 +97,9 @@ export function SessionProvider({ children, expectedHz = 60 }: { children: React
 	);
 }
 
-function SessionBody({ children, expectedHz, writerRef, userMeta }: { children: ReactNode; expectedHz: number; writerRef: React.MutableRefObject<CombinedWriter | null>; userMeta: { uid: string | null; email: string | null } }) {
+function SessionBody({ children, expectedHz, writerRef, userMeta: _userMeta }: { children: ReactNode; expectedHz: number; writerRef: React.MutableRefObject<CombinedWriter | null>; userMeta: { uid: string | null; email: string | null } }) {
 	// You already expose these from useDualImu; keeping the same callsite you have today.
-	const { a, b, entryA, entryB, startAll, stopAll, drainAll, setCollectAll, isCollectingAny } = useDualImu();
+	const { a, b, entryA, entryB, startAll, stopAll, drainAll, setCollectAll } = useDualImu();
 
 	// Per-device state control (unchanged)
 	const stateA = useStateControl(entryA, { subscribe: true });
@@ -113,10 +113,6 @@ function SessionBody({ children, expectedHz, writerRef, userMeta }: { children: 
 	const trendB = useFatigueTrend(entryB, { maxPoints: 600, emitEveryMs: 250 });
 	const connectedA = !!entryA?.id;
 	const connectedB = !!entryB?.id;
-	const isAOn = connectedA && stateA.supported && stateA.value !== StateMode.Off;
-	const isBOn = connectedB && stateB.supported && stateB.value !== StateMode.Off;
-	const safeFatigueTrendA: FatigueTrendState = isAOn ? trendA : { history: [], latest: null, avg: null };
-	const safeFatigueTrendB: FatigueTrendState = isBOn ? trendB : { history: [], latest: null, avg: null };
 
 	const { user } = useAuth();
 	const [sport, setSport] = useState<SportType>('running');
@@ -285,10 +281,10 @@ function SessionBody({ children, expectedHz, writerRef, userMeta }: { children: 
 				body: `Session ${event} - ${sport}`,
 				dedupeKey: `session:${event}`,
 				foreground: true, // show even when app is open
-				bypassDedupe: __DEV__ ? true : false, // remove later; ensures it’s not suppressed while testing
+				bypassDedupe: __DEV__ ? true : false, // remove later; ensures it's not suppressed while testing
 			});
 		},
-		[writerRef],
+		[writerRef, notify, sport],
 	);
 
 	// inside SessionBody in SessionProvider.tsx (after you have `a`, `b`, and writerRef)
@@ -353,7 +349,7 @@ function SessionBody({ children, expectedHz, writerRef, userMeta }: { children: 
 			setSessionActive(false);
 			setPaused(false);
 		}
-	}, [sessionActive, expectedHz, entryA?.id, entryB?.id, startAll, setCollectAll, user?.uid, stateA.value, stateB.value, sport, emitSessionEvent, startGpsWatch]);
+	}, [sessionActive, expectedHz, entryA?.id, entryB?.id, startAll, setCollectAll, user?.uid, stateA.value, stateB.value, sport, emitSessionEvent, startGpsWatch, writerRef]);
 
 	/** STOP — make sure to flip sessionActive=false so a new Start is allowed */
 	const stopRecording = useCallback(async () => {
@@ -397,7 +393,7 @@ function SessionBody({ children, expectedHz, writerRef, userMeta }: { children: 
 		// reset flags — THIS WAS MISSING
 		setSessionActive(false);
 		setPaused(false);
-	}, [sessionActive, setCollectAll, drainAll, stopAll, stopGpsWatch, emitSessionEvent]);
+	}, [sessionActive, setCollectAll, drainAll, stopAll, stopGpsWatch, emitSessionEvent, writerRef]);
 
 	/** PAUSE */
 	const pauseRecording = useCallback(() => {
@@ -421,7 +417,7 @@ function SessionBody({ children, expectedHz, writerRef, userMeta }: { children: 
 		//});
 
 		if (__DEV__) console.log('[CTRL] recording paused');
-	}, [sessionActive, setCollectAll, stopGpsWatch]);
+	}, [sessionActive, setCollectAll, stopGpsWatch, emitSessionEvent, writerRef]);
 
 	/** RESUME */
 	const resumeRecording = useCallback(() => {
@@ -444,7 +440,7 @@ function SessionBody({ children, expectedHz, writerRef, userMeta }: { children: 
 		//});
 
 		if (__DEV__) console.log('[CTRL] recording resumed');
-	}, [sessionActive, setCollectAll, startGpsWatch]);
+	}, [sessionActive, setCollectAll, startGpsWatch, emitSessionEvent, writerRef]);
 
 	const togglePause = useCallback(() => {
 		if (!sessionActive) return;
@@ -467,14 +463,14 @@ function SessionBody({ children, expectedHz, writerRef, userMeta }: { children: 
 				// A dropped → keep B collecting, mark A dropped
 				emitDeviceEvent('A', 'dropped');
 				try {
-					a.setCollect?.(false);
+					a?.setCollect?.(false);
 				} catch {}
 			} else if (!prevA && nowA) {
 				// A resumed → restart A collecting
 				emitDeviceEvent('A', 'resumed');
 				try {
-					a.start?.();
-					a.setCollect?.(true);
+					a?.start?.();
+					a?.setCollect?.(true);
 				} catch {}
 			}
 
@@ -482,13 +478,13 @@ function SessionBody({ children, expectedHz, writerRef, userMeta }: { children: 
 			if (prevB && !nowB) {
 				emitDeviceEvent('B', 'dropped');
 				try {
-					b.setCollect?.(false);
+					b?.setCollect?.(false);
 				} catch {}
 			} else if (!prevB && nowB) {
 				emitDeviceEvent('B', 'resumed');
 				try {
-					b.start?.();
-					b.setCollect?.(true);
+					b?.start?.();
+					b?.setCollect?.(true);
 				} catch {}
 			}
 		}
@@ -498,37 +494,43 @@ function SessionBody({ children, expectedHz, writerRef, userMeta }: { children: 
 	}, [entryA?.id, entryB?.id, a, b, emitDeviceEvent]);
 
 	const value: SessionCtx = useMemo(
-		() => ({
-			writerRef,
-			expectedHz,
-			entryA,
-			entryB,
+		() => {
+			// Compute safe fatigue trends inline to avoid dependency issues
+			const safeFatigueTrendA: FatigueTrendState = (connectedA && stateA.supported && stateA.value !== StateMode.Off) ? trendA : { history: [], latest: null, avg: null };
+			const safeFatigueTrendB: FatigueTrendState = (connectedB && stateB.supported && stateB.value !== StateMode.Off) ? trendB : { history: [], latest: null, avg: null };
 
-			// explicit session flags
-			sessionActive,
-			collecting,
-			isCollecting, // back-compat
+			return {
+				writerRef,
+				expectedHz,
+				entryA,
+				entryB,
 
-			startRecording,
-			stopRecording,
+				// explicit session flags
+				sessionActive,
+				collecting,
+				isCollecting, // back-compat
 
-			//NEw - Pause & Resume
-			isPaused: paused,
-			pauseRecording,
-			resumeRecording,
-			togglePause,
+				startRecording,
+				stopRecording,
 
-			a,
-			b,
-			sport,
-			setSport,
-			fatigueA,
-			fatigueB,
-			fatigueTrendA: safeFatigueTrendA, // or just: trendA
-			fatigueTrendB: safeFatigueTrendB, // or just: trendB
-			stateA,
-			stateB,
-		}),
+				//NEw - Pause & Resume
+				isPaused: paused,
+				pauseRecording,
+				resumeRecording,
+				togglePause,
+
+				a,
+				b,
+				sport,
+				setSport,
+				fatigueA,
+				fatigueB,
+				fatigueTrendA: safeFatigueTrendA, // or just: trendA
+				fatigueTrendB: safeFatigueTrendB, // or just: trendB
+				stateA,
+				stateB,
+			};
+		},
 		[
 			writerRef,
 			expectedHz,
@@ -549,8 +551,10 @@ function SessionBody({ children, expectedHz, writerRef, userMeta }: { children: 
 			setSport,
 			fatigueA,
 			fatigueB,
-			safeFatigueTrendA,
-			safeFatigueTrendB,
+			connectedA,
+			connectedB,
+			trendA,
+			trendB,
 			stateA,
 			stateB,
 		],

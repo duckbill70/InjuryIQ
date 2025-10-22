@@ -96,6 +96,18 @@ export function useImuIngress(entry: ConnectedDeviceLike | undefined, opts: Ingr
   const setCollecting = (v: boolean) => {
     if (__DEV__) console.log(`[${tag}] setCollecting(${v})`);
     setCollect(v);
+    
+    // Immediately reset stats when collection stops
+    if (!v) {
+      winRef.current = [];
+      setStats(s => ({
+        ...s,
+        measuredHz: 0,
+        lossRatio: 0,
+        lossPercent: 0,
+        packetsInWindow: 0,
+      }));
+    }
   };
 
   const updateStats = (now: number) => {
@@ -245,6 +257,14 @@ export function useImuIngress(entry: ConnectedDeviceLike | undefined, opts: Ingr
 
     if (!uuid) {
       if (isStreaming) stop();
+      // Reset stats immediately when device becomes unavailable
+      setStats(s => ({
+        ...s,
+        measuredHz: 0,
+        lossRatio: 0,
+        lossPercent: 0,
+        packetsInWindow: 0,
+      }));
       return;
     }
     if (isStreaming && activeUuidRef.current === uuid) {

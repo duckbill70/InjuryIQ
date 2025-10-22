@@ -10,7 +10,7 @@ import auth, {
   signInWithCredential,
   GoogleAuthProvider,
 } from '@react-native-firebase/auth';
-import { getApps, getApp, initializeApp } from '@react-native-firebase/app';
+import { getApps, getApp } from '@react-native-firebase/app';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
 type AuthContextValue = {
@@ -31,14 +31,18 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 // Ensure the default app exists, then reuse it everywhere in this module.
 function ensureApp() {
   if (getApps().length === 0) {
-    // No args = iOS reads GoogleService-Info.plist / Android reads google-services.json
-    initializeApp();
+    // For React Native Firebase, the app is typically auto-initialized
+    // If not, we need to initialize it with proper config
+    console.warn('Firebase app not found - this should be auto-initialized in React Native');
+    // In production, this would need proper configuration
+    // For now, just return null and let the auth() call handle it
+    return null;
   }
   return getApp(); // "[DEFAULT]"
 }
 
 const app = ensureApp();           // <-- key change
-const authInstance = auth(app);    // bind auth to the default app
+const authInstance = auth(app || undefined);    // bind auth to the default app
 //End new code
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {

@@ -28,10 +28,14 @@ export default function SessionStatusPanel() {
 
 	//const recording = !!(a?.collect || b?.collect);
 
-	const hzA = a?.stats.measuredHz ?? 0;
-	const lossA = a?.stats.lossPercent ?? 0;
-	const hzB = b?.stats.measuredHz ?? 0;
-	const lossB = b?.stats.lossPercent ?? 0;
+	// Show actual Hz and loss stats unless device is disconnected OR StateMode is Off
+	const showStatsA = !!entryA?.id && stateA.value !== StateMode.Off;
+	const showStatsB = !!entryB?.id && stateB.value !== StateMode.Off;
+	
+	const hzA = showStatsA ? (a?.stats.measuredHz ?? 0) : 0;
+	const lossA = showStatsA ? (a?.stats.lossPercent ?? 0) : 0;
+	const hzB = showStatsB ? (b?.stats.measuredHz ?? 0) : 0;
+	const lossB = showStatsB ? (b?.stats.lossPercent ?? 0) : 0;
 
 	function toSentenceCase(str: string) {
 		if (!str) return '';

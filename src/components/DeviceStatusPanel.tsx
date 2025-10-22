@@ -7,7 +7,7 @@ import { useTheme } from '../theme/ThemeContext';
 import FootIcon from './FootIcon';
 
 const modeSequence = [
-	StateMode.Amber,
+	//StateMode.Amber,
 	//StateMode.RedPulse,
 	//StateMode.GreenPulse,
 	//StateMode.BluePulse,

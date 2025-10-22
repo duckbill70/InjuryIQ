@@ -48,10 +48,10 @@ export const StepCountDisplay: React.FC = () => {
 		intervalMs: 30000,
 	});
 
-	const formatTimestamp = (timestamp: number | null) => {
-		if (!timestamp) return 'Never';
-		return new Date(timestamp).toLocaleTimeString();
-	};
+	//const formatTimestamp = (timestamp: number | null) => {
+	//	if (!timestamp) return 'Never';
+	//	return new Date(timestamp).toLocaleTimeString();
+	//};
 
 	return (
 		<View style={theme.viewStyles.panelContainer}>
@@ -69,7 +69,7 @@ export const StepCountDisplay: React.FC = () => {
 								{deviceASteps.supported ? (
 									<>
 										<Text style={theme.textStyles.stepCount}>{deviceASteps.stepCount ?? 'Loading...'}</Text>
-										<Text style={theme.textStyles.lastUpdated}>Last updated: {formatTimestamp(deviceASteps.lastUpdated)}</Text>
+										{/* <Text style={theme.textStyles.lastUpdated}>Last updated: {formatTimestamp(deviceASteps.lastUpdated)}</Text> */}
 										{deviceASteps.error && <Text style={theme.textStyles.error}>Error: {deviceASteps.error}</Text>}
 									</>
 								) : (
@@ -79,7 +79,7 @@ export const StepCountDisplay: React.FC = () => {
 						) : (
 							<>
 								<Text style={theme.textStyles.stepCount}>---</Text>
-								<Text style={theme.textStyles.lastUpdated}>Last updated: ---</Text>
+								{/* <Text style={theme.textStyles.lastUpdated}>Last updated: ---</Text> */}
 							</>
 						)}
 					</View>
@@ -96,7 +96,7 @@ export const StepCountDisplay: React.FC = () => {
 								{deviceBSteps.supported ? (
 									<>
 										<Text style={theme.textStyles.stepCount}>{deviceBSteps.stepCount ?? 'Loading...'}</Text>
-										<Text style={theme.textStyles.lastUpdated}>Last updated: {formatTimestamp(deviceBSteps.lastUpdated)}</Text>
+										{/* <Text style={theme.textStyles.lastUpdated}>Last updated: {formatTimestamp(deviceBSteps.lastUpdated)}</Text> */}
 										{deviceBSteps.error && <Text style={theme.textStyles.error}>Error: {deviceBSteps.error}</Text>}
 									</>
 								) : (
@@ -106,7 +106,7 @@ export const StepCountDisplay: React.FC = () => {
 						) : (
 							<>
 								<Text style={theme.textStyles.stepCount}>---</Text>
-								<Text style={theme.textStyles.lastUpdated}>Last updated: ---</Text>
+								{/* <Text style={theme.textStyles.lastUpdated}>Last updated: ---</Text> */}
 							</>
 						)}
 					</View>

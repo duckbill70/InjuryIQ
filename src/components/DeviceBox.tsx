@@ -123,29 +123,6 @@ const rssiToBars = (rssi: number | null): number => {
 	return 0;
 };
 
-{/* function stateModeToTint(mode: number | null | undefined, fallback: string) {
-	switch (mode) {
-		case StateMode.Amber:
-			return '#FFB300'; // amber
-		case StateMode.RedPulse:
-			return '#EF4444'; // red-500
-		case StateMode.Red:
-			return '#EF4444'; // red-500
-		case StateMode.GreenPulse:
-			return '#22C55E'; // green-500
-		case StateMode.Green:
-			return '#22C55E'; // green-500
-		case StateMode.BluePulse:
-			return '#3B82F6'; // blue-500
-		case StateMode.Blue:
-			return '#3B82F6'; // blue-500
-		case StateMode.Off:
-			return '#9CA3AF'; // gray-400
-		default:
-			return fallback; // when unknown
-	}
-} */}
-
 export default function DeviceBox({ item, placeholder = false }: Props) {
 	const { theme } = useTheme();
 	//const { a, b, entryA, entryB } = useDualImu();

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { Text, View, StyleSheet, ScrollView, Platform } from 'react-native';
 import { useIsFocused } from '@react-navigation/native';
 import { DataTable, IconButton } from 'react-native-paper';
@@ -8,7 +8,7 @@ import dayjs from 'dayjs';
 
 import { listCreatedFiles, type FileInfo } from './fileUtils';
 import { useTheme } from '../theme/ThemeContext';
-import { getNDJSONDuration } from './getNDJSONDuration';
+import type { Theme } from '../theme/theme';
 
 function bytes(n: number) {
 	if (!n && n !== 0) return '';
@@ -38,7 +38,11 @@ async function getSportFromNDJSON(filePath: string): Promise<string | undefined>
 }
 
 // Child component to fetch and display sport and duration
-function RowInfo({ filePath, file, theme }) {
+function RowInfo({ filePath, file, theme }: { 
+	filePath: string; 
+	file: FileInfo; 
+	theme: Theme;
+}) {
 	const [sport, setSport] = useState<string>('Loading...');
 	//const [duration, setDuration] = useState<string>('Loading...');
 
@@ -97,7 +101,7 @@ export default function FileTable() {
 	}, []);
 
 	// 🔹 define load function here
-	async function load() {
+	const load = useCallback(async () => {
 		try {
 			const list = await listCreatedFiles({
 				exts: ['.ndjson'],
@@ -109,19 +113,31 @@ export default function FileTable() {
 		} catch (err) {
 			console.warn('Failed to load files:', err);
 		}
-	}
+	}, [sortKey, sortDesc]);
 
 	useEffect(() => {
 		if (isFocused) {
 			load().catch(console.warn);
 		}
-	}, [isFocused, sortKey, sortDesc]);
+	}, [isFocused, sortKey, sortDesc, load]);
 
 	const sorted = useMemo(() => {
 		const mul = sortDesc ? -1 : 1;
 		return [...files].sort((a, b) => {
-			const av = (a as any)[sortKey] ?? 0;
-			const bv = (b as any)[sortKey] ?? 0;
+			let av: string | number | Date = 0;
+			let bv: string | number | Date = 0;
+			
+			if (sortKey === 'name') {
+				av = a.name;
+				bv = b.name;
+			} else if (sortKey === 'size') {
+				av = a.size;
+				bv = b.size;
+			} else if (sortKey === 'mtime') {
+				av = a.mtime || new Date(0);
+				bv = b.mtime || new Date(0);
+			}
+			
 			return av > bv ? mul : av < bv ? -mul : 0;
 		});
 	}, [files, sortKey, sortDesc]);
@@ -129,16 +145,6 @@ export default function FileTable() {
 	const from = page * itemsPerPage;
 	const to = Math.min((page + 1) * itemsPerPage, sorted.length);
 	const pageItems = sorted.slice(from, to);
-
-	function toggleSort(key: SortKey) {
-		if (key === sortKey) {
-			setSortDesc((d) => !d);
-		} else {
-			setSortKey(key);
-			setSortDesc(key === 'mtime'); // default newest first for date
-		}
-		setPage(0);
-	}
 
 	async function handleDelete(path: string) {
 		try {
@@ -149,7 +155,7 @@ export default function FileTable() {
 		}
 	}
 
-	const getMonthYearIfDifferent = (mtime) => {
+	const getMonthYearIfDifferent = (mtime: Date | undefined) => {
 		const current = dayjs();
 		const fileDate = dayjs(mtime);
 

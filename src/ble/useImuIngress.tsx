@@ -71,11 +71,11 @@ export function useImuIngress(entry: ConnectedDeviceLike | undefined, opts: Ingr
 	const tag = opts.debugTg ?? entry?.id ?? 'imu';
 
 	// Resolve characteristic when services appear (including after reconnect).
-	const char = useMemo(() => findImuChar(entry), [entry?.id]);
+	const char = useMemo(() => findImuChar(entry), [entry]);
 	const charRef = useRef<Characteristic | null>(null);
 	useEffect(() => {
 		charRef.current = char ?? null;
-	}, [char?.uuid, entry?.id]);
+	}, [char]);
 
 	const collectingRef = useRef<boolean>(initialCollect);
 	useEffect(() => {
@@ -95,9 +95,21 @@ export function useImuIngress(entry: ConnectedDeviceLike | undefined, opts: Ingr
 	const setCollecting = (v: boolean) => {
 		if (__DEV__) console.log(`[${tag}] setCollecting(${v})`);
 		setCollect(v);
+		
+		// Immediately reset stats when collection stops
+		if (!v) {
+			winRef.current = [];
+			setStats((s) => ({
+				...s,
+				measuredHz: 0,
+				lossRatio: 0,
+				lossPercent: 0,
+				packetsInWindow: 0,
+			}));
+		}
 	};
 
-	const updateStats = (now: number) => {
+	const updateStats = useCallback((now: number) => {
 		const win = winRef.current;
 		const windowStart = now - statsWindowMs;
 		while (win.length && win[0] < windowStart) win.shift();
@@ -117,7 +129,7 @@ export function useImuIngress(entry: ConnectedDeviceLike | undefined, opts: Ingr
 				totalPackets: totalPacketsRef.current,
 			});
 		}
-	};
+	}, [statsWindowMs, expectedHz, statsEmitMs]);
 
 	const flush = useCallback(() => {
 		if (!collectingRef.current || !onBatch) return;
@@ -128,12 +140,12 @@ export function useImuIngress(entry: ConnectedDeviceLike | undefined, opts: Ingr
 
 	function isCancellationError(err: unknown): boolean {
 		if (!err) return true;
-		const s = String((err as any)?.message ?? (err as any));
+		const s = String((err as Error)?.message ?? err);
 		return /cancel|cancelled|canceled|aborted/i.test(s);
 	}
 
 	const onNotification = useCallback(
-		(err: any, ch?: Characteristic | null) => {
+		(err: unknown, ch?: Characteristic | null) => {
 			if (err) {
 				if (unsubscribingRef.current || isCancellationError(err)) {
 					if (__DEV__) console.log(`[${tag}] monitor cancelled (expected during stop)`);
@@ -162,7 +174,7 @@ export function useImuIngress(entry: ConnectedDeviceLike | undefined, opts: Ingr
 				}
 			}
 		},
-		[batchSize, maxBuffer, onBatch, statsWindowMs, statsEmitMs, expectedHz, tag],
+		[batchSize, maxBuffer, onBatch, tag, updateStats],
 	);
 
 	const start = useCallback(() => {
@@ -248,6 +260,14 @@ export function useImuIngress(entry: ConnectedDeviceLike | undefined, opts: Ingr
 
 		if (!uuid) {
 			if (isStreaming) stop();
+			// Reset stats immediately when device becomes unavailable
+			setStats((s) => ({
+				...s,
+				measuredHz: 0,
+				lossRatio: 0,
+				lossPercent: 0,
+				packetsInWindow: 0,
+			}));
 			return;
 		}
 		if (isStreaming && activeUuidRef.current === uuid) {

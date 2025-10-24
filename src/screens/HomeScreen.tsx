@@ -19,7 +19,7 @@ import { useTheme } from '../theme/ThemeContext';
 import SessionStatusPanel from '../components/SessionStatusPanel';
 import DeviceStatusPanel from '../components/DeviceStatusPanel';
 import DevicePowerPanel from '../components/DevicePowerPanel';
-import SportStatusPanel from '../components/SportStatusPanel';
+//import SportStatusPanel from '../components/SportStatusPanel';
 import FatiguePanel from '../components/FatiguePanel';
 import { StepCountDisplay } from '../components/StepCountDisplay';
 
@@ -38,11 +38,6 @@ export default function HomeScreen() {
 				{/* Session Manager */}
 				<View style={{ marginBottom: 10 }}>
 					<SessionStatusPanel />
-				</View>
-
-				{/* Sport Manager */}
-				<View style={{ marginBottom: 10 }}>
-					<SportStatusPanel />
 				</View>
 
 				{/* Device Boxes */}

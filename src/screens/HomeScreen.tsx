@@ -18,6 +18,7 @@ import { useTheme } from '../theme/ThemeContext';
 
 import SessionStatusPanel from '../components/SessionStatusPanel';
 import DeviceStatusPanel from '../components/DeviceStatusPanel';
+import DevicePowerPanel from '../components/DevicePowerPanel';
 import SportStatusPanel from '../components/SportStatusPanel';
 import FatiguePanel from '../components/FatiguePanel';
 import { StepCountDisplay } from '../components/StepCountDisplay';
@@ -49,6 +50,11 @@ export default function HomeScreen() {
 				<View style={{ marginBottom: 10, flexDirection: 'row', justifyContent: 'space-between', gap: 12 }}>
 					<DeviceBox key={entryA?.id || 'placeholder-a'} item={entryA} placeholder={!entryA} />
 					<DeviceBox key={entryB?.id || 'placeholder-b'} item={entryB} placeholder={!entryB} />
+				</View>
+
+				{/* Status Manager */}
+				<View style={{ marginBottom: 10 }}>
+					<DevicePowerPanel />
 				</View>
 
 				{/* Status Manager */}

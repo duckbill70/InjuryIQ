@@ -7,14 +7,14 @@ import { useTheme } from '../theme/ThemeContext';
 import FootIcon from './FootIcon';
 
 const modeSequence = [
-	//StateMode.Amber,
+	StateMode.Amber,
 	//StateMode.RedPulse,
 	//StateMode.GreenPulse,
 	//StateMode.BluePulse,
 	StateMode.Red,
 	StateMode.Green,
 	StateMode.Blue,
-	StateMode.Off,
+	//StateMode.Off,
 ];
 
 function stateModeToTint(mode: number | null | undefined, fallback: string) {

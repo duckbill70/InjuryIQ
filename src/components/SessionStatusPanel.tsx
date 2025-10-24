@@ -8,14 +8,14 @@ import { useBle } from '../ble/BleProvider';
 import { useTheme } from '../theme/ThemeContext';
 import { StateMode } from '../ble/useStateControl';
 
-function Dot({ on = false }: { on?: boolean }) {
+function Dot({ on = false, color }: { on?: boolean; color?: string }) {
 	return (
 		<View
 			style={{
 				width: 10,
 				height: 10,
 				borderRadius: 5,
-				backgroundColor: on ? '#22c55e' : '#9ca3af',
+				backgroundColor: color || (on ? '#22c55e' : '#9ca3af'),
 			}}
 		/>
 	);
@@ -28,14 +28,18 @@ export default function SessionStatusPanel() {
 
 	//const recording = !!(a?.collect || b?.collect);
 
-	// Show actual Hz and loss stats unless device is disconnected OR StateMode is Off
-	const showStatsA = !!entryA?.id && stateA.value !== StateMode.Off;
-	const showStatsB = !!entryB?.id && stateB.value !== StateMode.Off;
+	// Show actual Hz and loss stats unless device is disconnected, StateMode is Off, or StateMode is Amber
+	const showStatsA = !!entryA?.id && stateA.value !== StateMode.Off && stateA.value !== StateMode.Amber;
+	const showStatsB = !!entryB?.id && stateB.value !== StateMode.Off && stateB.value !== StateMode.Amber;
 	
 	const hzA = showStatsA ? (a?.stats.measuredHz ?? 0) : 0;
 	const lossA = showStatsA ? (a?.stats.lossPercent ?? 0) : 0;
 	const hzB = showStatsB ? (b?.stats.measuredHz ?? 0) : 0;
 	const lossB = showStatsB ? (b?.stats.lossPercent ?? 0) : 0;
+
+	// Determine dot colors - amber when StateMode.Amber, otherwise normal logic
+	const dotColorA = stateA.value === StateMode.Amber ? '#FFB300' : undefined;
+	const dotColorB = stateB.value === StateMode.Amber ? '#FFB300' : undefined;
 
 	function toSentenceCase(str: string) {
 		if (!str) return '';
@@ -61,7 +65,7 @@ export default function SessionStatusPanel() {
 				<View style={theme.viewStyles.deviceCol}>
 					<View style={{ flexDirection: 'row', alignItems: 'center', maxWidth: '80%' }}>
 						<Text style={[theme.textStyles.body2, theme.textStyles.mono, theme.textStyles.dim, { paddingRight: 8 }]}>Device A</Text>
-						<Dot on={!!entryA?.id && stateA.value !== StateMode.Off} />
+						<Dot on={!!entryA?.id && stateA.value !== StateMode.Off} color={dotColorA} />
 					</View>
 					<Text style={theme.textStyles.body2}>{entryA?.device.name ?? '—'}</Text>
 					<Text style={[theme.textStyles.body2, theme.textStyles.dim, { minWidth: 120, textAlign: 'left' }]}>
@@ -72,7 +76,7 @@ export default function SessionStatusPanel() {
 				<View style={theme.viewStyles.deviceCol}>
 					<View style={{ flexDirection: 'row', alignItems: 'center', maxWidth: '80%' }}>
 						<Text style={[theme.textStyles.body2, theme.textStyles.mono, theme.textStyles.dim, { paddingRight: 8 }]}>Device B</Text>
-						<Dot on={!!entryB?.id && stateB.value !== StateMode.Off} />
+						<Dot on={!!entryB?.id && stateB.value !== StateMode.Off} color={dotColorB} />
 					</View>
 					<Text style={theme.textStyles.body2}>{entryB?.device.name ?? '—'}</Text>
 					<Text style={[theme.textStyles.body2, theme.textStyles.dim, { minWidth: 120, textAlign: 'left' }]}>

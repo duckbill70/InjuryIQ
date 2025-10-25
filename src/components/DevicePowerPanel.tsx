@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 
 import PowerModeToggle from './PowerModeToggle';
 import { useSession } from '../session/SessionProvider';
@@ -15,7 +15,6 @@ export default function DevicePowerPanel() {
 
 	return (
 		<View style={[theme.viewStyles.panelContainer, { backgroundColor: 'white', opacity: 0.9 }]}>
-
 			{/* Device Power Controls in a Row */}
 			<View style={[theme.viewStyles.rowBetween, { gap: 12 }]}>
 				{/* Device A Power Control */}
@@ -55,16 +54,35 @@ export default function DevicePowerPanel() {
 				)}
 
 				{/* Placeholder if only one device */}
-				{(entryA && !entryB) && <View style={{ flex: 1 }} />}
-				{(!entryA && entryB) && <View style={{ flex: 1 }} />}
+				{entryA && !entryB && <View style={{ flex: 1 }} />}
+				{!entryA && entryB && <View style={{ flex: 1 }} />}
 			</View>
 
 			{/* Show message if no devices */}
 			{!entryA && !entryB && (
-				<View style={[theme.viewStyles.rowCenter, { padding: 16 }]}>
-					<Text style={[theme.textStyles.body2, theme.textStyles.dim]}>
-						No devices connected
-					</Text>
+				<View style={[theme.viewStyles.rowBetween, { gap: 12 }]}>
+					<View style={{ flex: 1 }}>
+						<View style={[theme.viewStyles.rowCenter, { justifyContent: 'center' }]}>
+							<TouchableOpacity
+								//onPress={handleToggle}
+								disabled={true}
+								style={[ theme.viewStyles.actionButton, { backgroundColor: theme.colors.muted, opacity: 0.6, flex: 1, minWidth: 100, }, ]}
+							>
+								<Text style={theme.textStyles.buttonLabel}>No Device</Text>
+							</TouchableOpacity>
+						</View>
+					</View>
+                    <View style={{ flex: 1 }}>
+						<View style={[theme.viewStyles.rowCenter, { justifyContent: 'center' }]}>
+							<TouchableOpacity
+								//onPress={handleToggle}
+								disabled={true}
+								style={[ theme.viewStyles.actionButton, { backgroundColor: theme.colors.muted, opacity: 0.6, flex: 1, minWidth: 100, }, ]}
+							>
+								<Text style={theme.textStyles.buttonLabel}>No Device</Text>
+							</TouchableOpacity>
+						</View>
+					</View>
 				</View>
 			)}
 		</View>

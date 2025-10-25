@@ -73,7 +73,7 @@ export const useSession = () => {
 	return v;
 };
 
-export function SessionProvider({ children, expectedHz = 60 }: { children: ReactNode; expectedHz?: number }) {
+export function SessionProvider({ children, expectedHz = 30 }: { children: ReactNode; expectedHz?: number }) {
 	const { user } = useAuth();
 
 	const { entryA: devA, entryB: devB } = useBle();

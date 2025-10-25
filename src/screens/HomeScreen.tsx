@@ -22,6 +22,8 @@ import DevicePowerPanel from '../components/DevicePowerPanel';
 //import SportStatusPanel from '../components/SportStatusPanel';
 import FatiguePanel from '../components/FatiguePanel';
 import { StepCountDisplay } from '../components/StepCountDisplay';
+import DiagnosticsPanel from '../components/DiagnosticsPanel';
+import IOSDiagnosticsPanel from '../components/IOSDiagnosticsPanel';
 
 export default function HomeScreen() {
 	//const { user, signOut } = useAuth();
@@ -65,6 +67,16 @@ export default function HomeScreen() {
 				{/* Step Panel */}
 				<View style={{ marginBottom: 10 }}>
 					<StepCountDisplay />
+				</View>
+
+				{/* Diagnostics Panel Panel */}
+				<View style={{ marginBottom: 10 }}>
+					<DiagnosticsPanel />
+				</View>
+
+				{/* IOS Diagnostics Panel Panel */}
+				<View style={{ marginBottom: 100 }}>
+					<IOSDiagnosticsPanel />
 				</View>
 				
 

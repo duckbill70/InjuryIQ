@@ -1,23 +1,23 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import { RouteProp, useRoute } from '@react-navigation/native';
-import type { RootStackParamList } from './AppNavigator';
+//import { RouteProp, useRoute } from '@react-navigation/native';
+//import type { RootStackParamList } from './AppNavigator';
 
-import { useNavigation } from '@react-navigation/native';
+//import { useNavigation } from '@react-navigation/native';
 
-import { useAuth } from '../auth/AuthProvider';
-import { useTheme } from '../theme/ThemeContext';
+//import { useAuth } from '../auth/AuthProvider';
+//import { useTheme } from '../theme/ThemeContext';
 
 import FileTable from '../file/FileTable';
 
 
-type Recordings = RouteProp<RootStackParamList, 'Recordings'>;
+//type Recordings = RouteProp<RootStackParamList, 'Recordings'>;
 
 export default function RecordingsScreen() {
-	const route = useRoute<Recordings>();
-	const navigation = useNavigation();
-	const { user, signOut } = useAuth();
-	const { theme } = useTheme();
+	//const route = useRoute<Recordings>();
+	//const navigation = useNavigation();
+	//const { user, signOut } = useAuth();
+	//const { theme } = useTheme();
 
 	return (
 

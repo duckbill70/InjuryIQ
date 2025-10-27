@@ -1,7 +1,9 @@
 import React from 'react';
-import { View, ScrollView, Text } from 'react-native';
+import { View, ScrollView } from 'react-native';
+
 import { useTheme } from '../theme/ThemeContext';
 
+import { DeviceDiagnosticsPanel, BleControlPanel, DeviceSettingsPanel } from '../components';
 
 export default function HomeScreen() {
 	//const { user, signOut } = useAuth();
@@ -14,15 +16,22 @@ export default function HomeScreen() {
 	return (
 		
 			<ScrollView style={{ flex: 1, paddingVertical: 60, paddingHorizontal: 10, backgroundColor: theme?.colors?.teal }}>
-				{/* Session Manager */}
+
+
+
+				{/* BLE Control Panel */}
 				<View style={{ marginBottom: 10 }}>
-					
-					<Text>TBC</Text>
+					<BleControlPanel />
 				</View>
 
-				{/* Footer */}
+				{/* Device Settings Panel */}
+				<View style={{ marginBottom: 10 }}>
+					<DeviceSettingsPanel />
+				</View>
+
+				{/* Device Diagnostics */}
 				<View style={{ marginBottom: 100 }}>
-					<Text>TBC</Text>
+					<DeviceDiagnosticsPanel />
 				</View>
 				
 			</ScrollView>

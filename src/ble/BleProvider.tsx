@@ -2,6 +2,16 @@ import React, { createContext, useContext, useEffect, useMemo, useRef, useState,
 import { Platform } from 'react-native';
 import { BleManager, Device, Characteristic, State } from 'react-native-ble-plx';
 import { useNotify } from '../notify/useNotify';
+import { 
+	loadDevicePositions, 
+	updatePersistedDevice, 
+	cleanupOldDevices,
+	getAutoReconnectDevices
+} from './devicePersistence';
+import { 
+	autoAssignDevicePosition, 
+	generateDeviceSummary 
+} from './deviceAutoAssignment';
 
 export type DevicePosition = 'leftFoot' | 'rightFoot' | 'racket';
 
@@ -35,7 +45,7 @@ export type BleContextValue = {
 	startScan: (opts?: StartScanOpts) => Promise<void>;
 	stopScan: () => void;
 	disconnectDevice: (id: string) => Promise<void>;
-	assignDevicePosition: (deviceId: string, position: DevicePosition, color?: string) => void;
+	assignDevicePosition: (deviceId: string, position: DevicePosition, color?: string) => Promise<void>;
 	unassignDevicePosition: (deviceId: string) => void;
 	updateDeviceColor: (deviceId: string, color: string) => void;
 	
@@ -112,6 +122,27 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 		};
 	}, []);
 
+	// Initialize device persistence and cleanup old entries
+	useEffect(() => {
+		const initializePersistence = async () => {
+			try {
+				await cleanupOldDevices();
+				const persistedDevices = await loadDevicePositions();
+				const autoReconnectDevices = await getAutoReconnectDevices();
+				
+				if (__DEV__) {
+					const summary = generateDeviceSummary(persistedDevices, []);
+					console.log(`[BLE] Initialized: ${summary}`);
+					console.log(`[BLE] Auto-reconnect candidates: ${autoReconnectDevices.length}`);
+				}
+			} catch (error) {
+				console.warn('[BLE] Failed to initialize persistence:', error);
+			}
+		};
+
+		initializePersistence();
+	}, []);
+
 	// Live-scan de-dupe
 	const discoveredIdsRef = useRef<Set<string>>(new Set());
 
@@ -119,7 +150,9 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 	const retryMapRef = useRef<Record<string, RetryState>>({});
 
 	// Device positioning functions
-	const assignDevicePosition = useCallback((deviceId: string, position: DevicePosition, color?: string) => {
+	const assignDevicePosition = useCallback(async (deviceId: string, position: DevicePosition, color?: string) => {
+		const assignedColor = color || DEFAULT_DEVICE_COLORS[position];
+		
 		setConnected((prev) => {
 			const device = prev[deviceId];
 			if (!device) return prev;
@@ -138,19 +171,35 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 					position: undefined,
 					color: undefined,
 				};
+				// Also clear from persistence
+				updatePersistedDevice(existingDeviceWithPosition.id, {
+					position: undefined,
+					color: undefined,
+				}).catch(err => console.warn('[BLE] Failed to clear persisted position:', err));
 			}
 
 			// Assign new position to the device
 			updates[deviceId] = {
 				...device,
 				position,
-				color: color || DEFAULT_DEVICE_COLORS[position],
+				color: assignedColor,
 				assignedAt: new Date(),
 			};
 
 			return updates;
 		});
-	}, []);
+
+		// Persist the assignment
+		try {
+			await updatePersistedDevice(deviceId, {
+				name: connected[deviceId]?.name || undefined,
+				position,
+				color: assignedColor,
+			});
+		} catch (error) {
+			console.warn('[BLE] Failed to persist device position:', error);
+		}
+	}, [connected]);
 
 	const unassignDevicePosition = useCallback((deviceId: string) => {
 		setConnected((prev) => {
@@ -194,15 +243,15 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 		};
 	}, [connected]);
 
-	const clearRetryTimer = (id: string) => {
+	const clearRetryTimer = useCallback((id: string) => {
 		const r = retryMapRef.current[id];
 		if (r?.timer) {
 			clearTimeout(r.timer);
 			r.timer = null;
 		}
-	};
+	}, []);
 
-	const scheduleReconnect = (id: string) => {
+	const scheduleReconnect = useCallback((id: string) => {
 		const st = (retryMapRef.current[id] ??= {
 			attempt: 0,
 			timer: null,
@@ -229,7 +278,8 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 				}
 			}
 		}, delay);
-	};
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [clearRetryTimer]); // TODO: Fix circular dependency with tryReconnect
 
 	const ensurePoweredOn = useCallback(async () => {
 		if (!isPoweredOn) {
@@ -247,7 +297,7 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 		setScanning(false);
 	}, []);
 
-	const discoverAllForDevice = async (device: Device) => {
+	const discoverAllForDevice = useCallback(async (device: Device) => {
 		const manager = managerRef.current;
 		await manager.discoverAllServicesAndCharacteristicsForDevice(device.id);
 		const services = await manager.servicesForDevice(device.id);
@@ -258,18 +308,46 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 			characteristicsByService[svc.uuid.toLowerCase()] = chars;
 		}
 
+		// Try auto-assignment for new devices
+		const currentAssignments = Object.values(connectedRef.current)
+			.filter(d => d.position)
+			.reduce((acc, d) => ({ ...acc, [d.position!]: d.id }), {} as Record<DevicePosition, string>);
+
+		const autoAssignment = await autoAssignDevicePosition(
+			device.id, 
+			device.name,
+			currentAssignments
+		);
+
 		const entry: ConnectedDevice = {
 			id: device.id,
 			name: device.name,
 			device,
 			services: services.map((s) => s.uuid.toLowerCase()),
 			characteristicsByService,
+			// Apply auto-assignment if available
+			position: autoAssignment?.position,
+			color: autoAssignment?.color,
+			assignedAt: autoAssignment ? new Date() : undefined,
 		};
 
 		setConnected((prev) => ({ ...prev, [device.id]: entry }));
-	};
 
-	const registerDisconnectHandler = (id: string) => {
+		// Update persistent storage
+		if (autoAssignment) {
+			await updatePersistedDevice(device.id, {
+				name: device.name || undefined,
+				position: autoAssignment.position,
+				color: autoAssignment.color,
+			});
+			
+			if (__DEV__) {
+				console.log(`[BLE] Auto-assigned ${device.name || device.id} to ${autoAssignment.position}`);
+			}
+		}
+	}, []);
+
+	const registerDisconnectHandler = useCallback((id: string) => {
 		managerRef.current.onDeviceDisconnected(id, (error, _dev) => {
 			const friendlyName = connectedRef.current[id]?.name || id;
 			if (__DEV__) console.warn(`[BLE] onDeviceDisconnected ${friendlyName}`, error?.message ?? '');
@@ -288,9 +366,9 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 			});
 			scheduleReconnect(id);
 		});
-	};
+	}, [notify, scheduleReconnect]);
 
-	const connectToDevice = async (device: Device, opts?: { manual?: boolean }) => {
+	const connectToDevice = useCallback(async (device: Device, opts?: { manual?: boolean }) => {
 		const manager = managerRef.current;
 		if (connectedRef.current[device.id]) return;
 
@@ -315,7 +393,7 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 
 		clearRetryTimer(device.id);
 		if (retryMapRef.current[device.id]) retryMapRef.current[device.id].attempt = 0;
-	};
+	}, [registerDisconnectHandler, discoverAllForDevice, clearRetryTimer]);
 
 	const tryReconnect = async (id: string) => {
 		await ensurePoweredOn();
@@ -379,7 +457,7 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 				stopScan();
 			}
 		});
-	}, [scanning, isPoweredOn, stopScan, ensurePoweredOn, connectToDevice]);
+	}, [scanning, stopScan, ensurePoweredOn, connectToDevice]);
 
 	const disconnectDevice = useCallback(async (id: string) => {
 		const manager = managerRef.current;
@@ -399,7 +477,8 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 			setFoundDeviceIds((prev) => prev.filter((x) => x !== id));
 			discoveredIdsRef.current.delete(id);
 		}
-	}, []);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []); // TODO: Add missing dependencies
 
 	const scanOnce: BleContextValue['scanOnce'] = useCallback(async (opts) => {
 		await ensurePoweredOn();

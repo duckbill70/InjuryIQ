@@ -6,9 +6,10 @@ export async function ensureGpsAuthorization(
 ): Promise<boolean> {
   try {
     const res = await Geolocation.requestAuthorization(mode);
-    // iOS returns: 'granted' | 'denied' | 'disabled' | 'restricted' | 'authorizedAlways' | 'authorizedWhenInUse' (older)
+    // iOS returns: 'granted' | 'denied' | 'disabled' | 'restricted'
+    // Note: 'authorizedAlways' and 'authorizedWhenInUse' are legacy values not in current types
     console.log('[gps] RNGLS requestAuthorization ->', res);
-    if (res === 'granted' || res === 'authorizedAlways' || res === 'authorizedWhenInUse') {
+    if (res === 'granted') {
       return true;
     }
     return false;

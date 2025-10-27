@@ -2469,6 +2469,34 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
+  - RNCAsyncStorage (1.24.0):
+    - boost
+    - DoubleConversion
+    - fast_float
+    - fmt
+    - glog
+    - hermes-engine
+    - RCT-Folly
+    - RCT-Folly/Fabric
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - SocketRocket
+    - Yoga
   - RNDeviceInfo (14.1.1):
     - React-Core
   - RNFBApp (23.4.0):
@@ -3004,6 +3032,7 @@ DEPENDENCIES:
   - ReactCodegen (from `build/generated/ios`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - RNBootSplash (from `../node_modules/react-native-bootsplash`)
+  - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
   - RNDeviceInfo (from `../node_modules/react-native-device-info`)
   - "RNFBApp (from `../node_modules/@react-native-firebase/app`)"
   - "RNFBAuth (from `../node_modules/@react-native-firebase/auth`)"
@@ -3191,6 +3220,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon"
   RNBootSplash:
     :path: "../node_modules/react-native-bootsplash"
+  RNCAsyncStorage:
+    :path: "../node_modules/@react-native-async-storage/async-storage"
   RNDeviceInfo:
     :path: "../node_modules/react-native-device-info"
   RNFBApp:
@@ -3313,6 +3344,7 @@ SPEC CHECKSUMS:
   ReactCommon: e5df435ef0892875b7d503fbe3ec73a1a3712049
   RecaptchaInterop: 11e0b637842dfb48308d242afc3f448062325aba
   RNBootSplash: e4435c7c7f814bcb27dc7a8531e3e80bcfee7dcb
+  RNCAsyncStorage: 87d51a3aa982dd38d07ecb588aa67821a4a14eee
   RNDeviceInfo: bcce8752b5043a623fe3c26789679b473f705d3c
   RNFBApp: 8d27c7545e7e06d78974e204ff95f207a60a5cb2
   RNFBAuth: 532fc90de38b99d8bd9de4f81a8b5179cf582fd2

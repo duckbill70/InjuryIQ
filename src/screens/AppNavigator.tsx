@@ -26,7 +26,7 @@ function HomeStack() {
 		</Stack.Navigator>
 	);
 }
-function HomeTabIcon({ color, size }) {
+function HomeTabIcon({ color, size }: { color: string; size: number }) {
 	return <House size={size} color={color} />;
 }
 
@@ -38,7 +38,7 @@ function RecordingsStack() {
 		</Stack.Navigator>
 	);
 }
-function RecordingTabIcon({ color, size }) {
+function RecordingTabIcon({ color, size }: { color: string; size: number }) {
 	return <List size={size} color={color} />;
 }
 
@@ -50,7 +50,7 @@ function SettingsStack() {
 		</Stack.Navigator>
 	);
 }
-function SettingsTabIcon({ color, size }) {
+function SettingsTabIcon({ color, size }: { color: string; size: number }) {
 	return <User size={size} color={color} />;
 }
 

@@ -1,7 +1,7 @@
 // src/notify/useNotify.ts
 import { useCallback, useEffect, useRef } from 'react';
 import { Alert } from 'react-native';
-import notifee, { IOSAuthorizationStatus } from '@notifee/react-native';
+import notifee, { AuthorizationStatus } from '@notifee/react-native';
 
 type NotifyOpts = {
 	requestOnMount?: boolean; // ask once on mount (default true)
@@ -37,7 +37,7 @@ export function useNotify(opts: NotifyOpts = {}) {
 			const s = await notifee.getNotificationSettings();
 			return s.authorizationStatus;
 		} catch {
-			return IOSAuthorizationStatus.NOT_DETERMINED;
+			return AuthorizationStatus.NOT_DETERMINED;
 		}
 	}, []);
 
@@ -51,10 +51,10 @@ export function useNotify(opts: NotifyOpts = {}) {
 		async (openSettingsIfDenied = false) => {
 			let status = await getPermissionStatus();
 
-			if (status === IOSAuthorizationStatus.NOT_DETERMINED) {
+			if (status === AuthorizationStatus.NOT_DETERMINED) {
 				const res = await notifee.requestPermission();
 				status = res.authorizationStatus;
-			} else if (status === IOSAuthorizationStatus.DENIED && openSettingsIfDenied) {
+			} else if (status === AuthorizationStatus.DENIED && openSettingsIfDenied) {
 				Alert.alert('Enable Notifications', 'Notifications are currently disabled for InjuryIQ. Open Settings to enable?', [
 					{ text: 'Cancel', style: 'cancel' },
 					{ text: 'Open Settings', onPress: () => notifee.openNotificationSettings() },
@@ -95,11 +95,10 @@ export function useNotify(opts: NotifyOpts = {}) {
 		async (tag = 'notify') => {
 			const s = await getPermissionStatus();
 			console.log(`[${tag}] iOS auth status:`, s, {
-				NOT_DETERMINED: IOSAuthorizationStatus.NOT_DETERMINED,
-				DENIED: IOSAuthorizationStatus.DENIED,
-				AUTHORIZED: IOSAuthorizationStatus.AUTHORIZED,
-				PROVISIONAL: IOSAuthorizationStatus.PROVISIONAL,
-				EPHEMERAL: IOSAuthorizationStatus.EPHEMERAL,
+				NOT_DETERMINED: AuthorizationStatus.NOT_DETERMINED,
+				DENIED: AuthorizationStatus.DENIED,
+				AUTHORIZED: AuthorizationStatus.AUTHORIZED,
+				PROVISIONAL: AuthorizationStatus.PROVISIONAL,
 			});
 		},
 		[getPermissionStatus],

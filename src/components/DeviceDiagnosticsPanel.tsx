@@ -112,7 +112,7 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ deviceId, position, deviceName 
 	useFatigue({
 		deviceId,
 		onFatigueUpdate: setFatigueLevel,
-		autoSubscribe: true
+		//autoSubscribe: true
 	});
 
 	const positionColor = POSITION_COLORS[position];
@@ -403,14 +403,12 @@ export const DeviceDiagnosticsPanel: React.FC = () => {
        ];
        requiredThemeStyles.forEach((style, idx) => {
 	       if (typeof style !== 'object' || style === null) {
-		       // eslint-disable-next-line no-console
 		       console.error('Invalid theme style object at index', idx, style);
 	       }
        });
 
        // Defensive: Validate devicesByPosition
        if (typeof devicesByPosition !== 'object' || devicesByPosition === null) {
-	       // eslint-disable-next-line no-console
 	       console.error('devicesByPosition is invalid:', devicesByPosition);
        }
 

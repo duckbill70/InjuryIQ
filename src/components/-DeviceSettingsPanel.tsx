@@ -175,7 +175,6 @@ const DeviceBox: React.FC<DeviceBoxProps> = ({
 							</View>
 						</TouchableOpacity>
                         </View>
-
 					</>
 				) : (
 					// Empty slot - centered content with same overall structure
@@ -467,7 +466,7 @@ export const DeviceSettingsPanel: React.FC<DeviceSettingsPanelProps> = ({
 					})}
 				</View>
 
-				{/* Bottom Row - Racket (centered) 
+				{/* Bottom Row - Racket (centered) */}
 				<View style={[{ flexDirection: 'row', justifyContent: 'center' }]}>
 					{(() => {
 						const position: DevicePosition = 'racket';
@@ -490,7 +489,7 @@ export const DeviceSettingsPanel: React.FC<DeviceSettingsPanelProps> = ({
 							</View>
 						);
 					})()}
-				</View> */}
+				</View>
 			</View>
 		</View>
 	);

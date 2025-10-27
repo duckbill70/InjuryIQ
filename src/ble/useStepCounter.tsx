@@ -14,13 +14,11 @@ interface UseStepCounterProps {
 	enabled?: boolean;
 }
 
-export const useStepCounter = ({
-	deviceId,
-	onStepCountUpdate,
-	enabled = true
-}: UseStepCounterProps) => {
+export const useStepCounter = ({ deviceId, onStepCountUpdate, enabled = true }: UseStepCounterProps) => {
 	const { connected } = useBle();
 	const device = connected[deviceId]?.device;
+	const deviceInfo = connected[deviceId]; // This should have .position if your BLE provider sets it
+	const position = deviceInfo?.position;
 
 	const { logStep } = useSession();
 
@@ -31,33 +29,33 @@ export const useStepCounter = ({
 			// since Buffer may not be available in all environments
 			const base64chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 			const bytes: number[] = [];
-			
+
 			// Remove padding
 			let cleanBase64 = base64Data;
 			while (cleanBase64.endsWith('=')) {
 				cleanBase64 = cleanBase64.slice(0, -1);
 			}
-			
+
 			// Decode in 4-character chunks
 			for (let i = 0; i < cleanBase64.length; i += 4) {
 				const chunk = cleanBase64.slice(i, i + 4).padEnd(4, 'A'); // Pad with 'A' (value 0)
-				const values = chunk.split('').map(c => base64chars.indexOf(c));
-				
-				if (values.every(v => v !== -1)) {
+				const values = chunk.split('').map((c) => base64chars.indexOf(c));
+
+				if (values.every((v) => v !== -1)) {
 					// Convert 4 base64 values to 3 bytes
 					// eslint-disable-next-line no-bitwise
 					const byte1 = (values[0] << 2) | (values[1] >> 4);
-					// eslint-disable-next-line no-bitwise  
-					const byte2 = ((values[1] & 0x0F) << 4) | (values[2] >> 2);
+					// eslint-disable-next-line no-bitwise
+					const byte2 = ((values[1] & 0x0f) << 4) | (values[2] >> 2);
 					// eslint-disable-next-line no-bitwise
 					const byte3 = ((values[2] & 0x03) << 6) | values[3];
-					
+
 					bytes.push(byte1);
 					if (i + 1 < cleanBase64.length) bytes.push(byte2);
 					if (i + 2 < cleanBase64.length) bytes.push(byte3);
 				}
 			}
-			
+
 			// For "AAAAAA==", we expect 4 bytes: the first chunk "AAAA" gives 3 bytes,
 			// and the second chunk "AA" (padded to "AAAA") gives 1 more byte
 			// But we need to limit based on the original padding
@@ -81,18 +79,18 @@ export const useStepCounter = ({
 			if (bytes.length >= 3) {
 				// eslint-disable-next-line no-bitwise
 				stepCount = bytes[0] | (bytes[1] << 8) | (bytes[2] << 16);
-				
+
 				// If we have a 4th byte, include it
 				if (bytes.length >= 4) {
 					// eslint-disable-next-line no-bitwise
-					stepCount |= (bytes[3] << 24);
+					stepCount |= bytes[3] << 24;
 				}
 			}
-			
+
 			// Ensure non-negative value (unsigned)
 			// eslint-disable-next-line no-bitwise
 			const result = stepCount >>> 0;
-			
+
 			return result;
 		} catch (error) {
 			console.error('Failed to parse step count:', error);
@@ -111,40 +109,34 @@ export const useStepCounter = ({
 				return;
 			}
 
-			await device.monitorCharacteristicForService(
-				STEP_SERVICE_UUID,
-				STEP_COUNT_CHARACTERISTIC_UUID,
-				(error: BleError | null, characteristic: Characteristic | null) => {
-					if (error) {
-						// Check if it's a "characteristic not found" error - this is expected if device doesn't support step counting
-						if (error.message?.includes('Characteristic') && error.message?.includes('not found')) {
-							console.log('Device does not support step counter characteristic - this is normal for some devices');
-							return;
-						}
-						console.error('Step counter monitoring error:', error);
+			await device.monitorCharacteristicForService(STEP_SERVICE_UUID, STEP_COUNT_CHARACTERISTIC_UUID, (error: BleError | null, characteristic: Characteristic | null) => {
+				if (error) {
+					// Check if it's a "characteristic not found" error - this is expected if device doesn't support step counting
+					if (error.message?.includes('Characteristic') && error.message?.includes('not found')) {
+						console.log('Device does not support step counter characteristic - this is normal for some devices');
 						return;
 					}
+					console.error('Step counter monitoring error:', error);
+					return;
+				}
 
-					if (characteristic?.value) {
-						const stepCount = parseStepCount(characteristic.value);
-						if (onStepCountUpdate) {
-							onStepCountUpdate(stepCount);
-							logStep(stepCount);
-						}
+				if (characteristic?.value) {
+					const stepCount = parseStepCount(characteristic.value);
+					if (onStepCountUpdate) {
+						onStepCountUpdate(stepCount);
+						logStep(stepCount, position);
 					}
 				}
-			);
+			});
 		} catch (error) {
 			// Handle service/characteristic not found gracefully
-			if (error instanceof Error && 
-				(error.message.includes('Service') || error.message.includes('Characteristic')) && 
-				error.message.includes('not found')) {
+			if (error instanceof Error && (error.message.includes('Service') || error.message.includes('Characteristic')) && error.message.includes('not found')) {
 				console.log('Device does not support step counter service - this is normal for some devices');
 				return;
 			}
 			console.error('Failed to subscribe to step counter:', error);
 		}
-	}, [device, enabled, parseStepCount, onStepCountUpdate, logStep]);
+	}, [device, position, enabled, parseStepCount, onStepCountUpdate, logStep]);
 
 	// Unsubscribe from step count notifications
 	const unsubscribe = useCallback(async () => {
@@ -170,10 +162,7 @@ export const useStepCounter = ({
 				return null;
 			}
 
-			const characteristic = await device.readCharacteristicForService(
-				STEP_SERVICE_UUID,
-				STEP_COUNT_CHARACTERISTIC_UUID
-			);
+			const characteristic = await device.readCharacteristicForService(STEP_SERVICE_UUID, STEP_COUNT_CHARACTERISTIC_UUID);
 
 			if (characteristic?.value) {
 				return parseStepCount(characteristic.value);
@@ -199,6 +188,6 @@ export const useStepCounter = ({
 		subscribe,
 		unsubscribe,
 		readStepCount,
-		parseStepCount
+		parseStepCount,
 	};
 };

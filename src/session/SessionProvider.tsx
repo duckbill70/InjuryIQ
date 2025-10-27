@@ -40,6 +40,7 @@ export interface SessionEntry {
   timestamp: string;
   type: 'gps' | 'steps' | 'fatigue' | 'pause' | 'resume';
   data: unknown;
+  position?: string;
 }
 
 interface SessionContextType {
@@ -49,8 +50,8 @@ interface SessionContextType {
   stopSession: (footer?: SessionFooter) => void;
   pauseSession: () => void;
   resumeSession: () => void;
-  logStep: (stepData: unknown) => void;
-  logFatigue: (fatigueData: unknown) => void;
+  logStep: (stepData: unknown, position?: string) => void;
+  logFatigue: (fatigueData: unknown, position?: string) => void;
 }
 
 const SessionContext = createContext<SessionContextType | undefined>(undefined);
@@ -82,8 +83,7 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const logEntry = useCallback((entry: SessionEntry) => {
     if (sessionFile.current && isActiveRef.current && !isPausedRef.current) {
       RNFS.appendFile(sessionFile.current, JSON.stringify(entry) + '\n', 'utf8');
-      //if (__DEV__) console.log (`[logEntry] : `, JSON.stringify(entry, null, 2))
-      if (__DEV__) console.log (`[logEntry] : of type (${entry.type}) -`, entry.data)
+      if (__DEV__) console.log (`[logEntry] : type [${entry.type}] & position [${entry.position}]  -`, entry.data)
     }
   }, []);
 
@@ -145,13 +145,23 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
 
   // Log steps
-  const logStep = useCallback((stepData: unknown) => {
-    logEntry({ timestamp: new Date().toISOString(), type: 'steps', data: stepData });
+  const logStep = useCallback((stepData: unknown, position?: string) => {
+    logEntry({
+      timestamp: new Date().toISOString(),
+      type: 'steps',
+      data: stepData,
+      position,
+    });
   }, [logEntry]);
 
   // Log fatigue
-  const logFatigue = useCallback((fatigueData: unknown) => {
-    logEntry({ timestamp: new Date().toISOString(), type: 'fatigue', data: fatigueData });
+  const logFatigue = useCallback((fatigueData: unknown, position?: string) => {
+    logEntry({
+      timestamp: new Date().toISOString(),
+      type: 'fatigue',
+      data: fatigueData,
+      position,
+    });
   }, [logEntry]);
 
   // Clean up on unmount

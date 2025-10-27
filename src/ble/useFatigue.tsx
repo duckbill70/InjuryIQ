@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useBle } from './BleProvider';
-import type { BleError, Characteristic, Device } from 'react-native-ble-plx';
+import type { BleError, Characteristic } from 'react-native-ble-plx';
 import { useSession } from '../session/SessionProvider';
 
 // Manual base64 decode for single byte (avoiding Node/Browser API issues)
@@ -42,32 +42,33 @@ export interface UseFatigueOptions {
  * Hook for monitoring fatigue level from StingRay device
  * Based on StingRay BLE Services Guide - Fatigue Monitoring Service
  */
-export function useFatigue(options: UseFatigueOptions = {}): FatigueData & {
-	subscribe: () => void;
-	unsubscribe: () => void;
-	readFatigueLevel: () => Promise<number | null>;
-} {
-		const {
-			deviceId,
-			position,
-			autoSubscribe = true,
-			onFatigueUpdate,
-			onHighFatigue,
-			highFatigueThreshold = 80,
-		} = options;
-		const { connected, devicesByPosition } = useBle();
-		const { logFatigue } = useSession();
-		const lastLoggedValue = useRef<number | null>(null);
-		const lastLogTime = useRef<number>(0);
-		const device: Device | undefined = deviceId
-			? connected[deviceId]?.device
-			: position
-			? devicesByPosition[position]?.device
-			: undefined;
-		const [level, setLevel] = useState<number | null>(null);
-		const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
-		const [isSupported, setIsSupported] = useState(false);
-		const [error, setError] = useState<string | null>(null);
+interface UseFatigueProps {
+	deviceId: string;
+	onFatigueUpdate?: (level: number) => void;
+	onHighFatigue?: (level: number) => void;
+	highFatigueThreshold?: number;
+	enabled?: boolean;
+}
+
+export const useFatigue = ({
+	deviceId,
+	onFatigueUpdate,
+	onHighFatigue,
+	highFatigueThreshold = 80,
+	enabled = true,
+}: UseFatigueProps) => {
+	const { connected } = useBle();
+	const deviceInfo = connected[deviceId];
+	const device = deviceInfo?.device;
+	const position = deviceInfo?.position;
+	const { logFatigue } = useSession();
+
+	const lastLoggedValue = useRef<number | null>(null);
+	const lastLogTime = useRef<number>(0);
+	const [level, setLevel] = useState<number | null>(null);
+	const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+	const [isSupported, setIsSupported] = useState(false);
+	const [error, setError] = useState<string | null>(null);
 
 		const parseFatigueLevel = useCallback((base64Value: string): number => {
 			try {
@@ -127,7 +128,7 @@ export function useFatigue(options: UseFatigueOptions = {}): FatigueData & {
 								   lastLoggedValue.current !== fatigueLevel ||
 								   now - lastLogTime.current > 1000
 							   ) {
-								   logFatigue(fatigueLevel);
+								   logFatigue(fatigueLevel, position);
 								   lastLoggedValue.current = fatigueLevel;
 								   lastLogTime.current = now;
 							   }
@@ -142,7 +143,7 @@ export function useFatigue(options: UseFatigueOptions = {}): FatigueData & {
 						setError(subscribeErr instanceof Error ? subscribeErr.message : 'Failed to subscribe to fatigue updates');
 						console.warn('Fatigue subscription error:', subscribeErr);
 					}
-		}, [device, parseFatigueLevel, logFatigue, onFatigueUpdate, onHighFatigue, highFatigueThreshold]);
+		}, [device, position, parseFatigueLevel, logFatigue, onFatigueUpdate, onHighFatigue, highFatigueThreshold]);
 
 		// No-op: BLE cleans up on disconnect
 			const unsubscribe = useCallback(async () => {
@@ -151,14 +152,14 @@ export function useFatigue(options: UseFatigueOptions = {}): FatigueData & {
 				// console.log('Fatigue monitoring will stop when device disconnects');
 			}, []);
 
-	useEffect(() => {
-		if (autoSubscribe && device) {
-			subscribe();
-			return () => {
-				unsubscribe();
-			};
-		}
-	}, [autoSubscribe, device, subscribe, unsubscribe]);
+		useEffect(() => {
+			if (enabled && device) {
+				subscribe();
+				return () => {
+					unsubscribe();
+				};
+			}
+		}, [enabled, device, subscribe, unsubscribe]);
 
 	useEffect(() => {
 		setLevel(null);

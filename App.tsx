@@ -6,6 +6,7 @@ import { Provider as PaperProvider } from 'react-native-paper';
 import { AuthProvider, useAuth } from './src/auth/AuthProvider';
 import { ThemeProvider } from './src/theme/ThemeContext';
 import { BleProvider } from './src/ble/BleProvider';
+import { SessionProvider } from './src/session/SessionProvider';
 
 import { checkFirebaseInit } from './src/firebase/checkFirebaseInit';
 
@@ -15,6 +16,7 @@ import AppNavigator from './src/screens/AppNavigator';
 
 import AuthScreen from './src/screens/AuthScreen';
 //import HomeScreen from './src/screens/HomeScreen';
+//import { AppErrorBoundary } from './src/components/AppErrorBoundary';
 
 function Gate() {
 	const { user, loading } = useAuth();
@@ -29,9 +31,10 @@ function Gate() {
 }
 
 export default function App() {
-
-	const { ensurePermission} = useNotify({requestOnMount: false})
-	useEffect(() => { ensurePermission(false); }, [ensurePermission]);
+	const { ensurePermission } = useNotify({ requestOnMount: false });
+	useEffect(() => {
+		ensurePermission(false);
+	}, [ensurePermission]);
 
 	useEffect(() => {
 		if (__DEV__) {
@@ -41,16 +44,20 @@ export default function App() {
 	}, []);
 
 	return (
-		<AuthProvider>
-			<ThemeProvider>
-				<BleProvider>
-						<SafeAreaProvider>
-							<PaperProvider>
-								<Gate />
-							</PaperProvider>
-						</SafeAreaProvider>
-				</BleProvider>
-			</ThemeProvider>
-		</AuthProvider>
+
+			<AuthProvider>
+				<ThemeProvider>
+					<BleProvider>
+						<SessionProvider>
+							<SafeAreaProvider>
+								<PaperProvider>
+									<Gate />
+								</PaperProvider>
+							</SafeAreaProvider>
+						</SessionProvider>
+					</BleProvider>
+				</ThemeProvider>
+			</AuthProvider>
+
 	);
 }

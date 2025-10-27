@@ -2,6 +2,8 @@ import { useCallback, useEffect } from 'react';
 import { useBle } from './BleProvider';
 import type { BleError, Characteristic } from 'react-native-ble-plx';
 
+import { useSession } from '../session/SessionProvider';
+
 // StingRay Step Counter Service UUIDs (from StingRay BLE Services Guide)
 const STEP_SERVICE_UUID = '1814'; // Running Speed and Cadence Service (Standard)
 const STEP_COUNT_CHARACTERISTIC_UUID = '2a53'; // RSC Feature (repurposed for step count)
@@ -19,6 +21,8 @@ export const useStepCounter = ({
 }: UseStepCounterProps) => {
 	const { connected } = useBle();
 	const device = connected[deviceId]?.device;
+
+	const { logStep } = useSession();
 
 	// Parse step count from base64 (should be 4 bytes little-endian)
 	const parseStepCount = useCallback((base64Data: string): number => {
@@ -125,6 +129,7 @@ export const useStepCounter = ({
 						const stepCount = parseStepCount(characteristic.value);
 						if (onStepCountUpdate) {
 							onStepCountUpdate(stepCount);
+							logStep(stepCount);
 						}
 					}
 				}
@@ -139,7 +144,7 @@ export const useStepCounter = ({
 			}
 			console.error('Failed to subscribe to step counter:', error);
 		}
-	}, [device, enabled, parseStepCount, onStepCountUpdate]);
+	}, [device, enabled, parseStepCount, onStepCountUpdate, logStep]);
 
 	// Unsubscribe from step count notifications
 	const unsubscribe = useCallback(async () => {

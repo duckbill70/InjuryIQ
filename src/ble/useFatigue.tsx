@@ -2,6 +2,8 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { useBle } from './BleProvider';
 import { Subscription } from 'react-native-ble-plx';
 
+import { useSession } from '../session/SessionProvider';
+
 // Manual base64 decode for single byte (avoiding Node/Browser API issues)
 const base64chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 const decodeSingleByte = (base64: string): number => {
@@ -56,6 +58,8 @@ export function useFatigue(options: UseFatigueOptions = {}): FatigueData & {
 	} = options;
 
 	const { connected, devicesByPosition } = useBle();
+
+	const { logFatigue } = useSession();
 	
 	// Determine which device to use
 	const device = deviceId 
@@ -146,6 +150,7 @@ export function useFatigue(options: UseFatigueOptions = {}): FatigueData & {
 						setLevel(fatigueLevel);
 						setLastUpdate(new Date());
 						setError(null);
+						logFatigue(fatigueLevel);
 
 						// Trigger callbacks
 						onFatigueUpdate?.(fatigueLevel);
@@ -167,7 +172,7 @@ export function useFatigue(options: UseFatigueOptions = {}): FatigueData & {
 			setError(errorMessage);
 			console.warn('Fatigue subscription error:', errorMessage);
 		}
-	}, [device, fatigueCharacteristic, onFatigueUpdate, onHighFatigue, highFatigueThreshold]);
+	}, [device, fatigueCharacteristic, onFatigueUpdate, onHighFatigue, highFatigueThreshold, logFatigue]);
 
 	// Unsubscribe from notifications
 	const unsubscribe = useCallback(() => {

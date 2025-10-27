@@ -23,9 +23,9 @@ const POSITION_LABELS = {
 };
 
 const POSITION_COLORS = {
-	leftFoot: '#007AFF',   // Blue
-	rightFoot: '#FF9500',  // Orange  
-	racket: '#34C759'      // Green
+	leftFoot: '#007AFF',    // Blue
+	rightFoot: '#007AFF',   //'#FF9500',  // Orange  
+	racket: '#007AFF',      //'#34C759'      // Green
 };
 
 const LED_MODE_OPTIONS = [
@@ -235,13 +235,14 @@ const DeviceBox: React.FC<DeviceBoxProps> = ({
 export const DeviceSettingsPanel: React.FC<DeviceSettingsPanelProps> = ({ 
 	enabled = true 
 }) => {
-	const { theme } = useTheme();
 	const { 
 		connected, 
 		devicesByPosition,
 		assignDevicePosition,
 		unassignDevicePosition 
 	} = useBle();
+
+	const { theme } = useTheme();
 
 	// LED control states for each device
 	const [ledModes, setLedModes] = useState<Record<string, LEDControlMode>>({});
@@ -466,7 +467,6 @@ export const DeviceSettingsPanel: React.FC<DeviceSettingsPanelProps> = ({
 			<View style={[theme.viewStyles.panelTitle, theme.viewStyles.rowBetween]}>
 				<View style={{ flexDirection: 'row', alignItems: 'center' }}>
 					<Settings size={20} color={theme.colors.primary} />
-
 				</View>
 				<View style={theme.viewStyles.rowCenter}>
 					{enabled ? (
@@ -519,7 +519,8 @@ export const DeviceSettingsPanel: React.FC<DeviceSettingsPanelProps> = ({
 						const ledMode = device ? (ledModes[device.id] || LEDControlMode.AMBER) : LEDControlMode.AMBER;
 
 						return (
-							<View style={{ width: '48%' }}> {/* Same relative width as top row boxes */}
+							// Same relative width as top row boxes
+							<View style={{ width: '48%' }}>
 								<DeviceBox
 									key={position}
 									position={position}
@@ -535,57 +536,6 @@ export const DeviceSettingsPanel: React.FC<DeviceSettingsPanelProps> = ({
 					})()}
 				</View>
 			</View>
-
-			{/* Connected Devices Info 
-			{Object.keys(connected).length > 0 && (
-				<View style={[
-					theme.viewStyles.card,
-					{
-						backgroundColor: theme.colors.primary + '10',
-						borderColor: theme.colors.primary,
-						borderWidth: 1,
-					}
-				]}>
-					<Text style={[
-						theme.textStyles.body,
-						{ 
-							color: theme.colors.primary,
-							fontSize: 12,
-							textAlign: 'center'
-						}
-					]}>
-						{Object.keys(connected).length} device{Object.keys(connected).length !== 1 ? 's' : ''} connected
-						{availableDevices.length > 0 && ` • ${availableDevices.length} unassigned`}
-					</Text>
-				</View>
-			)} */}
-
-			{/* Footer Info 
-			{!enabled && (
-				<View style={[
-					theme.viewStyles.card,
-					{
-						backgroundColor: theme.colors.warn + '20',
-						borderColor: theme.colors.warn,
-						borderWidth: 1,
-						marginTop: 16,
-					}
-				]}>
-					<View style={theme.viewStyles.rowCenter}>
-						<Lock size={16} color={theme.colors.warn} />
-						<Text style={[
-							theme.textStyles.body,
-							{ 
-								marginLeft: 8,
-								color: theme.colors.warn,
-								fontSize: 12
-							}
-						]}>
-							Settings are locked during active sessions
-						</Text>
-					</View>
-				</View>
-			)} */}
 		</View>
 	);
 };

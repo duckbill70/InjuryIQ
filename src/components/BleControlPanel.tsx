@@ -22,7 +22,7 @@ export const BleControlPanel: React.FC = () => {
 	} = useBle();
 
 	const [autoScanEnabled, setAutoScanEnabled] = useState(false);
-	const [lastScanTime, setLastScanTime] = useState<Date | null>(null);
+	//const [lastScanTime, setLastScanTime] = useState<Date | null>(null);
 
 	// Auto-scan configuration
 	const AUTO_SCAN_INTERVAL_MS = 30000; // 30 seconds
@@ -44,7 +44,7 @@ export const BleControlPanel: React.FC = () => {
 
 			try {
 				console.log(`[AutoScan] Starting auto-scan (${currentConnectedCount}/${MAX_DEVICES} devices connected)`);
-				setLastScanTime(new Date());
+				//setLastScanTime(new Date());
 				await startScan({ 
 					timeoutMs: SCAN_DURATION_MS, 
 					maxDevices: MAX_DEVICES - currentConnectedCount,
@@ -60,7 +60,7 @@ export const BleControlPanel: React.FC = () => {
 			const initialScan = async () => {
 				try {
 					console.log('[AutoScan] Starting initial scan');
-					setLastScanTime(new Date());
+					//setLastScanTime(new Date());
 					await startScan({ 
 						timeoutMs: SCAN_DURATION_MS, 
 						maxDevices: MAX_DEVICES,
@@ -91,7 +91,7 @@ export const BleControlPanel: React.FC = () => {
 		}
 
 		try {
-			setLastScanTime(new Date());
+			//setLastScanTime(new Date());
 			await startScan({ 
 				timeoutMs: SCAN_DURATION_MS, 
 				maxDevices: MAX_DEVICES,

@@ -183,8 +183,8 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ deviceId, position, deviceName 
 		fontWeight: '600',
 		color: theme.colors.text,
 		marginBottom: 8,
-		flexDirection: 'row',
-		alignItems: 'center',
+		//flexDirection: 'row',
+		//alignItems: 'center',
 	};
 
 	const metricRowStyles: ViewStyle = {
@@ -232,6 +232,16 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ deviceId, position, deviceName 
 				}]}>
 					{systemStatus?.systemHealth || 'Unknown'}
 				</Text>
+				{lastError && (
+					<View style={{ marginTop: 8, borderColor: theme.colors.danger, borderWidth: 1, borderRadius: 6, padding: 8 }}>
+						<View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
+							<AlertTriangle size={16} color={theme.colors.danger} />
+							<Text style={[sectionTitleStyles, { marginLeft: 8, marginBottom: 0, color: theme.colors.danger }]}>Last Error</Text>
+						</View>
+						<Text style={[metricValueStyles, { color: theme.colors.danger }]}>Code: {lastError.code}</Text>
+						<Text style={[metricLabelStyles, { marginTop: 4, color: theme.colors.danger }]}>{lastError.description}</Text>
+					</View>
+				)}
 			</View>
 
 			{/* Battery & Power */}
@@ -378,9 +388,31 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ deviceId, position, deviceName 
 };
 
 export const DeviceDiagnosticsPanel: React.FC = () => {
-	const { theme } = useTheme();
-	const { devicesByPosition } = useBle();
-	const [currentIndex, setCurrentIndex] = useState(0);
+
+       const { theme } = useTheme();
+       const { devicesByPosition } = useBle();
+       const [currentIndex, setCurrentIndex] = useState(0);
+
+       // Defensive: Validate theme style objects
+       const requiredThemeStyles = [
+	       theme?.viewStyles?.panelContainer,
+	       theme?.viewStyles?.panelTitle,
+	       theme?.textStyles?.panelTitle,
+	       theme?.textStyles?.placeholderText,
+	       theme?.textStyles?.placeholderSubText,
+       ];
+       requiredThemeStyles.forEach((style, idx) => {
+	       if (typeof style !== 'object' || style === null) {
+		       // eslint-disable-next-line no-console
+		       console.error('Invalid theme style object at index', idx, style);
+	       }
+       });
+
+       // Defensive: Validate devicesByPosition
+       if (typeof devicesByPosition !== 'object' || devicesByPosition === null) {
+	       // eslint-disable-next-line no-console
+	       console.error('devicesByPosition is invalid:', devicesByPosition);
+       }
 
 	// Get connected devices
 	const devices = [

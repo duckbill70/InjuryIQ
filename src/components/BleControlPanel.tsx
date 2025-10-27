@@ -196,12 +196,12 @@ export const BleControlPanel: React.FC = () => {
 				</TouchableOpacity>
 			</View>
 
-			{/* Last Scan Time */}
+			{/* Last Scan Time 
 			{lastScanTime && (
 				<Text style={[theme.textStyles.lastUpdated, { textAlign: 'center', marginTop: 8 }]}>
 					Last scan: {lastScanTime.toLocaleTimeString()}
 				</Text>
-			)}
+			)} */}
 		</View>
 	);
 };

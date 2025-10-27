@@ -1,42 +1,20 @@
-import React, { useState, useCallback, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Alert, Modal, ScrollView } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { View, Text, TouchableOpacity, Alert } from 'react-native';
 import { useBle, DevicePosition } from '../ble/BleProvider';
 import { LEDControlMode } from '../ble/useLEDControl';
 import { useTheme } from '../theme/ThemeContext';
 import { 
 	Settings, 
-	MapPin, 
 	Lightbulb, 
-	ChevronDown,
-	ChevronUp,
-	Check,
+	Plus,
 	Lock,
-	Unlock
+	Unlock,
+	Trash
 } from 'lucide-react-native';
 
 interface DeviceSettingsPanelProps {
 	enabled?: boolean; // Flag to enable/disable settings (for session state)
 }
-
-interface DropdownProps {
-	value: DevicePosition | null;
-	options: { value: DevicePosition | null; label: string }[];
-	onSelect: (value: DevicePosition | null) => void;
-	disabled?: boolean;
-}
-
-interface LEDDropdownProps {
-	value: LEDControlMode;
-	onSelect: (value: LEDControlMode) => void;
-	disabled?: boolean;
-}
-
-const POSITION_OPTIONS = [
-	{ value: null, label: 'Unassigned' },
-	{ value: 'leftFoot' as DevicePosition, label: 'Left Foot' },
-	{ value: 'rightFoot' as DevicePosition, label: 'Right Foot' },
-	{ value: 'racket' as DevicePosition, label: 'Racket' },
-];
 
 const POSITION_LABELS = {
 	leftFoot: 'Left Foot',
@@ -51,218 +29,205 @@ const POSITION_COLORS = {
 };
 
 const LED_MODE_OPTIONS = [
-	{ value: LEDControlMode.AMBER, label: 'Standby (Amber)', color: '#FFA500' },
-	{ value: LEDControlMode.PULSE_RED, label: 'Pulse Red', color: '#EF4444' },
-	{ value: LEDControlMode.PULSE_GREEN, label: 'Pulse Green', color: '#10B981' },
-	{ value: LEDControlMode.PULSE_BLUE, label: 'Pulse Blue', color: '#3B82F6' },
-	{ value: LEDControlMode.SOLID_RED, label: 'Solid Red', color: '#EF4444' },
-	{ value: LEDControlMode.SOLID_GREEN, label: 'Solid Green', color: '#10B981' },
-	{ value: LEDControlMode.SOLID_BLUE, label: 'Solid Blue', color: '#3B82F6' },
-	{ value: LEDControlMode.OFF, label: 'Off (Low Power)', color: '#6B7280' },
+	{ value: LEDControlMode.AMBER, label: 'Standby', shortLabel: 'AMB', color: '#FFA500' },
+	//{ value: LEDControlMode.PULSE_RED, label: 'Collecting', shortLabel: 'P-R', color: '#EF4444' },
+	//{ value: LEDControlMode.PULSE_GREEN, label: 'Collecting', shortLabel: 'P-G', color: '#10B981' },
+	//{ value: LEDControlMode.PULSE_BLUE, label: 'Collecting', shortLabel: 'P-B', color: '#3B82F6' },
+	{ value: LEDControlMode.SOLID_RED, label: 'Collecting', shortLabel: 'S-R', color: '#EF4444' },
+	{ value: LEDControlMode.SOLID_GREEN, label: 'Collecting', shortLabel: 'S-G', color: '#10B981' },
+	{ value: LEDControlMode.SOLID_BLUE, label: 'Collecting', shortLabel: 'S-B', color: '#3B82F6' },
+	{ value: LEDControlMode.OFF, label: 'Off', shortLabel: 'OFF', color: '#6B7280' },
 ];
 
-const PositionDropdown: React.FC<DropdownProps> = ({ value, options, onSelect, disabled }) => {
-	const { theme } = useTheme();
-	const [isOpen, setIsOpen] = useState(false);
+// Compact device box component
+interface DeviceBoxProps {
+	position: DevicePosition;
+	device: { id: string; name?: string | null; position?: DevicePosition } | null;
+	ledMode: LEDControlMode;
+	enabled: boolean;
+	onLEDModeChange: (deviceId: string, mode: LEDControlMode) => void;
+	onRemoveDevice: (deviceId: string) => void;
+	onAssignDevice: (position: DevicePosition) => void;
+}
 
-	const selectedOption = options.find(opt => opt.value === value);
+const DeviceBox: React.FC<DeviceBoxProps> = ({ 
+	position, 
+	device, 
+	ledMode, 
+	enabled,
+	onLEDModeChange,
+	onRemoveDevice,
+	onAssignDevice
+}) => {
+	const { theme } = useTheme();
+	
+	// Get next LED mode for step-through
+	const getNextLEDMode = (currentMode: LEDControlMode): LEDControlMode => {
+		const currentIndex = LED_MODE_OPTIONS.findIndex(opt => opt.value === currentMode);
+		const nextIndex = (currentIndex + 1) % LED_MODE_OPTIONS.length;
+		return LED_MODE_OPTIONS[nextIndex].value;
+	};
+
+	const handleLEDStep = () => {
+		if (device && enabled) {
+			const nextMode = getNextLEDMode(ledMode);
+			onLEDModeChange(device.id, nextMode);
+		}
+	};
+
+	const currentLEDOption = LED_MODE_OPTIONS.find(opt => opt.value === ledMode);
 
 	return (
-		<View style={{ position: 'relative' }}>
-			<TouchableOpacity
-				style={[
-					theme.viewStyles.button,
-					{ 
-						backgroundColor: disabled ? theme.colors.muted : theme.colors.background,
-						borderWidth: 1,
-						borderColor: theme.colors.border,
-						paddingVertical: 8,
-						paddingHorizontal: 12,
-						opacity: disabled ? 0.5 : 1
-					}
-				]}
-				onPress={() => !disabled && setIsOpen(!isOpen)}
-				disabled={disabled}
-			>
-				<View style={[theme.viewStyles.rowBetween, { alignItems: 'center' }]}>
-					<Text style={[
-						theme.textStyles.body, 
-						{ color: disabled ? theme.colors.muted : theme.colors.text }
-					]}>
-						{selectedOption?.label || 'Select Position'}
-					</Text>
-					{isOpen ? (
-						<ChevronUp size={16} color={disabled ? theme.colors.muted : theme.colors.text} />
-					) : (
-						<ChevronDown size={16} color={disabled ? theme.colors.muted : theme.colors.text} />
-					)}
-				</View>
-			</TouchableOpacity>
+		<View style={[
+			theme.viewStyles.card,
+			{
+				backgroundColor: theme.colors.dgrey,
+				height: 140,
+				borderWidth: 2,
+				borderColor: device ? POSITION_COLORS[position] : theme.colors.border,
+				opacity: enabled ? 1 : 0.7,
+                padding: 5,
+			}
+		]}>
+			{/* Position Header with button on right */}
+			<View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, paddingBottom: 6, borderBottomWidth: 1, borderBottomColor: theme.colors.border }}>
+				<Text style={[
+					theme.textStyles.body,
+					{ fontWeight: '600', color: POSITION_COLORS[position] }
+				]}>
+					{POSITION_LABELS[position]}
+				</Text>
+				{device ? (
+					<TouchableOpacity
+						style={{
+							backgroundColor: theme.colors.danger,
+							paddingVertical: 4,
+							paddingHorizontal: 6,
+							borderRadius: 3,
+							opacity: enabled ? 1 : 0.5
+						}}
+						onPress={() => enabled && onRemoveDevice(device.id)}
+						disabled={!enabled}
+					>
+						<Trash size={16} color={theme.colors.white} />
+					</TouchableOpacity>
+				) : (
+					<TouchableOpacity
+						style={{
+							backgroundColor: enabled ? theme.colors.primary : theme.colors.muted,
+							paddingVertical: 4,
+							paddingHorizontal: 10,
+							borderRadius: 4,
+							opacity: enabled ? 1 : 0.5
+						}}
+						onPress={() => enabled && onAssignDevice(position)}
+						disabled={!enabled}
+					>
+						<Plus size={16} color={theme.colors.white} />
+					</TouchableOpacity>
+				)}
+			</View>
 
-			<Modal
-				visible={isOpen}
-				transparent
-				animationType="fade"
-				onRequestClose={() => setIsOpen(false)}
-			>
-				<TouchableOpacity
-					style={{
-						flex: 1,
-						backgroundColor: 'rgba(0,0,0,0.5)',
-						justifyContent: 'center',
-						alignItems: 'center',
-					}}
-					onPress={() => setIsOpen(false)}
-				>
-					<View style={[
-						theme.viewStyles.card,
-						{
-							backgroundColor: theme.colors.background,
-							minWidth: 200,
-							maxHeight: 300,
-						}
-					]}>
-						<ScrollView>
-							{options.map((option) => (
-								<TouchableOpacity
-									key={option.value || 'null'}
-									style={{
-										padding: 12,
-										borderBottomWidth: 1,
-										borderBottomColor: theme.colors.border,
-									}}
-									onPress={() => {
-										onSelect(option.value);
-										setIsOpen(false);
-									}}
-								>
-									<View style={[theme.viewStyles.rowBetween, { alignItems: 'center' }]}>
-										<Text style={theme.textStyles.body}>
-											{option.label}
-										</Text>
-										{value === option.value && (
-											<Check size={16} color={theme.colors.primary} />
-										)}
-									</View>
-								</TouchableOpacity>
-							))}
-						</ScrollView>
+			{/* Content Area - Fixed Height to Ensure Consistent Sizing */}
+			<View style={{ flex: 1, justifyContent: 'space-between' }}>
+				{device ? (
+					<>
+						{/* Device Info */}
+						<View style={{ marginBottom: 8 }}>
+							<Text style={[theme.textStyles.body, { fontWeight: '600' }]}>
+								{device.name || 'StingRay'}
+							</Text>
+							<Text style={[theme.textStyles.body2, { color: theme.colors.muted }]}>
+								{device.id.slice(-6)}
+							</Text>
+						</View>
+
+						{/* LED Control Button */}
+                        <View style={{ flexDirection: 'row', alignContent: 'center', justifyContent: 'center'}}>
+						<TouchableOpacity
+							style={[
+								{
+									backgroundColor: enabled ? currentLEDOption?.color : theme.colors.muted,
+									paddingVertical: 6,
+									paddingHorizontal: 4,
+									borderRadius: 4,
+									marginBottom: 8,
+									opacity: enabled ? 1 : 0.5,
+                                    width: '75%'
+								}
+							]}
+							onPress={handleLEDStep}
+							disabled={!enabled}
+						>
+							<View style={[theme.viewStyles.rowCenter, { justifyContent: 'center' }]}>
+								<Lightbulb size={16} color={theme.colors.white} />
+								<Text style={[
+									theme.textStyles.body, 
+									{ 
+										//fontSize: 10, 
+										color: theme.colors.white,
+										marginLeft: 4,
+										fontWeight: '600'
+									}
+								]}>
+									{currentLEDOption?.label}
+								</Text>
+							</View>
+						</TouchableOpacity>
+                        </View>
+
+						{/* Remove Button 
+						<TouchableOpacity
+							style={[
+								{
+									backgroundColor: theme.colors.danger,
+									paddingVertical: 4,
+									paddingHorizontal: 6,
+									borderRadius: 3,
+									alignSelf: 'flex-end',
+									opacity: enabled ? 1 : 0.5
+								}
+							]}
+							onPress={() => enabled && onRemoveDevice(device.id)}
+							disabled={!enabled}
+						>
+							<X size={12} color={theme.colors.white} />
+						</TouchableOpacity> */}
+					</>
+				) : (
+					// Empty slot - centered content with same overall structure
+					<View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+						{/* <TouchableOpacity
+							style={[
+								{
+									backgroundColor: enabled ? theme.colors.primary : theme.colors.muted,
+									paddingVertical: 12,
+									paddingHorizontal: 16,
+									borderRadius: 6,
+									opacity: enabled ? 1 : 0.5
+								}
+							]}
+							onPress={() => enabled && onAssignDevice(position)}
+							disabled={!enabled}
+						>
+							<View style={[theme.viewStyles.rowCenter]}>
+								<Plus size={16} color={theme.colors.white} />
+								<Text style={[
+									theme.textStyles.body, 
+									{ 
+										color: theme.colors.white,
+										marginLeft: 4,
+										fontSize: 11,
+										fontWeight: '600'
+									}
+								]}>
+									Assign
+								</Text>
+							</View>
+						</TouchableOpacity> */}
 					</View>
-				</TouchableOpacity>
-			</Modal>
-		</View>
-	);
-};
-
-const LEDDropdown: React.FC<LEDDropdownProps> = ({ value, onSelect, disabled }) => {
-	const { theme } = useTheme();
-	const [isOpen, setIsOpen] = useState(false);
-
-	const selectedOption = LED_MODE_OPTIONS.find(opt => opt.value === value);
-
-	return (
-		<View style={{ position: 'relative' }}>
-			<TouchableOpacity
-				style={[
-					theme.viewStyles.button,
-					{ 
-						backgroundColor: disabled ? theme.colors.muted : theme.colors.background,
-						borderWidth: 1,
-						borderColor: theme.colors.border,
-						paddingVertical: 8,
-						paddingHorizontal: 12,
-						opacity: disabled ? 0.5 : 1
-					}
-				]}
-				onPress={() => !disabled && setIsOpen(!isOpen)}
-				disabled={disabled}
-			>
-				<View style={[theme.viewStyles.rowBetween, { alignItems: 'center' }]}>
-					<View style={[theme.viewStyles.rowCenter, { flex: 1 }]}>
-						{selectedOption && (
-							<View style={{
-								width: 12,
-								height: 12,
-								borderRadius: 6,
-								backgroundColor: selectedOption.color,
-								marginRight: 8,
-							}} />
-						)}
-						<Text style={[
-							theme.textStyles.body, 
-							{ color: disabled ? theme.colors.muted : theme.colors.text }
-						]}>
-							{selectedOption?.label || 'Select LED Mode'}
-						</Text>
-					</View>
-					{isOpen ? (
-						<ChevronUp size={16} color={disabled ? theme.colors.muted : theme.colors.text} />
-					) : (
-						<ChevronDown size={16} color={disabled ? theme.colors.muted : theme.colors.text} />
-					)}
-				</View>
-			</TouchableOpacity>
-
-			<Modal
-				visible={isOpen}
-				transparent
-				animationType="fade"
-				onRequestClose={() => setIsOpen(false)}
-			>
-				<TouchableOpacity
-					style={{
-						flex: 1,
-						backgroundColor: 'rgba(0,0,0,0.5)',
-						justifyContent: 'center',
-						alignItems: 'center',
-					}}
-					onPress={() => setIsOpen(false)}
-				>
-					<View style={[
-						theme.viewStyles.card,
-						{
-							backgroundColor: theme.colors.background,
-							minWidth: 250,
-							maxHeight: 400,
-						}
-					]}>
-						<ScrollView>
-							{LED_MODE_OPTIONS.map((option) => (
-								<TouchableOpacity
-									key={option.value}
-									style={{
-										padding: 12,
-										borderBottomWidth: 1,
-										borderBottomColor: theme.colors.border,
-									}}
-									onPress={() => {
-										onSelect(option.value);
-										setIsOpen(false);
-									}}
-								>
-									<View style={[theme.viewStyles.rowBetween, { alignItems: 'center' }]}>
-										<View style={[theme.viewStyles.rowCenter, { flex: 1 }]}>
-											<View style={{
-												width: 12,
-												height: 12,
-												borderRadius: 6,
-												backgroundColor: option.color,
-												marginRight: 8,
-											}} />
-											<Text style={theme.textStyles.body}>
-												{option.label}
-											</Text>
-										</View>
-										{value === option.value && (
-											<Check size={16} color={theme.colors.primary} />
-										)}
-									</View>
-								</TouchableOpacity>
-							))}
-						</ScrollView>
-					</View>
-				</TouchableOpacity>
-			</Modal>
+				)}
+			</View>
 		</View>
 	);
 };
@@ -280,6 +245,9 @@ export const DeviceSettingsPanel: React.FC<DeviceSettingsPanelProps> = ({
 
 	// LED control states for each device
 	const [ledModes, setLedModes] = useState<Record<string, LEDControlMode>>({});
+
+	// Available devices that can be assigned
+	//const availableDevices = Object.values(connected).filter(device => !device.position);
 
 	// Read actual LED modes from connected devices
 	const readDeviceLEDMode = useCallback(async (deviceId: string): Promise<LEDControlMode> => {
@@ -347,44 +315,6 @@ export const DeviceSettingsPanel: React.FC<DeviceSettingsPanelProps> = ({
 		initializeLEDModes();
 	}, [connected, ledModes, readDeviceLEDMode]);
 
-	// Get connected devices array
-	const connectedDevices = Object.values(connected);
-
-	// Handle position change
-	const handlePositionChange = useCallback(async (deviceId: string, newPosition: DevicePosition | null) => {
-		try {
-			if (newPosition === null) {
-				unassignDevicePosition(deviceId);
-			} else {
-				// Check if position is already taken
-				const currentDevice = devicesByPosition[newPosition];
-				if (currentDevice && currentDevice.id !== deviceId) {
-					Alert.alert(
-						'Position Occupied',
-						`The ${POSITION_LABELS[newPosition]} position is already assigned to ${currentDevice.name || 'another device'}. Do you want to swap their positions?`,
-						[
-							{ text: 'Cancel', style: 'cancel' },
-							{
-								text: 'Swap',
-								onPress: async () => {
-									// First unassign the current device at that position
-									unassignDevicePosition(currentDevice.id);
-									// Then assign the new device
-									await assignDevicePosition(deviceId, newPosition, POSITION_COLORS[newPosition]);
-								}
-							}
-						]
-					);
-					return;
-				}
-				
-				await assignDevicePosition(deviceId, newPosition, POSITION_COLORS[newPosition]);
-			}
-		} catch (error) {
-			Alert.alert('Error', `Failed to update device position: ${error}`);
-		}
-	}, [devicesByPosition, assignDevicePosition, unassignDevicePosition]);
-
 	// Handle LED mode change
 	const handleLEDModeChange = useCallback(async (deviceId: string, mode: LEDControlMode) => {
 		try {
@@ -431,40 +361,124 @@ export const DeviceSettingsPanel: React.FC<DeviceSettingsPanelProps> = ({
 		}
 	}, [connected]);
 
-	if (connectedDevices.length === 0) {
-		return (
-			<View style={[theme.viewStyles.panelContainer, { minHeight: 150, justifyContent: 'center' }]}>
-				<Text style={[theme.textStyles.placeholderText, { textAlign: 'center', color: theme.colors.text }]}>
-					No devices connected
-				</Text>
-				<Text style={[theme.textStyles.placeholderSubText, { textAlign: 'center', color: theme.colors.muted }]}>
-					Connect your StingRay devices to configure settings
-				</Text>
-			</View>
+	// Handle device removal from position
+	const handleRemoveDevice = useCallback((deviceId: string) => {
+		Alert.alert(
+			'Remove Device',
+			'Remove this device from its position?',
+			[
+				{ text: 'Cancel', style: 'cancel' },
+				{ 
+					text: 'Remove', 
+					style: 'destructive',
+					onPress: () => unassignDevicePosition(deviceId)
+				}
+			]
 		);
-	}
+	}, [unassignDevicePosition]);
+
+	// Handle device assignment to position
+	const handleAssignDevice = useCallback((position: DevicePosition) => {
+		const allDevices = Object.values(connected);
+		
+		if (allDevices.length === 0) {
+			Alert.alert('No Devices', 'No devices are connected.');
+			return;
+		}
+
+		// Get available devices (not assigned to any position) and devices assigned to other positions
+		const unassignedDevices = allDevices.filter(device => !device.position);
+		const assignedDevices = allDevices.filter(device => device.position && device.position !== position);
+
+		const allOptions = [
+			...unassignedDevices.map(device => ({
+				device,
+				label: `${device.name || 'StingRay'} (Unassigned)`,
+				isUnassigned: true
+			})),
+			...assignedDevices.map(device => ({
+				device,
+				label: `${device.name || 'StingRay'} (${POSITION_LABELS[device.position!]})`,
+				isUnassigned: false
+			}))
+		];
+
+		if (allOptions.length === 0) {
+			Alert.alert('No Available Devices', 'All devices are already assigned to this position.');
+			return;
+		}
+
+		if (allOptions.length === 1) {
+			// Auto-assign the only available device
+			const option = allOptions[0];
+			if (!option.isUnassigned) {
+				// Moving from another position - confirm swap
+				Alert.alert(
+					'Move Device',
+					`Move ${option.device.name || 'this device'} from ${POSITION_LABELS[option.device.position!]} to ${POSITION_LABELS[position]}?`,
+					[
+						{ text: 'Cancel', style: 'cancel' },
+						{
+							text: 'Move',
+							onPress: () => assignDevicePosition(option.device.id, position, POSITION_COLORS[position])
+						}
+					]
+				);
+			} else {
+				assignDevicePosition(option.device.id, position, POSITION_COLORS[position]);
+			}
+		} else {
+			// Show selection for multiple devices
+			Alert.alert(
+				'Assign Device',
+				`Select a device to assign to ${POSITION_LABELS[position]}:`,
+				[
+					...allOptions.map(option => ({
+						text: option.label,
+						onPress: () => {
+							if (!option.isUnassigned) {
+								// Confirm move from another position
+								Alert.alert(
+									'Move Device',
+									`Move this device from ${POSITION_LABELS[option.device.position!]} to ${POSITION_LABELS[position]}?`,
+									[
+										{ text: 'Cancel', style: 'cancel' },
+										{
+											text: 'Move',
+											onPress: () => assignDevicePosition(option.device.id, position, POSITION_COLORS[position])
+										}
+									]
+								);
+							} else {
+								assignDevicePosition(option.device.id, position, POSITION_COLORS[position]);
+							}
+						}
+					})),
+					{ text: 'Cancel', style: 'cancel' }
+				]
+			);
+		}
+	}, [connected, assignDevicePosition]);
 
 	return (
-		<View style={theme.viewStyles.panelContainer}>
+		<View style={[theme.viewStyles.panelContainer, {backgroundColor: theme.colors.white}]}>
 			{/* Header */}
 			<View style={[theme.viewStyles.panelTitle, theme.viewStyles.rowBetween]}>
-				<View style={theme.viewStyles.rowCenter}>
+				<View style={{ flexDirection: 'row', alignItems: 'center' }}>
 					<Settings size={20} color={theme.colors.primary} />
-					<Text style={[theme.textStyles.panelTitle, { marginLeft: 8 }]}>
-						Device Settings
-					</Text>
+
 				</View>
 				<View style={theme.viewStyles.rowCenter}>
 					{enabled ? (
-						<Unlock size={16} color={theme.colors.good} />
+						<Unlock size={18} color={theme.colors.good} />
 					) : (
-						<Lock size={16} color={theme.colors.muted} />
+						<Lock size={18} color={theme.colors.muted} />
 					)}
 					<Text style={[
 						theme.textStyles.body, 
 						{ 
 							marginLeft: 4, 
-							fontSize: 12,
+							//fontSize: 12,
 							color: enabled ? theme.colors.good : theme.colors.muted 
 						}
 					]}>
@@ -473,102 +487,80 @@ export const DeviceSettingsPanel: React.FC<DeviceSettingsPanelProps> = ({
 				</View>
 			</View>
 
-			{/* Device Settings */}
-			<ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
-				{connectedDevices.map((device) => {
-					const currentPosition = device.position;
-					const currentLEDMode = ledModes[device.id] || LEDControlMode.AMBER;
+			{/* Position Boxes - 2 on top row, 1 on bottom */}
+			<View style={{ marginBottom: 16 }}>
+				{/* Top Row - Left Foot and Right Foot */}
+				<View style={[{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }]}>
+					{(['leftFoot', 'rightFoot'] as DevicePosition[]).map((position) => {
+						const device = devicesByPosition[position];
+						const ledMode = device ? (ledModes[device.id] || LEDControlMode.AMBER) : LEDControlMode.AMBER;
 
-					return (
-						<View
-							key={device.id}
-							style={[
-								theme.viewStyles.card,
-								{
-									backgroundColor: theme.colors.dgrey,
-									marginBottom: 16,
-									borderWidth: 2,
-									borderColor: currentPosition ? POSITION_COLORS[currentPosition] : theme.colors.border,
-								}
-							]}
-						>
-							{/* Device Header */}
-							<View style={[
-								theme.viewStyles.rowBetween,
-								{ 
-									marginBottom: 16,
-									paddingBottom: 12,
-									borderBottomWidth: 1,
-									borderBottomColor: theme.colors.border
-								}
-							]}>
-								<View>
-									<Text style={[theme.textStyles.body, { fontWeight: '600' }]}>
-										{device.name || 'StingRay Device'}
-									</Text>
-									<Text style={[theme.textStyles.body, { fontSize: 12, color: theme.colors.muted }]}>
-										ID: {device.id.slice(-8)}
-									</Text>
-								</View>
-								{currentPosition && (
-									<View style={{
-										backgroundColor: POSITION_COLORS[currentPosition] + '20',
-										paddingHorizontal: 8,
-										paddingVertical: 4,
-										borderRadius: 6,
-										borderWidth: 1,
-										borderColor: POSITION_COLORS[currentPosition],
-									}}>
-										<Text style={[
-											theme.textStyles.body,
-											{ 
-												fontSize: 12, 
-												fontWeight: '600',
-												color: POSITION_COLORS[currentPosition] 
-											}
-										]}>
-											{POSITION_LABELS[currentPosition]}
-										</Text>
-									</View>
-								)}
-							</View>
-
-							{/* Position Setting */}
-							<View style={{ marginBottom: 16 }}>
-								<View style={[theme.viewStyles.rowCenter, { marginBottom: 8 }]}>
-									<MapPin size={16} color={theme.colors.primary} />
-									<Text style={[theme.textStyles.body, { marginLeft: 8, fontWeight: '600' }]}>
-										Position Assignment
-									</Text>
-								</View>
-								<PositionDropdown
-									value={currentPosition || null}
-									options={POSITION_OPTIONS}
-									onSelect={(position) => handlePositionChange(device.id, position)}
-									disabled={!enabled}
+						return (
+							<View key={position} style={{ width: '48%' }}>
+								<DeviceBox
+									position={position}
+									device={device || null}
+									ledMode={ledMode}
+									enabled={enabled}
+									onLEDModeChange={handleLEDModeChange}
+									onRemoveDevice={handleRemoveDevice}
+									onAssignDevice={handleAssignDevice}
 								/>
 							</View>
+						);
+					})}
+				</View>
 
-							{/* LED Control Setting */}
-							<View>
-								<View style={[theme.viewStyles.rowCenter, { marginBottom: 8 }]}>
-									<Lightbulb size={16} color={theme.colors.primary} />
-									<Text style={[theme.textStyles.body, { marginLeft: 8, fontWeight: '600' }]}>
-										LED Control
-									</Text>
-								</View>
-								<LEDDropdown
-									value={currentLEDMode}
-									onSelect={(mode) => handleLEDModeChange(device.id, mode)}
-									disabled={!enabled}
+				{/* Bottom Row - Racket (centered) */}
+				<View style={[{ flexDirection: 'row', justifyContent: 'center' }]}>
+					{(() => {
+						const position: DevicePosition = 'racket';
+						const device = devicesByPosition[position];
+						const ledMode = device ? (ledModes[device.id] || LEDControlMode.AMBER) : LEDControlMode.AMBER;
+
+						return (
+							<View style={{ width: '48%' }}> {/* Same relative width as top row boxes */}
+								<DeviceBox
+									key={position}
+									position={position}
+									device={device || null}
+									ledMode={ledMode}
+									enabled={enabled}
+									onLEDModeChange={handleLEDModeChange}
+									onRemoveDevice={handleRemoveDevice}
+									onAssignDevice={handleAssignDevice}
 								/>
 							</View>
-						</View>
-					);
-				})}
-			</ScrollView>
+						);
+					})()}
+				</View>
+			</View>
 
-			{/* Footer Info */}
+			{/* Connected Devices Info 
+			{Object.keys(connected).length > 0 && (
+				<View style={[
+					theme.viewStyles.card,
+					{
+						backgroundColor: theme.colors.primary + '10',
+						borderColor: theme.colors.primary,
+						borderWidth: 1,
+					}
+				]}>
+					<Text style={[
+						theme.textStyles.body,
+						{ 
+							color: theme.colors.primary,
+							fontSize: 12,
+							textAlign: 'center'
+						}
+					]}>
+						{Object.keys(connected).length} device{Object.keys(connected).length !== 1 ? 's' : ''} connected
+						{availableDevices.length > 0 && ` • ${availableDevices.length} unassigned`}
+					</Text>
+				</View>
+			)} */}
+
+			{/* Footer Info 
 			{!enabled && (
 				<View style={[
 					theme.viewStyles.card,
@@ -593,7 +585,7 @@ export const DeviceSettingsPanel: React.FC<DeviceSettingsPanelProps> = ({
 						</Text>
 					</View>
 				</View>
-			)}
+			)} */}
 		</View>
 	);
 };

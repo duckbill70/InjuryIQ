@@ -38,7 +38,7 @@ export interface SessionFooter {
 
 export interface SessionEntry {
   timestamp: string;
-  type: 'gps' | 'steps' | 'fatigue';
+  type: 'gps' | 'steps' | 'fatigue' | 'pause' | 'resume';
   data: unknown;
 }
 
@@ -66,18 +66,26 @@ const SESSION_LOG_INTERVAL = 1000; // ms
 export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isActive, setIsActive] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
+  const isActiveRef = useRef(isActive);
+  const isPausedRef = useRef(isPaused);
   const sessionFile = useRef<string | null>(null);
   // Use number for setInterval in React Native
   const gpsInterval = useRef<number | null>(null);
 
   // Remove unused header/footer state
 
+  // Keep refs in sync with state
+  React.useEffect(() => { isActiveRef.current = isActive; }, [isActive]);
+  React.useEffect(() => { isPausedRef.current = isPaused; }, [isPaused]);
+
   // Log entry (useCallback for stable reference)
   const logEntry = useCallback((entry: SessionEntry) => {
-    if (sessionFile.current && isActive && !isPaused) {
+    if (sessionFile.current && isActiveRef.current && !isPausedRef.current) {
       RNFS.appendFile(sessionFile.current, JSON.stringify(entry) + '\n', 'utf8');
+      //if (__DEV__) console.log (`[logEntry] : `, JSON.stringify(entry, null, 2))
+      if (__DEV__) console.log (`[logEntry] : of type (${entry.type}) -`, entry.data)
     }
-  }, [isActive, isPaused]);
+  }, []);
 
   // Start session
   const startSession = useCallback((headerData: SessionHeader) => {
@@ -125,12 +133,14 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // Pause session
   const pauseSession = useCallback(() => {
     setIsPaused(true);
-  }, []);
+    logEntry({ timestamp: new Date().toISOString(), type: 'pause', data: null });
+  }, [logEntry]);
 
   // Resume session
   const resumeSession = useCallback(() => {
     setIsPaused(false);
-  }, []);
+    logEntry({ timestamp: new Date().toISOString(), type: 'resume', data: null });
+  }, [logEntry]);
 
 
 

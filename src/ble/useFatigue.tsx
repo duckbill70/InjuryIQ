@@ -1,7 +1,6 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useBle } from './BleProvider';
-import { Subscription } from 'react-native-ble-plx';
-
+import type { BleError, Characteristic, Device } from 'react-native-ble-plx';
 import { useSession } from '../session/SessionProvider';
 
 // Manual base64 decode for single byte (avoiding Node/Browser API issues)
@@ -48,172 +47,144 @@ export function useFatigue(options: UseFatigueOptions = {}): FatigueData & {
 	unsubscribe: () => void;
 	readFatigueLevel: () => Promise<number | null>;
 } {
-	const { 
-		deviceId, 
-		position, 
-		autoSubscribe = true,
-		onFatigueUpdate,
-		onHighFatigue,
-		highFatigueThreshold = 80
-	} = options;
+		const {
+			deviceId,
+			position,
+			autoSubscribe = true,
+			onFatigueUpdate,
+			onHighFatigue,
+			highFatigueThreshold = 80,
+		} = options;
+		const { connected, devicesByPosition } = useBle();
+		const { logFatigue } = useSession();
+		const lastLoggedValue = useRef<number | null>(null);
+		const lastLogTime = useRef<number>(0);
+		const device: Device | undefined = deviceId
+			? connected[deviceId]?.device
+			: position
+			? devicesByPosition[position]?.device
+			: undefined;
+		const [level, setLevel] = useState<number | null>(null);
+		const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+		const [isSupported, setIsSupported] = useState(false);
+		const [error, setError] = useState<string | null>(null);
 
-	const { connected, devicesByPosition } = useBle();
-
-	const { logFatigue } = useSession();
-	
-	// Determine which device to use
-	const device = deviceId 
-		? connected[deviceId]
-		: position 
-		? devicesByPosition[position]
-		: null;
-
-	const [level, setLevel] = useState<number | null>(null);
-	const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
-	const [isSupported, setIsSupported] = useState(false);
-	const [error, setError] = useState<string | null>(null);
-
-	const subscriptionRef = useRef<Subscription | null>(null);
-	const isSubscribedRef = useRef(false);
-
-	// Find fatigue characteristic
-	const fatigueCharacteristic = device?.characteristicsByService[FATIGUE_SERVICE_UUID.toLowerCase()]
-		?.find(char => char.uuid.toLowerCase() === FATIGUE_LEVEL_CHAR_UUID.toLowerCase());
-
-	// Parse fatigue level from BLE data
-	const parseFatigueLevel = (base64Value: string): number => {
-		try {
-			// Use our custom base64 decoder for single byte
-			const byte = decodeSingleByte(base64Value);
-			
-			// Fatigue level is a single uint8_t (0-100)
-			return Math.max(0, Math.min(100, byte));
-		} catch (err) {
-			console.warn('Failed to parse fatigue level:', err);
-			return 0;
-		}
-	};
-
-	// Read fatigue level once
-	const readFatigueLevel = async (): Promise<number | null> => {
-		if (!device?.device || !fatigueCharacteristic) {
-			setError('Device or characteristic not available');
-			return null;
-		}
-
-		try {
-			const characteristic = await device.device.readCharacteristicForService(
-				FATIGUE_SERVICE_UUID,
-				FATIGUE_LEVEL_CHAR_UUID
-			);
-			
-			if (characteristic.value) {
-				const fatigueLevel = parseFatigueLevel(characteristic.value);
-				setLevel(fatigueLevel);
-				setLastUpdate(new Date());
-				setError(null);
-				return fatigueLevel;
+		const parseFatigueLevel = useCallback((base64Value: string): number => {
+			try {
+				const byte = decodeSingleByte(base64Value);
+				return Math.max(0, Math.min(100, byte));
+			} catch (err) {
+				console.warn('Failed to parse fatigue level:', err);
+				return 0;
 			}
-			return null;
-		} catch (err) {
-			const errorMessage = err instanceof Error ? err.message : 'Failed to read fatigue level';
-			setError(errorMessage);
-			console.warn('Fatigue read error:', errorMessage);
-			return null;
-		}
-	};
+		}, []);
 
-	// Subscribe to fatigue notifications
-	const subscribe = useCallback(() => {
-		if (!device?.device || !fatigueCharacteristic || isSubscribedRef.current) {
-			return;
-		}
-
-		try {
-			subscriptionRef.current = device.device.monitorCharacteristicForService(
-				FATIGUE_SERVICE_UUID,
-				FATIGUE_LEVEL_CHAR_UUID,
-				(monitorError, characteristic) => {
-					if (monitorError) {
-						// Filter out common cancellation errors during device transitions
-						if (monitorError.message?.includes('Operation was cancelled')) {
-							// This is normal during device connection/disconnection - don't spam console
-							return;
-						}
-						setError(monitorError.message);
-						console.warn('Fatigue monitoring error:', monitorError.message);
-						return;
-					}
-
-					if (characteristic?.value) {
-						const fatigueLevel = parseFatigueLevel(characteristic.value);
-						setLevel(fatigueLevel);
-						setLastUpdate(new Date());
-						setError(null);
-						logFatigue(fatigueLevel);
-
-						// Trigger callbacks
-						onFatigueUpdate?.(fatigueLevel);
-						if (fatigueLevel >= highFatigueThreshold) {
-							onHighFatigue?.(fatigueLevel);
-						}
-					}
+		const readFatigueLevel = useCallback(async (): Promise<number | null> => {
+			if (!device) return null;
+			try {
+				const isConnected = await device.isConnected();
+				if (!isConnected) return null;
+				const characteristic = await device.readCharacteristicForService(
+					FATIGUE_SERVICE_UUID,
+					FATIGUE_LEVEL_CHAR_UUID
+				);
+				if (characteristic?.value) {
+					const fatigueLevel = parseFatigueLevel(characteristic.value);
+					setLevel(fatigueLevel);
+					setLastUpdate(new Date());
+					setError(null);
+					return fatigueLevel;
 				}
-			);
-
-			isSubscribedRef.current = true;
-			setIsSupported(true);
-			
-			if (__DEV__) {
-				console.log(`[useFatigue] Subscribed to device ${device.id}`);
+			} catch (err) {
+				setError(err instanceof Error ? err.message : 'Failed to read fatigue level');
 			}
-		} catch (err) {
-			const errorMessage = err instanceof Error ? err.message : 'Failed to subscribe to fatigue updates';
-			setError(errorMessage);
-			console.warn('Fatigue subscription error:', errorMessage);
-		}
-	}, [device, fatigueCharacteristic, onFatigueUpdate, onHighFatigue, highFatigueThreshold, logFatigue]);
+			return null;
+		}, [device, parseFatigueLevel]);
 
-	// Unsubscribe from notifications
-	const unsubscribe = useCallback(() => {
-		if (subscriptionRef.current) {
-			subscriptionRef.current.remove();
-			subscriptionRef.current = null;
-			isSubscribedRef.current = false;
-			
-			if (__DEV__) {
-				console.log(`[useFatigue] Unsubscribed from device ${device?.id}`);
-			}
-		}
-	}, [device?.id]);
+		const subscribe = useCallback(async () => {
+			if (!device) return;
+			try {
+				const isConnected = await device.isConnected();
+				if (!isConnected) return;
+				   await device.monitorCharacteristicForService(
+					   FATIGUE_SERVICE_UUID,
+					   FATIGUE_LEVEL_CHAR_UUID,
+					   (bleError: BleError | null, characteristic: Characteristic | null) => {
+						   if (bleError) {
+							   if (bleError.message?.includes('Operation was cancelled')) return;
+							   setError(bleError.message);
+							   console.warn('Fatigue monitoring error:', bleError.message);
+							   return;
+						   }
+						   if (characteristic?.value) {
+							   const fatigueLevel = parseFatigueLevel(characteristic.value);
+							   setLevel(fatigueLevel);
+							   setLastUpdate(new Date());
+							   setError(null);
+							   // Debounce: log only if value changed or at least 1s since last log
+							   const now = Date.now();
+							   if (
+								   lastLoggedValue.current !== fatigueLevel ||
+								   now - lastLogTime.current > 1000
+							   ) {
+								   logFatigue(fatigueLevel);
+								   lastLoggedValue.current = fatigueLevel;
+								   lastLogTime.current = now;
+							   }
+							   onFatigueUpdate?.(fatigueLevel);
+							   if (fatigueLevel >= highFatigueThreshold) {
+								   onHighFatigue?.(fatigueLevel);
+							   }
+						   }
+					   }
+				   );
+					} catch (subscribeErr) {
+						setError(subscribeErr instanceof Error ? subscribeErr.message : 'Failed to subscribe to fatigue updates');
+						console.warn('Fatigue subscription error:', subscribeErr);
+					}
+		}, [device, parseFatigueLevel, logFatigue, onFatigueUpdate, onHighFatigue, highFatigueThreshold]);
 
-	// Auto-subscribe when device becomes available
+		// No-op: BLE cleans up on disconnect
+			const unsubscribe = useCallback(async () => {
+				// No explicit unsubscribe needed for react-native-ble-plx
+				// Could add custom logic if needed
+				// console.log('Fatigue monitoring will stop when device disconnects');
+			}, []);
+
 	useEffect(() => {
-		if (autoSubscribe && device && fatigueCharacteristic && !isSubscribedRef.current) {
+		if (autoSubscribe && device) {
 			subscribe();
+			return () => {
+				unsubscribe();
+			};
 		}
+	}, [autoSubscribe, device, subscribe, unsubscribe]);
 
-		return () => {
-			unsubscribe();
-		};
-	}, [device, fatigueCharacteristic, autoSubscribe, subscribe, unsubscribe]);
-
-	// Reset state when device changes
 	useEffect(() => {
 		setLevel(null);
 		setLastUpdate(null);
 		setIsSupported(false);
 		setError(null);
 		unsubscribe();
-	}, [device?.id, unsubscribe]);
+	}, [device, unsubscribe]);
 
-	// Check if service is supported
-	useEffect(() => {
-		if (device) {
-			const hasService = device.services.includes(FATIGUE_SERVICE_UUID.toLowerCase());
-			setIsSupported(hasService && !!fatigueCharacteristic);
-		}
-	}, [device, fatigueCharacteristic]);
+		useEffect(() => {
+			let cancelled = false;
+			async function checkService() {
+				if (device && typeof device.services === 'function') {
+					try {
+						const services = await device.services();
+						if (!cancelled) {
+							setIsSupported(services.some(s => s.uuid.toLowerCase() === FATIGUE_SERVICE_UUID.toLowerCase()));
+						}
+					} catch (err) {
+						if (!cancelled) setIsSupported(false);
+					}
+				}
+			}
+			checkService();
+			return () => { cancelled = true; };
+		}, [device]);
 
 	return {
 		level,

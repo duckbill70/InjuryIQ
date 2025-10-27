@@ -6,7 +6,6 @@ import { Provider as PaperProvider } from 'react-native-paper';
 import { AuthProvider, useAuth } from './src/auth/AuthProvider';
 import { ThemeProvider } from './src/theme/ThemeContext';
 import { BleProvider } from './src/ble/BleProvider';
-import { SessionProvider } from './src/session/SessionProvider';
 
 import { checkFirebaseInit } from './src/firebase/checkFirebaseInit';
 
@@ -45,13 +44,11 @@ export default function App() {
 		<AuthProvider>
 			<ThemeProvider>
 				<BleProvider>
-					<SessionProvider>
 						<SafeAreaProvider>
 							<PaperProvider>
 								<Gate />
 							</PaperProvider>
 						</SafeAreaProvider>
-					</SessionProvider>
 				</BleProvider>
 			</ThemeProvider>
 		</AuthProvider>

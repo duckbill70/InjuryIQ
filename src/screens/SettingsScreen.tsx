@@ -15,7 +15,6 @@ dayjs.extend(utc);
 import { useAuth } from '../auth/AuthProvider';
 import { useTheme } from '../theme/ThemeContext';
 
-import SessionStatusPanel from '../components/SessionStatusPanel';
 
 //type Settings = RouteProp<RootStackParamList, 'Settings'>;
 
@@ -32,7 +31,7 @@ export default function SettingsScreen() {
 		<View style={{ flex: 1, paddingVertical: 60, paddingHorizontal: 10, backgroundColor: 'teal' }}>
 			{/* Header */}
 			<View style={{ marginBottom: 10 }}>
-				<SessionStatusPanel />
+				<Text>TBC</Text>
 			</View>
 
 			{/* Product Info */}

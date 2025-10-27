@@ -1,30 +1,45 @@
-import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { Platform } from 'react-native';
 import { BleManager, Device, Characteristic, State } from 'react-native-ble-plx';
 import { useNotify } from '../notify/useNotify';
 
-type ConnectedDevice = {
+export type DevicePosition = 'leftFoot' | 'rightFoot' | 'racket';
+
+export type ConnectedDevice = {
 	id: string;
 	name?: string | null;
 	device: Device;
 	services: string[];
 	characteristicsByService: Record<string, Characteristic[]>;
+	position?: DevicePosition;
+	color?: string;
+	assignedAt?: Date;
 };
 
 type StartScanOpts = { timeoutMs?: number; maxDevices?: number };
 
-type BleContextValue = {
+export type BleContextValue = {
 	scanning: boolean;
 	knownServiceUUID: string;
 	foundDeviceIds: string[];
-	connected: Record<string, ConnectedDevice>; // unchanged
-	// NEW: sticky role outputs (use these instead of guessing from Object.values)
-	entryA?: ConnectedDevice;
-	entryB?: ConnectedDevice;
-
+	connected: Record<string, ConnectedDevice>;
+	
+	// Device positioning
+	devicesByPosition: {
+		leftFoot?: ConnectedDevice;
+		rightFoot?: ConnectedDevice;
+		racket?: ConnectedDevice;
+	};
+	
+	// Device management
 	startScan: (opts?: StartScanOpts) => Promise<void>;
 	stopScan: () => void;
 	disconnectDevice: (id: string) => Promise<void>;
+	assignDevicePosition: (deviceId: string, position: DevicePosition, color?: string) => void;
+	unassignDevicePosition: (deviceId: string) => void;
+	updateDeviceColor: (deviceId: string, color: string) => void;
+	
+	// System status
 	isPoweredOn: boolean;
 	scanOnce: (opts?: StartScanOpts) => Promise<Device[]>;
 };
@@ -34,7 +49,7 @@ const BleContext = createContext<BleContextValue | undefined>(undefined);
 // Keep this lowercase, 128-bit (iOS prefers this)
 const KNOWN_SERVICE_UUID = '12345678-1234-5678-1234-56789abcdef0';
 const DEFAULT_SCAN_TIMEOUT_MS = 15_000; // 15s
-const MAX_TARGET_DEVICES = 2;
+const MAX_TARGET_DEVICES = 3; // Updated for 3 devices
 
 // ---- Backoff helpers ----
 const MAX_BACKOFF_MS = 30_000;
@@ -50,9 +65,16 @@ function expoBackoff(attempt: number) {
 type RetryState = {
 	attempt: number;
 	timer?: ReturnType<typeof setTimeout> | null;
-	lastError?: any;
+	lastError?: Error;
 	manual?: boolean;
 };
+
+// Default colors for device positions
+const DEFAULT_DEVICE_COLORS = {
+	leftFoot: '#FF6B6B',    // Red
+	rightFoot: '#4ECDC4',   // Teal
+	racket: '#45B7D1',      // Blue
+} as const;
 
 export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
 	const managerRef = useRef(new BleManager());
@@ -82,9 +104,10 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 
 	// Clean up on unmount
 	useEffect(() => {
+		const manager = managerRef.current;
 		return () => {
 			try {
-				managerRef.current.destroy();
+				manager.destroy();
 			} catch {}
 		};
 	}, []);
@@ -95,27 +118,81 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 	// Per-device reconnect state
 	const retryMapRef = useRef<Record<string, RetryState>>({});
 
-	// ---------- NEW: Sticky roles ----------
-	// We remember which device id is A / B and never swap them.
-	const roleAIdRef = useRef<string | null>(null);
-	const roleBIdRef = useRef<string | null>(null);
+	// Device positioning functions
+	const assignDevicePosition = useCallback((deviceId: string, position: DevicePosition, color?: string) => {
+		setConnected((prev) => {
+			const device = prev[deviceId];
+			if (!device) return prev;
 
-	const ensureRoleForId = (id: string) => {
-		// If already assigned to A or B, done
-		if (roleAIdRef.current === id || roleBIdRef.current === id) return;
+			// Check if position is already taken by another device
+			const existingDeviceWithPosition = Object.values(prev).find(
+				d => d.id !== deviceId && d.position === position
+			);
 
-		// Assign first available role
-		if (!roleAIdRef.current) {
-			roleAIdRef.current = id;
-			return;
-		}
-		if (!roleBIdRef.current) {
-			roleBIdRef.current = id;
-			return;
-		}
-		// If both roles are already taken by OTHER ids, we do nothing:
-		// app expects max 2, so any extras are unassigned (not exposed as entryA/B).
-	};
+			const updates: Record<string, ConnectedDevice> = { ...prev };
+
+			// If position is taken, clear it from the existing device
+			if (existingDeviceWithPosition) {
+				updates[existingDeviceWithPosition.id] = {
+					...existingDeviceWithPosition,
+					position: undefined,
+					color: undefined,
+				};
+			}
+
+			// Assign new position to the device
+			updates[deviceId] = {
+				...device,
+				position,
+				color: color || DEFAULT_DEVICE_COLORS[position],
+				assignedAt: new Date(),
+			};
+
+			return updates;
+		});
+	}, []);
+
+	const unassignDevicePosition = useCallback((deviceId: string) => {
+		setConnected((prev) => {
+			const device = prev[deviceId];
+			if (!device) return prev;
+
+			return {
+				...prev,
+				[deviceId]: {
+					...device,
+					position: undefined,
+					color: undefined,
+					assignedAt: undefined,
+				},
+			};
+		});
+	}, []);
+
+	const updateDeviceColor = useCallback((deviceId: string, color: string) => {
+		setConnected((prev) => {
+			const device = prev[deviceId];
+			if (!device) return prev;
+
+			return {
+				...prev,
+				[deviceId]: {
+					...device,
+					color,
+				},
+			};
+		});
+	}, []);
+
+	// Derive devices by position
+	const devicesByPosition = useMemo(() => {
+		const devices = Object.values(connected);
+		return {
+			leftFoot: devices.find(d => d.position === 'leftFoot'),
+			rightFoot: devices.find(d => d.position === 'rightFoot'),
+			racket: devices.find(d => d.position === 'racket'),
+		};
+	}, [connected]);
 
 	const clearRetryTimer = (id: string) => {
 		const r = retryMapRef.current[id];
@@ -147,28 +224,28 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 				if (__DEV__) console.warn(`[BLE] reconnect failed for ${id}`, e);
 				const now = retryMapRef.current[id];
 				if (now) {
-					now.lastError = e;
+					now.lastError = e instanceof Error ? e : new Error(String(e));
 					scheduleReconnect(id);
 				}
 			}
 		}, delay);
 	};
 
-	const ensurePoweredOn = async () => {
+	const ensurePoweredOn = useCallback(async () => {
 		if (!isPoweredOn) {
 			const current = await managerRef.current.state();
 			if (current !== State.PoweredOn) {
 				throw new Error('Bluetooth is not powered on.');
 			}
 		}
-	};
+	}, [isPoweredOn]);
 
-	const stopScan = () => {
+	const stopScan = useCallback(() => {
 		try {
 			managerRef.current.stopDeviceScan();
 		} catch {}
 		setScanning(false);
-	};
+	}, []);
 
 	const discoverAllForDevice = async (device: Device) => {
 		const manager = managerRef.current;
@@ -189,14 +266,11 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 			characteristicsByService,
 		};
 
-		// Assign/ensure sticky role BEFORE writing to state so entryA/entryB derive correctly
-		ensureRoleForId(device.id);
-
 		setConnected((prev) => ({ ...prev, [device.id]: entry }));
 	};
 
 	const registerDisconnectHandler = (id: string) => {
-		managerRef.current.onDeviceDisconnected(id, (error, dev) => {
+		managerRef.current.onDeviceDisconnected(id, (error, _dev) => {
 			const friendlyName = connectedRef.current[id]?.name || id;
 			if (__DEV__) console.warn(`[BLE] onDeviceDisconnected ${friendlyName}`, error?.message ?? '');
 			notify({
@@ -204,9 +278,9 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 				body: `Device disconnected - ${friendlyName}`,
 				dedupeKey: `ble:disconnected`,
 				foreground: true, // show even when app is open
-				bypassDedupe: __DEV__ ? true : false, // remove later; ensures it’s not suppressed while testing
+				bypassDedupe: __DEV__ ? true : false, // remove later; ensures it's not suppressed while testing
 			});
-			// NOTE: we remove from connected, BUT we DO NOT clear roleAId/roleBId.
+			// Remove from connected but preserve position assignment for sticky behavior
 			setConnected((prev) => {
 				const next = { ...prev };
 				delete next[id];
@@ -264,11 +338,11 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 			body: `Device reconnected - ${friendlyName}`,
 			dedupeKey: `ble:reconnected`,
 			foreground: true, // show even when app is open
-			bypassDedupe: __DEV__ ? true : false, // remove later; ensures it’s not suppressed while testing
+			bypassDedupe: __DEV__ ? true : false, // remove later; ensures it's not suppressed while testing
 		});
 	};
 
-	const startScan: BleContextValue['startScan'] = async (opts) => {
+	const startScan: BleContextValue['startScan'] = useCallback(async (opts) => {
 		if (scanning) return;
 		await ensurePoweredOn();
 
@@ -305,9 +379,9 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 				stopScan();
 			}
 		});
-	};
+	}, [scanning, isPoweredOn, stopScan, ensurePoweredOn, connectToDevice]);
 
-	const disconnectDevice = async (id: string) => {
+	const disconnectDevice = useCallback(async (id: string) => {
 		const manager = managerRef.current;
 		clearRetryTimer(id);
 		delete retryMapRef.current[id];
@@ -324,11 +398,10 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 			});
 			setFoundDeviceIds((prev) => prev.filter((x) => x !== id));
 			discoveredIdsRef.current.delete(id);
-			// IMPORTANT: do NOT clear roleAId/roleBId — sticky roles persist
 		}
-	};
+	}, []);
 
-	const scanOnce: BleContextValue['scanOnce'] = async (opts) => {
+	const scanOnce: BleContextValue['scanOnce'] = useCallback(async (opts) => {
 		await ensurePoweredOn();
 
 		const timeoutMs = opts?.timeoutMs ?? DEFAULT_SCAN_TIMEOUT_MS;
@@ -366,24 +439,20 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 					setFoundDeviceIds(Array.from(localSet));
 					if (results.length >= maxDevices) settle(true, results);
 				});
-			} catch (e: any) {
-				settle(false, e);
+			} catch (e) {
+				settle(false, e instanceof Error ? e : new Error(String(e)));
 			}
 		});
-	};
-
-	// Derive sticky entries A/B from role ids + current connections
-	const entryA = roleAIdRef.current ? connected[roleAIdRef.current] ?? undefined : undefined;
-	const entryB = roleBIdRef.current ? connected[roleBIdRef.current] ?? undefined : undefined;
+	}, [ensurePoweredOn]);
 
 	useEffect(() => {
 		if (__DEV__) {
 			console.log('scanning:', scanning);
 			console.log('foundDeviceIds:', foundDeviceIds);
 			console.log('connected keys:', Object.keys(connected));
-			console.log('roles:', { A: roleAIdRef.current, B: roleBIdRef.current });
+			console.log('devicesByPosition:', devicesByPosition);
 		}
-	}, [foundDeviceIds, scanning, connected]);
+	}, [foundDeviceIds, scanning, connected, devicesByPosition]);
 
 	const value = useMemo<BleContextValue>(
 		() => ({
@@ -391,15 +460,30 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 			knownServiceUUID: KNOWN_SERVICE_UUID,
 			foundDeviceIds,
 			connected,
-			entryA,
-			entryB,
+			devicesByPosition,
 			startScan,
 			stopScan,
 			disconnectDevice,
+			assignDevicePosition,
+			unassignDevicePosition,
+			updateDeviceColor,
 			isPoweredOn,
 			scanOnce,
 		}),
-		[scanning, foundDeviceIds, connected, isPoweredOn, entryA, entryB],
+		[
+			scanning,
+			foundDeviceIds,
+			connected,
+			devicesByPosition,
+			startScan,
+			stopScan,
+			disconnectDevice,
+			assignDevicePosition,
+			unassignDevicePosition,
+			updateDeviceColor,
+			isPoweredOn,
+			scanOnce,
+		],
 	);
 
 	return <BleContext.Provider value={value}>{children}</BleContext.Provider>;

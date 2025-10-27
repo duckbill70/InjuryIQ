@@ -1,15 +1,15 @@
 import React from 'react';
-import { View, Text, ScrollView, ImageBackground, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text } from 'react-native';
 import { RouteProp, useRoute } from '@react-navigation/native';
 import type { RootStackParamList } from './AppNavigator';
-import { BluetoothSearchingIcon, Bluetooth, LogOut, CassetteTape, ArrowBigLeft } from 'lucide-react-native';
+
 import { useNavigation } from '@react-navigation/native';
 
 import { useAuth } from '../auth/AuthProvider';
 import { useTheme } from '../theme/ThemeContext';
 
 import FileTable from '../file/FileTable';
-import SessionStatusPanel from '../components/SessionStatusPanel';
+
 
 type Recordings = RouteProp<RootStackParamList, 'Recordings'>;
 
@@ -27,7 +27,7 @@ export default function RecordingsScreen() {
 
 				{/* Header */}
 				<View style={{ marginBottom: 10, paddingHorizontal: 10 }}>
-					<SessionStatusPanel />
+					<Text>TBC</Text>
 				</View>
 
 				{/* File Content */}

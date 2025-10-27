@@ -3,7 +3,7 @@
 **Author:** StingRay Team  
 **Date:** October 26, 2025  
 **Hardware:** nRF52840-based fitness sensor with LSM6DS3 IMU  
-**Firmware Version:** Revision C (Optimized for real-time performance)
+**Firmware Version:** Revision D (FIFO-based training data collection)
 
 ---
 
@@ -11,12 +11,14 @@
 
 The StingRay fitness sensor exposes **6 BLE services** providing comprehensive fitness monitoring, device control, and diagnostic capabilities. This document covers all services, their characteristics, data formats, and implementation guidelines for iOS applications.
 
+**Major Update:** IMU data is no longer streamed over BLE. Instead, data is collected in a configurable FIFO buffer for TensorFlow model training and exported via Serial interface.
+
 ### Quick Service Reference
 
 | Service | Purpose | Standard | Characteristics |
 |---------|---------|----------|----------------|
 | [Fatigue Monitoring](#fatigue-monitoring-service) | Health analytics | Custom | 1 |
-| [IMU Data](#imu-data-service) | Raw sensor data | Custom | 1 |
+| [Statistics](#statistics-service) | FIFO monitoring & config | Custom | 3 |
 | [LED Control](#led-control-service) | Device state management | Custom | 1 |
 | [Battery](#battery-service) | Power monitoring | Standard | 1 |
 | [Step Counter](#step-counter-service) | Activity tracking | Standard | 1 |
@@ -61,56 +63,189 @@ func parseFatigueLevel(_ data: Data) -> UInt8 {
 
 ---
 
-## 2. IMU Data Service
+## 2. Statistics Service
 
 ### Service Details
-- **Service UUID:** `abcdef01-2345-6789-abcd-ef0123456789`
+- **Service UUID:** `fedcba98-7654-3210-fedc-ba9876543210`
 - **Type:** Custom 128-bit UUID  
-- **Purpose:** Raw 6-axis sensor data streaming (accelerometer + gyroscope)
+- **Purpose:** FIFO buffer monitoring, configuration, and training data management
+
+**Note:** This service replaces the previous IMU Data Service. Raw sensor data is now collected in a configurable FIFO buffer for TensorFlow model training instead of real-time streaming.
 
 ### Characteristics
 
-#### Raw IMU Data
-- **UUID:** `abcdef01-2345-6789-abcd-ef0123456790`
+#### 2.1 FIFO Statistics
+- **UUID:** `fedcba98-7654-3210-fedc-ba9876543211`
 - **Properties:** Read, Notify
-- **Data Type:** 6 × `float` (24 bytes total)
-- **Format:** `[ax, ay, az, gx, gy, gz]`
-- **Units:** 
-  - Accelerometer: g-force (±4g range)
-  - Gyroscope: degrees/second (±500°/s range)
-- **Update Rate:** Up to 50Hz (throttled based on BLE capacity)
+- **Data Type:** 32-byte packed struct
+- **Description:** Real-time FIFO buffer status and system performance
+- **Update Frequency:** Every 10 seconds
 
 **Data Structure:**
 ```
-Bytes 0-3:   ax (float) - X-axis acceleration
-Bytes 4-7:   ay (float) - Y-axis acceleration  
-Bytes 8-11:  az (float) - Z-axis acceleration
-Bytes 12-15: gx (float) - X-axis angular velocity
-Bytes 16-19: gy (float) - Y-axis angular velocity
-Bytes 20-23: gz (float) - Z-axis angular velocity
+Bytes 0-3:   currentSize (uint32_t) - Current samples in FIFO
+Bytes 4-7:   maxSamples (uint32_t) - Maximum FIFO capacity
+Bytes 8-11:  totalSamples (uint32_t) - Total samples collected
+Bytes 12-15: overflowCount (uint32_t) - Samples lost due to overflow
+Bytes 16-19: collectionRate (uint32_t) - Actual collection rate (Hz)
+Bytes 20-23: memoryUsedKB (uint32_t) - Memory used by FIFO (KB)
+Bytes 24-27: uptimeSeconds (uint32_t) - System uptime
+Bytes 28-31: systemLoad (uint8_t) - System load percentage (0-100%)
+```
+
+#### 2.2 FIFO Configuration  
+- **UUID:** `fedcba98-7654-3210-fedc-ba9876543212`
+- **Properties:** Read, Write
+- **Data Type:** 12-byte packed struct (enhanced)
+- **Description:** Runtime configuration of FIFO parameters
+- **Validation:** capacityMinutes (1-60), collectionFreqHz (1-200), timerIntervalMs (5-100 or 0=auto)
+
+**Data Structure:**
+```
+Bytes 0-3:  capacityMinutes (uint32_t) - Buffer duration in minutes
+Bytes 4-7:  collectionFreqHz (uint32_t) - Collection frequency in Hz
+Bytes 8-11: timerIntervalMs (uint32_t) - Timer override (0=auto-calculate)
+```
+
+#### 2.3 FIFO Dump Request
+- **UUID:** `fedcba98-7654-3210-fedc-ba9876543213`
+- **Properties:** Write
+- **Data Type:** `uint8_t` (1 byte)
+- **Description:** Trigger Serial dump of collected data
+- **Security:** Only functional when device is in LED_AMBER mode
+- **Command:** Write `1` to trigger dump
+
+#### 2.4 FIFO Tuning Parameters *(NEW)*
+- **UUID:** `fedcba98-7654-3210-fedc-ba9876543214`
+- **Properties:** Read, Write
+- **Data Type:** 8-byte packed struct
+- **Description:** Advanced tuning parameters for optimization
+- **Purpose:** Real-time performance tuning without firmware updates
+
+**Data Structure:**
+```
+Bytes 0-1: debugLevel (uint16_t) - Debug verbosity (0=none, 1=normal, 2=verbose)
+Bytes 2-3: autoOptimize (uint16_t) - Auto optimization (0=off, 1=on)
+Bytes 4-5: compressionMode (uint16_t) - Compression mode (0=none, 1=delta+fixed, 2=advanced)
+Bytes 6-7: reserved (uint16_t) - Reserved for future use
 ```
 
 **iOS Implementation:**
 ```swift
-let imuServiceUUID = CBUUID(string: "abcdef01-2345-6789-abcd-ef0123456789")
-let imuCharUUID = CBUUID(string: "abcdef01-2345-6789-abcd-ef0123456790")
+let statisticsServiceUUID = CBUUID(string: "fedcba98-7654-3210-fedc-ba9876543210")
+let fifoStatsCharUUID = CBUUID(string: "fedcba98-7654-3210-fedc-ba9876543211")
+let fifoConfigCharUUID = CBUUID(string: "fedcba98-7654-3210-fedc-ba9876543212")
+let fifoDumpCharUUID = CBUUID(string: "fedcba98-7654-3210-fedc-ba9876543213")
 
-struct IMUData {
-    let ax, ay, az: Float  // Accelerometer (g-force)
-    let gx, gy, gz: Float  // Gyroscope (°/s)
+struct FIFOStatistics {
+    let currentSize: UInt32
+    let maxSamples: UInt32
+    let totalSamples: UInt32
+    let overflowCount: UInt32
+    let collectionRate: UInt32
+    let memoryUsedKB: UInt32
+    let uptimeSeconds: UInt32
+    let systemLoad: UInt8
     
     init?(from data: Data) {
-        guard data.count == 24 else { return nil }
+        guard data.count == 32 else { return nil }
         
-        ax = data.subdata(in: 0..<4).withUnsafeBytes { $0.load(as: Float.self) }
-        ay = data.subdata(in: 4..<8).withUnsafeBytes { $0.load(as: Float.self) }
-        az = data.subdata(in: 8..<12).withUnsafeBytes { $0.load(as: Float.self) }
-        gx = data.subdata(in: 12..<16).withUnsafeBytes { $0.load(as: Float.self) }
-        gy = data.subdata(in: 16..<20).withUnsafeBytes { $0.load(as: Float.self) }
-        gz = data.subdata(in: 20..<24).withUnsafeBytes { $0.load(as: Float.self) }
+        currentSize = data.subdata(in: 0..<4).withUnsafeBytes { $0.load(as: UInt32.self) }
+        maxSamples = data.subdata(in: 4..<8).withUnsafeBytes { $0.load(as: UInt32.self) }
+        totalSamples = data.subdata(in: 8..<12).withUnsafeBytes { $0.load(as: UInt32.self) }
+        overflowCount = data.subdata(in: 12..<16).withUnsafeBytes { $0.load(as: UInt32.self) }
+        collectionRate = data.subdata(in: 16..<20).withUnsafeBytes { $0.load(as: UInt32.self) }
+        memoryUsedKB = data.subdata(in: 20..<24).withUnsafeBytes { $0.load(as: UInt32.self) }
+        uptimeSeconds = data.subdata(in: 24..<28).withUnsafeBytes { $0.load(as: UInt32.self) }
+        systemLoad = data[28]
+    }
+    
+    // Computed properties
+    var fillPercentage: Double {
+        return maxSamples > 0 ? Double(currentSize) / Double(maxSamples) * 100.0 : 0.0
+    }
+    
+    var overflowRate: Double {
+        return totalSamples > 0 ? Double(overflowCount) / Double(totalSamples) * 100.0 : 0.0
+    }
+    
+    var estimatedRemainingMinutes: Double {
+        let samplesRemaining = maxSamples - currentSize
+        return collectionRate > 0 ? Double(samplesRemaining) / Double(collectionRate) / 60.0 : 0.0
+    }
+    
+    var isHealthy: Bool {
+        return systemLoad < 80 && overflowRate < 5.0
     }
 }
+
+struct FIFOConfiguration {
+    let capacityMinutes: UInt32
+    let collectionFreqHz: UInt32
+    
+    var asData: Data {
+        var data = Data()
+        withUnsafeBytes(of: capacityMinutes) { data.append(contentsOf: $0) }
+        withUnsafeBytes(of: collectionFreqHz) { data.append(contentsOf: $0) }
+        return data
+    }
+    
+    init?(from data: Data) {
+        guard data.count == 8 else { return nil }
+        capacityMinutes = data.subdata(in: 0..<4).withUnsafeBytes { $0.load(as: UInt32.self) }
+        collectionFreqHz = data.subdata(in: 4..<8).withUnsafeBytes { $0.load(as: UInt32.self) }
+    }
+    
+    // Validation
+    var isValid: Bool {
+        return (1...60).contains(capacityMinutes) && (1...200).contains(collectionFreqHz)
+    }
+    
+    // Memory estimation
+    var estimatedMemoryKB: UInt32 {
+        let samplesTotal = capacityMinutes * 60 * collectionFreqHz
+        return (samplesTotal * 28) / 1024  // 28 bytes per IMU sample with timestamp
+    }
+}
+
+// Configuration functions
+func configureFIFO(minutes: UInt32, frequencyHz: UInt32, peripheral: CBPeripheral, characteristic: CBCharacteristic) {
+    let config = FIFOConfiguration(capacityMinutes: minutes, collectionFreqHz: frequencyHz)
+    guard config.isValid else { 
+        print("Invalid FIFO configuration: minutes=\(minutes), Hz=\(frequencyHz)")
+        return 
+    }
+    
+    peripheral.writeValue(config.asData, for: characteristic, type: .withResponse)
+}
+
+func requestFIFODump(peripheral: CBPeripheral, characteristic: CBCharacteristic) {
+    let command = Data([1])
+    peripheral.writeValue(command, for: characteristic, type: .withResponse)
+}
 ```
+
+### Training Data Export
+
+When FIFO dump is triggered (device must be in LED_AMBER mode), data is exported to Serial in CSV format:
+
+```
+FIFO_DUMP_START
+Samples: 19800
+Timestamp,AccelX,AccelY,AccelZ,GyroX,GyroY,GyroZ
+1609459200000,1.234567,-0.987654,9.876543,0.123456,-0.654321,0.987654
+1609459200015,1.245678,-0.976543,9.865432,0.134567,-0.643210,0.976543
+...
+FIFO_DUMP_END
+```
+
+**Usage for TensorFlow Training:**
+1. Configure FIFO parameters via BLE
+2. Collect data in active modes (LED_PULSE_* or LED_SOLID_*)
+3. Monitor collection progress via Statistics service
+4. Switch to LED_AMBER mode
+5. Trigger dump via BLE command
+6. Capture Serial output for training dataset
 
 ---
 
@@ -120,6 +255,7 @@ struct IMUData {
 - **Service UUID:** `19B10010-E8F2-537E-4F6C-D104768A1214`
 - **Type:** Custom 128-bit UUID
 - **Purpose:** Device operational state control and power management
+- **Alternative Control:** Serial commands (`LED <mode>`, `MODE <mode>`, `LED_STATUS`)
 
 ### Characteristics
 
@@ -128,6 +264,7 @@ struct IMUData {
 - **Properties:** Read, Write, Notify
 - **Data Type:** `uint8_t` (1 byte)
 - **Description:** Controls device operational mode and LED behavior
+- **Serial Alternative:** `LED <mode>` or `MODE <mode>` commands via USB serial
 
 ### LED Mode Values
 
@@ -279,7 +416,9 @@ func parseStepCount(_ data: Data) -> UInt32 {
 | 14 | `ERR_BLE_RSSI_LOW` | Signal strength too low |
 | 15 | `ERR_BLE_MTU_FAIL` | MTU negotiation failed |
 | 16 | `ERR_BLE_WRITE_FAIL` | BLE characteristic write failed |
-| 17 | `ERR_BLE_BACKPRESSURE` | BLE transmission backpressure |
+| 17 | `ERR_FIFO_ALLOC_FAIL` | FIFO memory allocation failed |
+| 18 | `ERR_FIFO_NOT_INITIALIZED` | FIFO not properly initialized |
+| 19 | `ERR_FIFO_OVERFLOW` | FIFO buffer overflow |
 | 255 | `ERR_UNKNOWN` | Unknown/unclassified error |
 
 ### System Status Structure (36 bytes)
@@ -291,8 +430,8 @@ func parseStepCount(_ data: Data) -> UInt32 {
 | 2 | `ledMode` | uint8_t | Current LED mode (see LED Mode Values) |
 | 3 | `batteryLevel` | uint8_t | Battery percentage (0-100%) |
 | 4-7 | `uptime` | uint32_t | System uptime in seconds |
-| 8-11 | `imuSamplesSent` | uint32_t | IMU samples successfully transmitted |
-| 12-15 | `imuSamplesDropped` | uint32_t | IMU samples dropped due to throttling |
+| 8-11 | `fifoTotalSamples` | uint32_t | Total FIFO samples collected |
+| 12-15 | `fifoCurrentSize` | uint32_t | Current FIFO buffer size |
 | 16-19 | `totalErrorCount` | uint32_t | Total errors since last clear |
 | 20-23 | `totalDisconnectCount` | uint32_t | Total BLE disconnections recorded |
 | 24-27 | `bleWriteFailures` | uint32_t | Failed BLE write operations |
@@ -327,8 +466,8 @@ struct SystemStatus {
         ledMode = data[2]
         batteryLevel = data[3]
         uptime = data.subdata(in: 4..<8).withUnsafeBytes { $0.load(as: UInt32.self) }
-        imuSamplesSent = data.subdata(in: 8..<12).withUnsafeBytes { $0.load(as: UInt32.self) }
-        imuSamplesDropped = data.subdata(in: 12..<16).withUnsafeBytes { $0.load(as: UInt32.self) }
+        fifoTotalSamples = data.subdata(in: 8..<12).withUnsafeBytes { $0.load(as: UInt32.self) }
+        fifoCurrentSize = data.subdata(in: 12..<16).withUnsafeBytes { $0.load(as: UInt32.self) }
         totalErrorCount = data.subdata(in: 16..<20).withUnsafeBytes { $0.load(as: UInt32.self) }
         totalDisconnectCount = data.subdata(in: 20..<24).withUnsafeBytes { $0.load(as: UInt32.self) }
         bleWriteFailures = data.subdata(in: 24..<28).withUnsafeBytes { $0.load(as: UInt32.self) }
@@ -337,14 +476,13 @@ struct SystemStatus {
     }
     
     // Computed properties for analysis
-    var imuEfficiency: Double {
-        let total = imuSamplesSent + imuSamplesDropped
-        return total > 0 ? Double(imuSamplesSent) / Double(total) * 100.0 : 100.0
+    var fifoFillPercentage: Double {
+        return fifoCurrentSize > 0 ? Double(fifoCurrentSize) / Double(fifoTotalSamples) * 100.0 : 0.0
     }
     
     var bleEfficiency: Double {
-        let totalWrites = imuSamplesSent + bleWriteFailures
-        return totalWrites > 0 ? Double(imuSamplesSent) / Double(totalWrites) * 100.0 : 100.0
+        let totalWrites = fifoTotalSamples + bleWriteFailures
+        return totalWrites > 0 ? Double(fifoTotalSamples) / Double(totalWrites) * 100.0 : 100.0
     }
     
     var isHealthy: Bool {
@@ -386,7 +524,9 @@ func getErrorDescription(_ errorCode: UInt8) -> String {
     case 14: return "Signal Strength Too Low"
     case 15: return "MTU Negotiation Failed"
     case 16: return "BLE Write Failed"
-    case 17: return "BLE Backpressure Detected"
+    case 17: return "FIFO Memory Allocation Failed"
+    case 18: return "FIFO Not Initialized"
+    case 19: return "FIFO Buffer Overflow"
     case 255: return "Unknown Error"
     default: return "Undefined Error (\(errorCode))"
     }
@@ -401,7 +541,7 @@ func getErrorDescription(_ errorCode: UInt8) -> String {
 ```swift
 let serviceUUIDs = [
     CBUUID(string: "12345678-1234-5678-1234-56789abcdef0"), // Fatigue
-    CBUUID(string: "abcdef01-2345-6789-abcd-ef0123456789"), // IMU
+    CBUUID(string: "fedcba98-7654-3210-fedc-ba9876543210"), // Statistics (FIFO)
     CBUUID(string: "19B10010-E8F2-537E-4F6C-D104768A1214"), // LED Control
     CBUUID(string: "180F"),                                  // Battery
     CBUUID(string: "1814"),                                  // Step Counter
@@ -418,7 +558,7 @@ func discoverServices() {
 func enableNotifications(for peripheral: CBPeripheral) {
     // Essential notifications for real-time data
     peripheral.setNotifyValue(true, for: fatigueCharacteristic)
-    peripheral.setNotifyValue(true, for: imuRawCharacteristic)
+    peripheral.setNotifyValue(true, for: fifoStatsCharacteristic)
     peripheral.setNotifyValue(true, for: ledCharacteristic)
     peripheral.setNotifyValue(true, for: batteryLevelCharacteristic)
     peripheral.setNotifyValue(true, for: stepCountCharacteristic)
@@ -430,11 +570,13 @@ func enableNotifications(for peripheral: CBPeripheral) {
 ```
 
 ### Data Rate Considerations
-- **IMU Data:** Up to 50Hz (high bandwidth - consider selective notification)
+- **FIFO Statistics:** Every 10 seconds
 - **Fatigue:** Variable rate based on analysis
 - **System Status:** Every 10 seconds
 - **Error Codes:** Event-driven (immediate)
 - **Battery/Steps:** Low frequency updates
+
+**Note:** FIFO collection operates independently of BLE notifications, providing consistent training data regardless of connection status.
 
 ### Power Management Integration
 ```swift
@@ -445,8 +587,9 @@ func setDeviceMode(_ mode: LEDMode) {
         disableHighFrequencyNotifications()
         
     case .pulseRed, .pulseGreen, .pulseBlue, .solidRed, .solidGreen, .solidBlue:
-        // Active mode - full data streaming
+        // Active mode - full data collection and BLE monitoring
         enableAllNotifications()
+        // FIFO collection starts automatically
         
     case .off:
         // Low power mode - minimal activity
@@ -460,43 +603,112 @@ func setDeviceMode(_ mode: LEDMode) {
 ## Performance Analysis
 
 ### Expected Performance Metrics
-- **IMU Rate:** 37-39Hz actual (74-78% efficiency)
-- **BLE Write Success:** >99% success rate
-- **Loop Time:** <75ms for healthy operation
-- **Battery Life:** 8-12 hours in active mode
+- **FIFO Collection:** 66Hz default (configurable 1-200Hz)
+- **BLE Write Success:** >99% success rate for control commands
+- **Loop Time:** <25ms for healthy operation  
+- **Memory Usage:** ~1.9MB for 5min @ 66Hz collection
+- **Battery Life:** 8-12 hours in active mode (improved without BLE streaming)
 
 ### Health Indicators
-- **Good Performance:** IMU efficiency >70%, BLE efficiency >95%, maxLoopTime <50ms
-- **Degraded Performance:** IMU efficiency 50-70%, maxLoopTime 50-75ms
-- **Poor Performance:** IMU efficiency <50%, maxLoopTime >75ms
+- **Good Performance:** FIFO collection rate >95% of target, system load <50%
+- **Degraded Performance:** Collection rate 80-95%, system load 50-80%
+- **Poor Performance:** Collection rate <80%, system load >80%
 
 ### Troubleshooting
 - **High disconnect rate:** Check RSSI levels and environmental interference
-- **Low IMU efficiency:** System overload or BLE congestion
-- **High error count:** Hardware issues or firmware problems
-- **High loop time:** CPU overload or blocking operations
+- **FIFO overflow:** Reduce collection frequency or increase buffer size
+- **High error count:** Hardware issues or memory allocation problems
+- **High loop time:** System overload or blocking operations
 
 ---
 
-## Device-Specific Features
+## FIFO-Based Training Workflow
 
-### Error Management
-- **50-entry error history buffer** (device-side storage)
-- **Automatic error clearing** when entering LED_OFF mode
-- **Error deduplication** with occurrence counting
-- **Real-time error code notifications**
+### 1. Configuration Phase
+```swift
+// Configure FIFO for 10 minutes at 50Hz collection
+configureFIFO(minutes: 10, frequencyHz: 50, peripheral: peripheral, characteristic: fifoConfigChar)
 
-### BLE Connection Monitoring
-- **10-entry disconnect history** with cause classification
-- **Automatic reconnection** capability
-- **Connection quality metrics** (RSSI, duration, etc.)
-- **Performance correlation** with disconnection events
+// Monitor configuration acknowledgment
+func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
+    if characteristic.uuid == fifoStatsCharUUID {
+        guard let stats = FIFOStatistics(from: characteristic.value!) else { return }
+        print("FIFO configured: \(stats.maxSamples) samples, \(stats.memoryUsedKB)KB")
+    }
+}
+```
+
+### 2. Data Collection Phase
+```swift
+// Start collection by activating device
+setLEDMode(.pulseGreen, peripheral: peripheral, characteristic: ledChar)
+
+// Monitor collection progress
+func monitorCollection() {
+    // Statistics updates every 10 seconds
+    if let stats = currentFIFOStats {
+        print("Collection: \(stats.currentSize)/\(stats.maxSamples) (\(stats.fillPercentage)%)")
+        print("Rate: \(stats.collectionRate)Hz, Overflow: \(stats.overflowCount)")
+        
+        if stats.fillPercentage > 90 {
+            print("FIFO nearly full - prepare for data export")
+        }
+    }
+}
+```
+
+### 3. Data Export Phase
+```swift
+// Switch to amber mode for safe data export
+setLEDMode(.amber, peripheral: peripheral, characteristic: ledChar)
+
+// Wait for mode change confirmation, then trigger dump
+DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+    requestFIFODump(peripheral: peripheral, characteristic: fifoDumpChar)
+    print("FIFO dump requested - monitor Serial output")
+}
+```
+
+### 4. Training Data Processing
+The exported CSV data is ready for TensorFlow preprocessing:
+
+```python
+import pandas as pd
+import numpy as np
+
+# Load exported FIFO data
+data = pd.read_csv('fifo_dump.csv')
+
+# Convert timestamp to relative time
+data['time_sec'] = (data['Timestamp'] - data['Timestamp'].iloc[0]) / 1000.0
+
+# Create feature windows for model training
+def create_windows(df, window_size=100, overlap=50):
+    windows = []
+    for i in range(0, len(df) - window_size, window_size - overlap):
+        window = df.iloc[i:i+window_size]
+        windows.append(window[['AccelX', 'AccelY', 'AccelZ', 'GyroX', 'GyroY', 'GyroZ']].values)
+    return np.array(windows)
+
+# Prepare for TensorFlow training
+feature_windows = create_windows(data)
+print(f"Generated {len(feature_windows)} training windows")
+```
+
+---
 
 ### Flash Memory Optimization
 - **Step count persistence** (saved every 50 steps)
+- **FIFO configuration persistence** (survives power cycles)
 - **Reduced write cycles** for extended device lifetime
 - **Graceful degradation** on flash failures
 
+### FIFO Memory Management
+- **Dynamic allocation** based on configuration
+- **Circular buffer operation** with automatic overflow handling
+- **Memory efficiency** optimized for training data collection
+- **Real-time monitoring** of memory usage and collection rates
+
 ---
 
-*For detailed diagnostic service implementation, see the companion document: [StingRay_Diagnostic_Service_iOS_Guide.txt](./StingRay_Diagnostic_Service_iOS_Guide.txt)*
+*For detailed FIFO training workflow and TensorFlow integration, see the companion document: [StingRay_FIFO_Training_Guide.md](./StingRay_FIFO_Training_Guide.md)*

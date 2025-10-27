@@ -4,8 +4,8 @@ import type { Device, Characteristic } from 'react-native-ble-plx';
 import { useTheme } from '../theme/ThemeContext';
 import { useRssi } from '../ble/useRssi';
 import { useBatteryPercent } from '../ble/useBatteryPercent';
-//import { useStateControl } from '../ble/useStateControl';
-//import { useDualImu } from '../imu/DualImuProvider';
+import { useDeviceManager } from '../ble/DeviceProvider';
+import { DevicePosition } from '../ble/BleProvider';
 import { Activity, Cpu, Lightbulb } from 'lucide-react-native';
 import {
 	BatteryWarning,
@@ -17,16 +17,8 @@ import {
 
 type IconType = React.ComponentType<{ color?: string; size?: number }>;
 
-type ConnectedDeviceLike = {
-	id: string;
-	name?: string | null;
-	device: Device;
-	services: string[];
-	characteristicsByService: Record<string, Characteristic[]>;
-};
-
 type Props = { 
-	item?: ConnectedDeviceLike; 
+	position: DevicePosition;
 	height?: number; 
 	placeholder?: boolean;
 };
@@ -123,15 +115,36 @@ const rssiToBars = (rssi: number | null): number => {
 	return 0;
 };
 
-export default function DeviceBox({ item, placeholder = false }: Props) {
+export default function DeviceBox({ position, placeholder = false }: Props) {
 	const { theme } = useTheme();
-	//const { a, b, entryA, entryB } = useDualImu();
+	const { leftFootDevice, rightFootDevice, racketDevice } = useDeviceManager();
 
-	// Always call hooks - use dummy values when item is null
-	const rssi = useRssi(item?.device, 1000);
-	const { percent, supported: supportedBat, error: errorBat } = useBatteryPercent(
-		item || { id: '', device: {} as Device, services: [], characteristicsByService: {} }, 
-		{ subscribe: !!item, intervalMs: 15000 }
+	// Position labels and colors
+	const POSITION_LABELS = {
+		leftFoot: 'Left Foot',
+		rightFoot: 'Right Foot',
+		racket: 'Racket'
+	};
+
+	const POSITION_COLORS = {
+		leftFoot: '#007AFF',   // Blue
+		rightFoot: '#FF9500',  // Orange  
+		racket: '#34C759'      // Green
+	};
+
+	const positionColor = POSITION_COLORS[position];
+	const positionLabel = POSITION_LABELS[position];
+
+	// Get the device for this position
+	const device = position === 'leftFoot' ? leftFootDevice 
+		: position === 'rightFoot' ? rightFootDevice
+		: racketDevice;
+
+	// Always call hooks - use position instead of device directly
+	const rssi = useRssi(device?.device, 1000);
+	const { percent: batteryPercent, supported: supportedBat, error: errorBat } = useBatteryPercent(
+		device || { id: '', device: {} as Device, services: [], characteristicsByService: {} }, 
+		{ subscribe: !!device, intervalMs: 15000 }
 	);
 	
 	//const stateResult = useStateControl(
@@ -140,11 +153,11 @@ export default function DeviceBox({ item, placeholder = false }: Props) {
 	//);
 
 	// Compute values with useMemo before early return
-	const pct: number | null = item && supportedBat && !errorBat ? percent ?? null : null;
+	const pct: number | null = device && supportedBat && !errorBat ? batteryPercent ?? null : null;
 	const { Icon: BattIcon, color: battColor } = useMemo(() => selectBatteryIcon(pct), [pct]);
 
 	const serviceStates = useMemo(() => {
-		if (!item) return [];
+		if (!device) return [];
 		const out: Array<{
 			key: ServiceKey;
 			label: string;
@@ -155,7 +168,7 @@ export default function DeviceBox({ item, placeholder = false }: Props) {
 		(Object.keys(SERVICES) as ServiceKey[]).forEach((key) => {
 			const meta = SERVICES[key];
 			const matchedSvc = findMatchingServiceUuid(
-				item.services,
+				device.services,
 				meta.serviceUuids,
 			);
 			const present = !!matchedSvc;
@@ -163,7 +176,7 @@ export default function DeviceBox({ item, placeholder = false }: Props) {
 				present &&
 				hasExpectedChar(
 					matchedSvc,
-					item.characteristicsByService,
+					device.characteristicsByService,
 					meta.charUuids,
 				);
 			out.push({
@@ -175,7 +188,7 @@ export default function DeviceBox({ item, placeholder = false }: Props) {
 			});
 		});
 		return out;
-	}, [item]);
+	}, [device]);
 
 	function selectBatteryIcon(p: number | null) {
 		if (p == null)
@@ -189,10 +202,16 @@ export default function DeviceBox({ item, placeholder = false }: Props) {
 		return { Icon: BatteryFull, color: '#22C55E', label: `${p}%` };
 	}
 
-	// If this is a placeholder or no item, render the placeholder view
-	if (placeholder || !item) {
+	// If this is a placeholder or no device, render the placeholder view
+	if (placeholder || !device) {
 		return (
-			<View style={[theme.viewStyles.deviceContainerLarge, theme.viewStyles.placeholder]}>
+			<View style={[theme.viewStyles.deviceContainerLarge, theme.viewStyles.placeholder, { borderColor: positionColor, borderWidth: 2 }]}>
+				{/* Position Header */}
+				<View style={[theme.viewStyles.deviceHeaderLarge, { backgroundColor: positionColor + '20' }]}>
+					<Text style={[theme.textStyles.deviceName, theme.textStyles.bold]}>
+						{positionLabel}
+					</Text>
+				</View>
 				<View style={theme.viewStyles.placeholderContent}>
 					<Text style={theme.textStyles.placeholderText}>No Device</Text>
 					<Text style={theme.textStyles.placeholderSubText}>Waiting for connection...</Text>
@@ -204,11 +223,18 @@ export default function DeviceBox({ item, placeholder = false }: Props) {
 	const bars = rssiToBars(rssi);
 
 	return (
-		<View style={theme.viewStyles.deviceContainerLarge}>
+		<View style={[theme.viewStyles.deviceContainerLarge, { borderColor: positionColor, borderWidth: 2 }]}>
+			{/* Position Header */}
+			<View style={[theme.viewStyles.deviceHeaderLarge, { backgroundColor: positionColor + '20' }]}>
+				<Text style={[theme.textStyles.deviceName, theme.textStyles.bold]}>
+					{positionLabel}
+				</Text>
+			</View>
+
 			{/* Device Name */}
-			<View style={theme.viewStyles.deviceHeaderLarge}>
+			<View style={theme.viewStyles.deviceHeader}>
 				<Text style={theme.textStyles.deviceName}>
-					{item.name || 'Unknown Device'}
+					{device?.name || 'No Device Connected'}
 				</Text>
 			</View>
 
@@ -234,7 +260,7 @@ export default function DeviceBox({ item, placeholder = false }: Props) {
 					<View style={theme.viewStyles.batterySection}>
 						<BattIcon size={28} color={battColor} />
 						<Text style={[theme.textStyles.batteryPercentage, { color: battColor }]}>
-							{supportedBat ? percent ?? '—' : 'N/A'}%
+							{supportedBat ? batteryPercent ?? '—' : 'N/A'}%
 						</Text>
 					</View>
 

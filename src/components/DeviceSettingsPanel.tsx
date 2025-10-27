@@ -281,20 +281,71 @@ export const DeviceSettingsPanel: React.FC<DeviceSettingsPanelProps> = ({
 	// LED control states for each device
 	const [ledModes, setLedModes] = useState<Record<string, LEDControlMode>>({});
 
-	// Initialize with default LED modes for connected devices
-	useEffect(() => {
-		const initialModes: Record<string, LEDControlMode> = {};
-		Object.keys(connected).forEach(deviceId => {
-			if (!(deviceId in ledModes)) {
-				// Default to AMBER (standby) for new devices
-				initialModes[deviceId] = LEDControlMode.AMBER;
+	// Read actual LED modes from connected devices
+	const readDeviceLEDMode = useCallback(async (deviceId: string): Promise<LEDControlMode> => {
+		try {
+			const deviceEntry = connected[deviceId];
+			if (!deviceEntry?.device) {
+				return LEDControlMode.AMBER; // Default fallback
 			}
-		});
-		
-		if (Object.keys(initialModes).length > 0) {
-			setLedModes(prev => ({ ...prev, ...initialModes }));
+
+			const device = deviceEntry.device;
+			const isConnected = await device.isConnected();
+			if (!isConnected) {
+				return LEDControlMode.AMBER; // Default fallback
+			}
+
+			// Read the LED control characteristic
+			const characteristic = await device.readCharacteristicForService(
+				'19b10010-e8f2-537e-4f6c-d104768a1214', // LED_SERVICE_UUID
+				'19b10010-e8f2-537e-4f6c-d104768a1215'  // LED_CONTROL_CHARACTERISTIC_UUID
+			);
+
+			if (characteristic?.value) {
+				// Parse LED mode from base64 (same logic as useLEDControl)
+				const base64chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+				if (characteristic.value.length < 2) return LEDControlMode.AMBER;
+				
+				const char1 = base64chars.indexOf(characteristic.value[0]);
+				const char2 = base64chars.indexOf(characteristic.value[1]);
+				if (char1 === -1 || char2 === -1) return LEDControlMode.AMBER;
+				
+				// eslint-disable-next-line no-bitwise
+				const mode = (char1 << 2) | (char2 >> 4);
+				
+				// Validate mode is within enum range
+				if (mode >= 0 && mode <= 10) {
+					return mode as LEDControlMode;
+				}
+			}
+		} catch (error) {
+			// Device might not support LED control - this is normal
+			console.log(`Device ${deviceId} does not support LED control or read failed:`, error);
 		}
-	}, [connected, ledModes]);
+
+		return LEDControlMode.AMBER; // Default fallback
+	}, [connected]);
+
+	// Initialize LED modes by reading from connected devices
+	useEffect(() => {
+		const initializeLEDModes = async () => {
+			const updates: Record<string, LEDControlMode> = {};
+			
+			for (const deviceId of Object.keys(connected)) {
+				if (!(deviceId in ledModes)) {
+					// Read actual LED mode from device
+					const actualMode = await readDeviceLEDMode(deviceId);
+					updates[deviceId] = actualMode;
+				}
+			}
+			
+			if (Object.keys(updates).length > 0) {
+				setLedModes(prev => ({ ...prev, ...updates }));
+			}
+		};
+
+		initializeLEDModes();
+	}, [connected, ledModes, readDeviceLEDMode]);
 
 	// Get connected devices array
 	const connectedDevices = Object.values(connected);

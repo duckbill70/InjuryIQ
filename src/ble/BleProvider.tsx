@@ -26,7 +26,9 @@ export type ConnectedDevice = {
 	assignedAt?: Date;
 };
 
-type StartScanOpts = { timeoutMs?: number; maxDevices?: number };
+type StartScanOpts = { timeoutMs?: number; maxDevices?: number; clearFoundDevices?: boolean };
+
+export type { StartScanOpts };
 
 export type BleContextValue = {
 	scanning: boolean;
@@ -428,7 +430,11 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 		const maxDevices = opts?.maxDevices ?? MAX_TARGET_DEVICES;
 
 		discoveredIdsRef.current.clear();
-		setFoundDeviceIds([]);
+		// Only clear foundDeviceIds if explicitly requested (default: true)
+		// This prevents UI flicker during auto-scans when devices are already visible
+		if (opts?.clearFoundDevices !== false) {
+			setFoundDeviceIds([]);
+		}
 		setScanning(true);
 
 		const timeout = setTimeout(() => {

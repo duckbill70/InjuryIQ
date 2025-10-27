@@ -129,7 +129,6 @@ export const useLEDControl = ({
 		try {
 			// Note: react-native-ble-plx doesn't have cancelTransaction
 			// The subscription will be automatically cleaned up when the device disconnects
-			console.log('LED control monitoring will stop when device disconnects');
 		} catch (error) {
 			console.error('Failed to unsubscribe from LED control:', error);
 		}

@@ -131,6 +131,11 @@ export function useFatigue(options: UseFatigueOptions = {}): FatigueData & {
 				FATIGUE_LEVEL_CHAR_UUID,
 				(monitorError, characteristic) => {
 					if (monitorError) {
+						// Filter out common cancellation errors during device transitions
+						if (monitorError.message?.includes('Operation was cancelled')) {
+							// This is normal during device connection/disconnection - don't spam console
+							return;
+						}
 						setError(monitorError.message);
 						console.warn('Fatigue monitoring error:', monitorError.message);
 						return;

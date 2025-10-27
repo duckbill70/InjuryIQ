@@ -7,9 +7,7 @@ import {
 	BluetoothSearching, 
 	Wifi, 
 	WifiOff, 
-	CheckCircle, 
-	XCircle,
-	//RotateCcw
+	CheckCircle
 } from 'lucide-react-native';
 
 export const BleControlPanel: React.FC = () => {
@@ -17,15 +15,13 @@ export const BleControlPanel: React.FC = () => {
 	const { 
 		scanning, 
 		isPoweredOn, 
-		//foundDeviceIds, 
 		connected, 
 		devicesByPosition,
 		startScan, 
-		stopScan,
-		disconnectDevice
+		stopScan
 	} = useBle();
 
-	const [autoScanEnabled, setAutoScanEnabled] = useState(true);
+	const [autoScanEnabled, setAutoScanEnabled] = useState(false);
 	const [lastScanTime, setLastScanTime] = useState<Date | null>(null);
 
 	// Auto-scan configuration
@@ -43,12 +39,16 @@ export const BleControlPanel: React.FC = () => {
 		const interval = setInterval(async () => {
 			if (scanning) return; // Don't interrupt ongoing scan
 
+			const currentConnectedCount = Object.keys(connected).length;
+			if (currentConnectedCount >= MAX_DEVICES) return; // Already have max devices
+
 			try {
-				console.log(`[AutoScan] Starting auto-scan (${connectedCount}/${MAX_DEVICES} devices connected)`);
+				console.log(`[AutoScan] Starting auto-scan (${currentConnectedCount}/${MAX_DEVICES} devices connected)`);
 				setLastScanTime(new Date());
 				await startScan({ 
 					timeoutMs: SCAN_DURATION_MS, 
-					maxDevices: MAX_DEVICES - connectedCount 
+					maxDevices: MAX_DEVICES - currentConnectedCount,
+					clearFoundDevices: false // Don't clear existing devices during auto-scan
 				});
 			} catch (error) {
 				console.warn('[AutoScan] Failed to start scan:', error);
@@ -61,7 +61,11 @@ export const BleControlPanel: React.FC = () => {
 				try {
 					console.log('[AutoScan] Starting initial scan');
 					setLastScanTime(new Date());
-					await startScan({ timeoutMs: SCAN_DURATION_MS, maxDevices: MAX_DEVICES });
+					await startScan({ 
+						timeoutMs: SCAN_DURATION_MS, 
+						maxDevices: MAX_DEVICES,
+						clearFoundDevices: true // Clear for initial scan
+					});
 				} catch (error) {
 					console.warn('[AutoScan] Initial scan failed:', error);
 				}
@@ -88,30 +92,15 @@ export const BleControlPanel: React.FC = () => {
 
 		try {
 			setLastScanTime(new Date());
-			await startScan({ timeoutMs: SCAN_DURATION_MS, maxDevices: MAX_DEVICES });
+			await startScan({ 
+				timeoutMs: SCAN_DURATION_MS, 
+				maxDevices: MAX_DEVICES,
+				clearFoundDevices: true // Clear for manual scan
+			});
 		} catch (error) {
 			Alert.alert('Scan Failed', `Unable to start scan: ${error}`);
 		}
 	}, [scanning, stopScan, isPoweredOn, startScan]);
-
-	// Disconnect device
-	const handleDisconnectDevice = useCallback((deviceId: string) => {
-		const device = connected[deviceId];
-		const deviceName = device?.name || 'Unknown Device';
-		
-		Alert.alert(
-			'Disconnect Device',
-			`Are you sure you want to disconnect ${deviceName}?`,
-			[
-				{ text: 'Cancel', style: 'cancel' },
-				{ 
-					text: 'Disconnect', 
-					style: 'destructive',
-					onPress: () => disconnectDevice(deviceId)
-				}
-			]
-		);
-	}, [connected, disconnectDevice]);
 
 	// Toggle auto-scan
 	const toggleAutoScan = useCallback(() => {
@@ -207,100 +196,12 @@ export const BleControlPanel: React.FC = () => {
 				</TouchableOpacity>
 			</View>
 
-			{/* Device Status 
-			<View style={{ marginBottom: 16 }}>
-				<Text style={[theme.textStyles.body, { fontWeight: '600', marginBottom: 8 }]}>
-					Device Positions
-				</Text>
-				
-
-				{['leftFoot', 'rightFoot', 'racket'].map((position) => {
-					const device = devicesByPosition[position as keyof typeof devicesByPosition];
-					const positionLabels = {
-						leftFoot: 'Left Foot',
-						rightFoot: 'Right Foot', 
-						racket: 'Racket'
-					};
-					
-					return (
-						<View key={position} style={[theme.viewStyles.rowBetween, { marginBottom: 8 }]}>
-							<Text style={theme.textStyles.body}>
-								{positionLabels[position as keyof typeof positionLabels]}
-							</Text>
-							<View style={theme.viewStyles.rowCenter}>
-								{device ? (
-									<>
-										<Text style={[theme.textStyles.body, { color: theme.colors.good, marginRight: 8 }]}>
-											{device.name || 'StingRay Device'}
-										</Text>
-										<CheckCircle size={16} color={theme.colors.good} />
-										<TouchableOpacity
-											onPress={() => handleDisconnectDevice(device.id)}
-											style={{ marginLeft: 8 }}
-										>
-											<XCircle size={16} color={theme.colors.danger} />
-										</TouchableOpacity>
-									</>
-								) : (
-									<>
-										<Text style={[theme.textStyles.body, { color: theme.colors.muted, marginRight: 8 }]}>
-											Not Connected
-										</Text>
-										<XCircle size={16} color={theme.colors.muted} />
-									</>
-								)}
-							</View>
-						</View>
-					);
-				})}
-			</View> */}
-
-			{/* Scan Status - Always Visible
-			<View style={[
-				theme.viewStyles.card, 
-				{ 
-					backgroundColor: theme.colors.dgrey, 
-					padding: 12, 
-					minHeight: 60, // Consistent height
-					justifyContent: 'center'
-				}
-			]}>
-				<View style={[theme.viewStyles.rowBetween, { alignItems: 'center' }]}>
-					<View style={theme.viewStyles.rowCenter}>
-						{scanning ? (
-							<RotateCcw size={16} color={theme.colors.primary} />
-						) : (
-							<Bluetooth size={16} color={theme.colors.muted} />
-						)}
-						<Text style={[
-							theme.textStyles.body, 
-							{ 
-								marginLeft: 8, 
-								fontWeight: '600',
-								color: scanning ? theme.colors.primary : theme.colors.text,
-								minWidth: 90 // Consistent text width for "Not Scanning"
-							}
-						]}>
-							{scanning ? 'Scanning' : 'Not Scanning'}
-						</Text>
-					</View>
-					
-					<View style={{ minWidth: 80, alignItems: 'flex-end' }}>
-						{foundDeviceIds.length > 0 && (
-							<Text style={[theme.textStyles.body, { color: theme.colors.good }]}>
-								Found {foundDeviceIds.length} device{foundDeviceIds.length !== 1 ? 's' : ''}
-							</Text>
-						)}
-					</View>
-				</View>  
-			</View> */}
-
-			{/* Last Scan Time 
+			{/* Last Scan Time */}
 			{lastScanTime && (
 				<Text style={[theme.textStyles.lastUpdated, { textAlign: 'center', marginTop: 8 }]}>
 					Last scan: {lastScanTime.toLocaleTimeString()}
 				</Text>
-			)} */}
+			)}
 		</View>
 	);
 };

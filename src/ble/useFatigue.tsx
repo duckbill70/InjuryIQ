@@ -2,21 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useBle } from './BleProvider';
 import type { BleError, Characteristic } from 'react-native-ble-plx';
 import { useSession } from '../session/SessionProvider';
-
-// Manual base64 decode for single byte (avoiding Node/Browser API issues)
-const base64chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
-const decodeSingleByte = (base64: string): number => {
-	try {
-		if (base64.length < 2) return 0;
-		const char1 = base64chars.indexOf(base64[0]);
-		const char2 = base64chars.indexOf(base64[1]);
-		if (char1 === -1 || char2 === -1) return 0;
-		// eslint-disable-next-line no-bitwise
-		return (char1 << 2) | (char2 >> 4);
-	} catch {
-		return 0;
-	}
-};
+import { decodeSingleByte } from './base64';
 
 // Service and characteristic UUIDs from StingRay guide
 const FATIGUE_SERVICE_UUID = '12345678-1234-5678-1234-56789abcdef0';

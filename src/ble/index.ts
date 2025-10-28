@@ -2,6 +2,7 @@
 export { useFatigue } from './useFatigue';
 export { useStatistics } from './useStatistics';
 export { useLEDControl, LEDControlMode } from './useLEDControl';
+export { useControl, ControlState } from './useControl';
 export { useBattery } from './useBattery';
 export { useStepCounter } from './useStepCounter';
 export { useDiagnostics, ErrorCode } from './useDiagnostics';

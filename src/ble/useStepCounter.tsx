@@ -1,6 +1,8 @@
-import { useCallback, useEffect } from 'react';
+/* eslint-disable no-bitwise */
+import { useCallback, useEffect, useRef } from 'react';
 import { useBle } from './BleProvider';
 import type { BleError, Characteristic } from 'react-native-ble-plx';
+import { decodeBase64ToBytes } from './base64';
 
 import { useSession } from '../session/SessionProvider';
 
@@ -22,81 +24,22 @@ export const useStepCounter = ({ deviceId, onStepCountUpdate, enabled = true }: 
 
 	const { logStep } = useSession();
 
-	// Parse step count from base64 (should be 4 bytes little-endian)
-	const parseStepCount = useCallback((base64Data: string): number => {
-		try {
-			// For React Native, use a simple manual base64 decoder
-			// since Buffer may not be available in all environments
-			const base64chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
-			const bytes: number[] = [];
+		const lastStepCountRef = useRef<number | null>(null);
 
-			// Remove padding
-			let cleanBase64 = base64Data;
-			while (cleanBase64.endsWith('=')) {
-				cleanBase64 = cleanBase64.slice(0, -1);
-			}
-
-			// Decode in 4-character chunks
-			for (let i = 0; i < cleanBase64.length; i += 4) {
-				const chunk = cleanBase64.slice(i, i + 4).padEnd(4, 'A'); // Pad with 'A' (value 0)
-				const values = chunk.split('').map((c) => base64chars.indexOf(c));
-
-				if (values.every((v) => v !== -1)) {
-					// Convert 4 base64 values to 3 bytes
-					// eslint-disable-next-line no-bitwise
-					const byte1 = (values[0] << 2) | (values[1] >> 4);
-					// eslint-disable-next-line no-bitwise
-					const byte2 = ((values[1] & 0x0f) << 4) | (values[2] >> 2);
-					// eslint-disable-next-line no-bitwise
-					const byte3 = ((values[2] & 0x03) << 6) | values[3];
-
-					bytes.push(byte1);
-					if (i + 1 < cleanBase64.length) bytes.push(byte2);
-					if (i + 2 < cleanBase64.length) bytes.push(byte3);
-				}
-			}
-
-			// For "AAAAAA==", we expect 4 bytes: the first chunk "AAAA" gives 3 bytes,
-			// and the second chunk "AA" (padded to "AAAA") gives 1 more byte
-			// But we need to limit based on the original padding
-			const originalPaddingCount = base64Data.length - cleanBase64.length;
-			if (originalPaddingCount > 0) {
-				// Remove bytes that were added due to padding
-				const expectedBytes = Math.ceil((cleanBase64.length * 6) / 8);
-				while (bytes.length > expectedBytes) {
-					bytes.pop();
-				}
-			}
-
-			// Expected 4 bytes for step count, but accept 3+ for compatibility
+		// Parse step count from base64 (should be 4 bytes little-endian)
+		const parseStepCount = useCallback((base64Data: string): number => {
+			const bytes = decodeBase64ToBytes(base64Data);
 			if (bytes.length < 3) {
 				console.warn('Step count data too short:', bytes.length);
 				return 0;
 			}
 
-			// Parse little-endian unsigned integer (3 or 4 bytes)
-			let stepCount = 0;
-			if (bytes.length >= 3) {
-				// eslint-disable-next-line no-bitwise
-				stepCount = bytes[0] | (bytes[1] << 8) | (bytes[2] << 16);
-
-				// If we have a 4th byte, include it
-				if (bytes.length >= 4) {
-					// eslint-disable-next-line no-bitwise
-					stepCount |= bytes[3] << 24;
-				}
+			let stepCount = bytes[0] | (bytes[1] << 8) | (bytes[2] << 16);
+			if (bytes.length >= 4) {
+				stepCount |= bytes[3] << 24;
 			}
-
-			// Ensure non-negative value (unsigned)
-			// eslint-disable-next-line no-bitwise
-			const result = stepCount >>> 0;
-
-			return result;
-		} catch (error) {
-			console.error('Failed to parse step count:', error);
-			return 0;
-		}
-	}, []);
+			return stepCount >>> 0;
+		}, []);
 
 	// Subscribe to step count notifications
 	const subscribe = useCallback(async () => {
@@ -120,13 +63,17 @@ export const useStepCounter = ({ deviceId, onStepCountUpdate, enabled = true }: 
 					return;
 				}
 
-				if (characteristic?.value) {
-					const stepCount = parseStepCount(characteristic.value);
-					if (onStepCountUpdate) {
-						onStepCountUpdate(stepCount);
-						logStep(stepCount, position);
-					}
-				}
+						if (characteristic?.value) {
+							const stepCount = parseStepCount(characteristic.value);
+							if (lastStepCountRef.current !== null && stepCount < lastStepCountRef.current) {
+								// Counter reset (likely due to LED OFF / device reset)
+								logStep({ type: 'reset', value: stepCount }, position);
+							} else {
+								logStep(stepCount, position);
+							}
+							lastStepCountRef.current = stepCount;
+							onStepCountUpdate?.(stepCount);
+						}
 			});
 		} catch (error) {
 			// Handle service/characteristic not found gracefully

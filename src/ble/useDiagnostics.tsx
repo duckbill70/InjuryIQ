@@ -1,346 +1,329 @@
+/* eslint-disable no-bitwise */
 import { useCallback, useEffect } from 'react';
-import { useBle } from './BleProvider';
 import type { BleError, Characteristic } from 'react-native-ble-plx';
+import { useBle } from './BleProvider';
+import { decodeBase64ToBytes } from './base64';
 
-// StingRay Diagnostics Service UUIDs (from StingRay BLE Services Guide)
 const DIAGNOSTICS_SERVICE_UUID = '87654321-4321-8765-4321-210987654321';
 const ERROR_CODE_CHARACTERISTIC_UUID = '87654321-4321-8765-4321-210987654322';
 const SYSTEM_STATUS_CHARACTERISTIC_UUID = '87654321-4321-8765-4321-210987654325';
 
-// System status data structure (36 bytes from StingRay guide)
-interface SystemStatus {
-	uptime: number;
-	cpuUsage: number;
-	memoryUsage: number;
-	temperature: number;
-	voltageSupply: number;
-	errorCount: number;
-	warningCount: number;
-	lastResetReason: number;
-	firmwareVersion: string;
-	hardwareRevision: string;
-	systemHealth: 'GOOD' | 'WARNING' | 'ERROR';
+const getUint32LE = (bytes: number[], offset: number) =>
+  (bytes[offset] | (bytes[offset + 1] << 8) | (bytes[offset + 2] << 16) | (bytes[offset + 3] << 24)) >>> 0;
+
+export interface SystemStatus {
+  bleStatus: number;
+  imuStatus: number;
+  ledMode: number;
+  batteryLevel: number;
+  uptimeSeconds: number;
+  fifoTotalSamples: number;
+  fifoCurrentSize: number;
+  totalErrorCount: number;
+  totalDisconnectCount: number;
+  bleWriteFailures: number;
+  maxLoopTimeMs: number;
+  reserved: [number, number, number, number];
 }
 
-// Error codes from StingRay guide
 export enum ErrorCode {
-	NO_ERROR = 0,
-	SENSOR_FAULT = 1,
-	COMMUNICATION_ERROR = 2,
-	POWER_FAULT = 3,
-	MEMORY_ERROR = 4,
-	CALIBRATION_ERROR = 5,
-	TEMPERATURE_WARNING = 6,
-	LOW_BATTERY = 7,
-	FIRMWARE_ERROR = 8,
-	HARDWARE_FAULT = 9
+  ERR_NONE = 0,
+  ERR_IMU_INIT_FAIL = 1,
+  ERR_IMU_READ_FAIL = 2,
+  ERR_BLE_INIT_FAIL = 3,
+  ERR_BLE_CONN_LOST = 4,
+  ERR_FLASH_WRITE_FAIL = 5,
+  ERR_FLASH_READ_FAIL = 6,
+  ERR_BATTERY_READ_FAIL = 7,
+  ERR_LOW_BATTERY = 8,
+  ERR_SYSTEM_OVERLOAD = 9,
+  ERR_WATCHDOG_RESET = 10,
+  ERR_SERIAL_DEBUG_ENABLED = 11,
+  ERR_TENSORFLOW_DISABLED = 12,
+  ERR_BLE_CONN_TIMEOUT = 13,
+  ERR_BLE_RSSI_LOW = 14,
+  ERR_BLE_MTU_FAIL = 15,
+  ERR_BLE_WRITE_FAIL = 16,
+  ERR_FIFO_ALLOC_FAIL = 17,
+  ERR_FIFO_NOT_INITIALIZED = 18,
+  ERR_FIFO_OVERFLOW = 19,
+  ERR_UNKNOWN = 255,
 }
+
+export const getErrorDescription = (code: ErrorCode): string => {
+  switch (code) {
+    case ErrorCode.ERR_NONE:
+      return 'No Error';
+    case ErrorCode.ERR_IMU_INIT_FAIL:
+      return 'IMU initialization failed';
+    case ErrorCode.ERR_IMU_READ_FAIL:
+      return 'IMU data read failure';
+    case ErrorCode.ERR_BLE_INIT_FAIL:
+      return 'BLE initialization failed';
+    case ErrorCode.ERR_BLE_CONN_LOST:
+      return 'BLE connection lost';
+    case ErrorCode.ERR_FLASH_WRITE_FAIL:
+      return 'Flash write failed';
+    case ErrorCode.ERR_FLASH_READ_FAIL:
+      return 'Flash read failed';
+    case ErrorCode.ERR_BATTERY_READ_FAIL:
+      return 'Battery read failed';
+    case ErrorCode.ERR_LOW_BATTERY:
+      return 'Battery critically low';
+    case ErrorCode.ERR_SYSTEM_OVERLOAD:
+      return 'System performance degraded';
+    case ErrorCode.ERR_WATCHDOG_RESET:
+      return 'Watchdog reset occurred';
+    case ErrorCode.ERR_SERIAL_DEBUG_ENABLED:
+      return 'Serial debug enabled';
+    case ErrorCode.ERR_TENSORFLOW_DISABLED:
+      return 'TensorFlow disabled';
+    case ErrorCode.ERR_BLE_CONN_TIMEOUT:
+      return 'BLE connection timeout';
+    case ErrorCode.ERR_BLE_RSSI_LOW:
+      return 'BLE signal too weak';
+    case ErrorCode.ERR_BLE_MTU_FAIL:
+      return 'BLE MTU negotiation failed';
+    case ErrorCode.ERR_BLE_WRITE_FAIL:
+      return 'BLE characteristic write failed';
+    case ErrorCode.ERR_FIFO_ALLOC_FAIL:
+      return 'FIFO allocation failure';
+    case ErrorCode.ERR_FIFO_NOT_INITIALIZED:
+      return 'FIFO not initialized';
+    case ErrorCode.ERR_FIFO_OVERFLOW:
+      return 'FIFO buffer overflow';
+    case ErrorCode.ERR_UNKNOWN:
+    default:
+      return 'Unknown error';
+  }
+};
+
+export const getPerformanceGrade = (status: SystemStatus): 'Excellent' | 'Good' | 'Fair' | 'Poor' => {
+  if (status.maxLoopTimeMs < 20) return 'Excellent';
+  if (status.maxLoopTimeMs < 50) return 'Good';
+  if (status.maxLoopTimeMs < 75) return 'Fair';
+  return 'Poor';
+};
+
+export const getDisconnectRatePerHour = (status: SystemStatus): number => {
+  if (status.uptimeSeconds === 0) {
+    return 0;
+  }
+  const hours = status.uptimeSeconds / 3600;
+  return status.totalDisconnectCount / hours;
+};
+
+const parseSystemStatusBytes = (bytes: number[]): SystemStatus | null => {
+  if (bytes.length < 36) {
+    console.warn('System status payload too short:', bytes.length);
+    return null;
+  }
+
+  return {
+    bleStatus: bytes[0],
+    imuStatus: bytes[1],
+    ledMode: bytes[2],
+    batteryLevel: bytes[3],
+    uptimeSeconds: getUint32LE(bytes, 4),
+    fifoTotalSamples: getUint32LE(bytes, 8),
+    fifoCurrentSize: getUint32LE(bytes, 12),
+    totalErrorCount: getUint32LE(bytes, 16),
+    totalDisconnectCount: getUint32LE(bytes, 20),
+    bleWriteFailures: getUint32LE(bytes, 24),
+    maxLoopTimeMs: getUint32LE(bytes, 28),
+    reserved: [bytes[32], bytes[33], bytes[34], bytes[35]],
+  };
+};
+
+const parseErrorEntryBytes = (bytes: number[]): { code: ErrorCode; description: string } | null => {
+  if (!bytes.length) {
+    return null;
+  }
+
+  const code = bytes[0] as ErrorCode;
+  const descriptionBytes = bytes.slice(1);
+  let description = '';
+
+  for (let i = 0; i < descriptionBytes.length; i += 1) {
+    if (descriptionBytes[i] === 0) break;
+    description += String.fromCharCode(descriptionBytes[i]);
+  }
+
+  return { code, description };
+};
 
 interface UseDiagnosticsProps {
-	deviceId: string;
-	onSystemStatusUpdate?: (status: SystemStatus) => void;
-	onErrorUpdate?: (errorCode: ErrorCode, description: string) => void;
-	enabled?: boolean;
+  deviceId: string;
+  onSystemStatusUpdate?: (status: SystemStatus) => void;
+  onErrorUpdate?: (errorCode: ErrorCode, description: string) => void;
+  enabled?: boolean;
 }
 
-export const useDiagnostics = ({
-	deviceId,
-	onSystemStatusUpdate,
-	onErrorUpdate,
-	enabled = true
-}: UseDiagnosticsProps) => {
-	const { connected } = useBle();
-	const device = connected[deviceId]?.device;
+export const useDiagnostics = ({ deviceId, onSystemStatusUpdate, onErrorUpdate, enabled = true }: UseDiagnosticsProps) => {
+  const { connected } = useBle();
+  const device = connected[deviceId]?.device;
 
-	// Parse 36-byte system status structure
-	const parseSystemStatus = useCallback((base64Data: string): SystemStatus | null => {
-		try {
-			// Decode base64 to byte array
-			const base64chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
-			const bytes: number[] = [];
-			
-			// Process 4 characters at a time to get 3 bytes
-			for (let i = 0; i < base64Data.length; i += 4) {
-				const chunk = base64Data.slice(i, i + 4);
-				if (chunk.length >= 2) {
-					const chars = chunk.split('').map(c => base64chars.indexOf(c));
-					if (chars.every(c => c !== -1)) {
-						// eslint-disable-next-line no-bitwise
-						bytes.push((chars[0] << 2) | (chars[1] >> 4));
-						if (chunk.length >= 3) {
-							// eslint-disable-next-line no-bitwise
-							bytes.push(((chars[1] & 15) << 4) | (chars[2] >> 2));
-						}
-						if (chunk.length >= 4) {
-							// eslint-disable-next-line no-bitwise
-							bytes.push(((chars[2] & 3) << 6) | chars[3]);
-						}
-					}
-				}
-			}
+  const parseSystemStatus = useCallback((base64Data: string): SystemStatus | null => {
+    const bytes = decodeBase64ToBytes(base64Data);
+    return parseSystemStatusBytes(bytes);
+  }, []);
 
-			if (bytes.length < 36) {
-				console.warn('System status data too short:', bytes.length);
-				return null;
-			}
+  const parseErrorLog = useCallback((base64Data: string): { code: ErrorCode; description: string } | null => {
+    const bytes = decodeBase64ToBytes(base64Data);
+    return parseErrorEntryBytes(bytes);
+  }, []);
 
-			// Parse 36-byte structure (little-endian)
-			const getUint32LE = (offset: number) => {
-				// eslint-disable-next-line no-bitwise
-				return bytes[offset] | (bytes[offset + 1] << 8) | (bytes[offset + 2] << 16) | (bytes[offset + 3] << 24);
-			};
+  const subscribeSystemStatus = useCallback(async () => {
+    if (!device || !enabled) return;
 
-			const getUint16LE = (offset: number) => {
-				// eslint-disable-next-line no-bitwise
-				return bytes[offset] | (bytes[offset + 1] << 8);
-			};
+    try {
+      const isConnected = await device.isConnected();
+      if (!isConnected) {
+        console.warn('Device not connected for system status subscription');
+        return;
+      }
 
-			// Parse version strings (null-terminated)
-			const getString = (offset: number, maxLength: number) => {
-				let str = '';
-				for (let i = 0; i < maxLength && offset + i < bytes.length; i++) {
-					const char = bytes[offset + i];
-					if (char === 0) break;
-					str += String.fromCharCode(char);
-				}
-				return str;
-			};
+      await device.monitorCharacteristicForService(
+        DIAGNOSTICS_SERVICE_UUID,
+        SYSTEM_STATUS_CHARACTERISTIC_UUID,
+        (error: BleError | null, characteristic: Characteristic | null) => {
+          if (error) {
+            if (error.message?.includes('Characteristic') && error.message?.includes('not found')) {
+              console.log('Device does not expose diagnostics system status characteristic');
+              return;
+            }
+            console.error('System status monitoring error:', error);
+            return;
+          }
 
-			const errorCount = getUint16LE(20);
-			const warningCount = getUint16LE(22);
-			
-			// Determine system health
-			let systemHealth: 'GOOD' | 'WARNING' | 'ERROR' = 'GOOD';
-			if (errorCount > 0) {
-				systemHealth = 'ERROR';
-			} else if (warningCount > 0) {
-				systemHealth = 'WARNING';
-			}
+          if (characteristic?.value) {
+            const status = parseSystemStatus(characteristic.value);
+            if (status) {
+              onSystemStatusUpdate?.(status);
+            }
+          }
+        }
+      );
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        (error.message.includes('Service') || error.message.includes('Characteristic')) &&
+        error.message.includes('not found')
+      ) {
+        console.log('Device does not support diagnostics system status');
+        return;
+      }
+      console.error('Failed to subscribe to system status:', error);
+    }
+  }, [device, enabled, onSystemStatusUpdate, parseSystemStatus]);
 
-			return {
-				uptime: getUint32LE(0),
-				cpuUsage: bytes[4],
-				memoryUsage: bytes[5],
-				temperature: bytes[6] - 40, // Offset by 40°C as per StingRay spec
-				voltageSupply: getUint16LE(8) / 1000, // Convert mV to V
-				errorCount,
-				warningCount,
-				lastResetReason: bytes[24],
-				firmwareVersion: getString(25, 5),
-				hardwareRevision: getString(30, 5),
-				systemHealth
-			};
-		} catch (error) {
-			console.error('Failed to parse system status:', error);
-			return null;
-		}
-	}, []);
+  const subscribeErrorCode = useCallback(async () => {
+    if (!device || !enabled) return;
 
-	// Parse error log entry
-	const parseErrorLog = useCallback((base64Data: string): { code: ErrorCode; description: string } | null => {
-		try {
-			// Simple error log format: error code (1 byte) + description (remaining bytes)
-			const base64chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
-			const bytes: number[] = [];
-			
-			for (let i = 0; i < base64Data.length; i += 4) {
-				const chunk = base64Data.slice(i, i + 4);
-				if (chunk.length >= 2) {
-					const chars = chunk.split('').map(c => base64chars.indexOf(c));
-					if (chars.every(c => c !== -1)) {
-						// eslint-disable-next-line no-bitwise
-						bytes.push((chars[0] << 2) | (chars[1] >> 4));
-						if (chunk.length >= 3) {
-							// eslint-disable-next-line no-bitwise
-							bytes.push(((chars[1] & 15) << 4) | (chars[2] >> 2));
-						}
-						if (chunk.length >= 4) {
-							// eslint-disable-next-line no-bitwise
-							bytes.push(((chars[2] & 3) << 6) | chars[3]);
-						}
-					}
-				}
-			}
+    try {
+      const isConnected = await device.isConnected();
+      if (!isConnected) {
+        console.warn('Device not connected for error code subscription');
+        return;
+      }
 
-			if (bytes.length < 1) return null;
+      await device.monitorCharacteristicForService(
+        DIAGNOSTICS_SERVICE_UUID,
+        ERROR_CODE_CHARACTERISTIC_UUID,
+        (error: BleError | null, characteristic: Characteristic | null) => {
+          if (error) {
+            if (error.message?.includes('Characteristic') && error.message?.includes('not found')) {
+              console.log('Device does not expose diagnostics error characteristic');
+              return;
+            }
+            console.error('Error code monitoring error:', error);
+            return;
+          }
 
-			const errorCode = bytes[0] as ErrorCode;
-			let description = '';
-			
-			// Extract description string
-			for (let i = 1; i < bytes.length; i++) {
-				if (bytes[i] === 0) break;
-				description += String.fromCharCode(bytes[i]);
-			}
+          if (characteristic?.value) {
+            const entry = parseErrorLog(characteristic.value);
+            if (entry) {
+              onErrorUpdate?.(entry.code, entry.description || getErrorDescription(entry.code));
+            }
+          }
+        }
+      );
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        (error.message.includes('Service') || error.message.includes('Characteristic')) &&
+        error.message.includes('not found')
+      ) {
+        console.log('Device does not support diagnostics error logging');
+        return;
+      }
+      console.error('Failed to subscribe to error codes:', error);
+    }
+  }, [device, enabled, onErrorUpdate, parseErrorLog]);
 
-			return { code: errorCode, description };
-		} catch (error) {
-			console.error('Failed to parse error log:', error);
-			return null;
-		}
-	}, []);
+  const subscribe = useCallback(async () => {
+    await Promise.all([subscribeSystemStatus(), subscribeErrorCode()]);
+  }, [subscribeSystemStatus, subscribeErrorCode]);
 
-	// Subscribe to system status notifications
-	const subscribeSystemStatus = useCallback(async () => {
-		if (!device || !enabled) return;
+  const unsubscribe = useCallback(async () => {
+    if (!device) return;
+    // Subscriptions are disposed automatically when the device disconnects.
+  }, [device]);
 
-		try {
-			const isConnected = await device.isConnected();
-			if (!isConnected) {
-				console.warn('Device not connected for system status subscription');
-				return;
-			}
+  const readSystemStatus = useCallback(async (): Promise<SystemStatus | null> => {
+    if (!device) return null;
 
-			await device.monitorCharacteristicForService(
-				DIAGNOSTICS_SERVICE_UUID,
-				SYSTEM_STATUS_CHARACTERISTIC_UUID,
-				(error: BleError | null, characteristic: Characteristic | null) => {
-					if (error) {
-						// Check if it's a "characteristic not found" error - this is expected if device doesn't support diagnostics
-						if (error.message?.includes('Characteristic') && error.message?.includes('not found')) {
-							console.log('Device does not support diagnostic system status characteristic - this is normal for some devices');
-							return;
-						}
-						console.error('System status monitoring error:', error);
-						return;
-					}
+    try {
+      const isConnected = await device.isConnected();
+      if (!isConnected) {
+        console.warn('Device not connected for system status read');
+        return null;
+      }
 
-					if (characteristic?.value) {
-						const status = parseSystemStatus(characteristic.value);
-						if (status && onSystemStatusUpdate) {
-							onSystemStatusUpdate(status);
-						}
-					}
-				}
-			);
-		} catch (error) {
-			// Handle service/characteristic not found gracefully
-			if (error instanceof Error && 
-				(error.message.includes('Service') || error.message.includes('Characteristic')) && 
-				error.message.includes('not found')) {
-				console.log('Device does not support diagnostic system status service - this is normal for some devices');
-				return;
-			}
-			console.error('Failed to subscribe to system status:', error);
-		}
-	}, [device, enabled, parseSystemStatus, onSystemStatusUpdate]);
+      const characteristic = await device.readCharacteristicForService(
+        DIAGNOSTICS_SERVICE_UUID,
+        SYSTEM_STATUS_CHARACTERISTIC_UUID
+      );
 
-	// Subscribe to error code notifications
-	const subscribeErrorCode = useCallback(async () => {
-		if (!device || !enabled) return;
+      if (characteristic?.value) {
+        return parseSystemStatus(characteristic.value);
+      }
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        (error.message.includes('Service') || error.message.includes('Characteristic')) &&
+        error.message.includes('not found')
+      ) {
+        console.log('Device does not support diagnostics service');
+        return null;
+      }
+      console.error('Failed to read system status:', error);
+    }
 
-		try {
-			const isConnected = await device.isConnected();
-			if (!isConnected) {
-				console.warn('Device not connected for error code subscription');
-				return;
-			}
+    return null;
+  }, [device, parseSystemStatus]);
 
-			await device.monitorCharacteristicForService(
-				DIAGNOSTICS_SERVICE_UUID,
-				ERROR_CODE_CHARACTERISTIC_UUID,
-				(error: BleError | null, characteristic: Characteristic | null) => {
-					if (error) {
-						// Check if it's a "characteristic not found" error - this is expected if device doesn't support diagnostics
-						if (error.message?.includes('Characteristic') && error.message?.includes('not found')) {
-							console.log('Device does not support diagnostic error code characteristic - this is normal for some devices');
-							return;
-						}
-						console.error('Error code monitoring error:', error);
-						return;
-					}
+  useEffect(() => {
+    if (enabled && device) {
+      subscribe();
+      return () => {
+        unsubscribe();
+      };
+    }
+    return undefined;
+  }, [enabled, device, subscribe, unsubscribe]);
 
-					if (characteristic?.value) {
-						const errorEntry = parseErrorLog(characteristic.value);
-						if (errorEntry && onErrorUpdate) {
-							onErrorUpdate(errorEntry.code, errorEntry.description);
-						}
-					}
-				}
-			);
-		} catch (error) {
-			// Handle service/characteristic not found gracefully
-			if (error instanceof Error && 
-				(error.message.includes('Service') || error.message.includes('Characteristic')) && 
-				error.message.includes('not found')) {
-				console.log('Device does not support diagnostic error code service - this is normal for some devices');
-				return;
-			}
-			console.error('Failed to subscribe to error code:', error);
-		}
-	}, [device, enabled, parseErrorLog, onErrorUpdate]);
-
-	// Subscribe to all diagnostics
-	const subscribe = useCallback(async () => {
-		await Promise.all([
-			subscribeSystemStatus(),
-			subscribeErrorCode()
-		]);
-	}, [subscribeSystemStatus, subscribeErrorCode]);
-
-	// Unsubscribe from all diagnostics
-	const unsubscribe = useCallback(async () => {
-		if (!device) return;
-
-		try {
-			// Note: react-native-ble-plx doesn't have cancelTransaction
-			// The subscriptions will be automatically cleaned up when the device disconnects
-		} catch (error) {
-			console.error('Failed to unsubscribe from diagnostics:', error);
-		}
-	}, [device]);
-
-	// Read current system status
-	const readSystemStatus = useCallback(async (): Promise<SystemStatus | null> => {
-		if (!device) return null;
-
-		try {
-			const isConnected = await device.isConnected();
-			if (!isConnected) {
-				console.warn('Device not connected for system status read');
-				return null;
-			}
-
-			const characteristic = await device.readCharacteristicForService(
-				DIAGNOSTICS_SERVICE_UUID,
-				SYSTEM_STATUS_CHARACTERISTIC_UUID
-			);
-
-			if (characteristic?.value) {
-				return parseSystemStatus(characteristic.value);
-			}
-		} catch (error) {
-			// Handle service/characteristic not found gracefully
-			if (error instanceof Error && 
-				(error.message.includes('Service') || error.message.includes('Characteristic')) && 
-				error.message.includes('not found')) {
-				console.log('Device does not support diagnostic service - this is normal for some devices');
-				return null;
-			}
-			console.error('Failed to read system status:', error);
-		}
-
-		return null;
-	}, [device, parseSystemStatus]);
-
-	// Auto-subscribe when enabled
-	useEffect(() => {
-		if (enabled && device) {
-			subscribe();
-			return () => {
-				unsubscribe();
-			};
-		}
-	}, [enabled, device, subscribe, unsubscribe]);
-
-	return {
-		subscribe,
-		unsubscribe,
-		subscribeSystemStatus,
-		subscribeErrorCode,
-		readSystemStatus,
-		parseSystemStatus,
-		parseErrorLog,
-		ErrorCode
-	};
+  return {
+    subscribe,
+    unsubscribe,
+    subscribeSystemStatus,
+    subscribeErrorCode,
+    readSystemStatus,
+    parseSystemStatus,
+    parseErrorLog,
+    getPerformanceGrade,
+    getDisconnectRatePerHour,
+    getErrorDescription,
+    ErrorCode,
+  };
 };

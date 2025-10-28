@@ -1,6 +1,7 @@
 import { useCallback, useEffect } from 'react';
 import { useBle } from './BleProvider';
 import type { BleError, Characteristic } from 'react-native-ble-plx';
+import { decodeSingleByte, encodeSingleByte } from './base64';
 
 // StingRay LED Control Service UUIDs (from StingRay BLE Services Guide)
 const LED_SERVICE_UUID = '19b10010-e8f2-537e-4f6c-d104768a1214';
@@ -34,47 +35,17 @@ export const useLEDControl = ({
 
 	// Parse single byte LED mode
 	const parseLEDMode = useCallback((base64Data: string): LEDControlMode => {
-		try {
-			// Decode first character to get mode byte
-			const base64chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
-			if (base64Data.length < 2) return LEDControlMode.OFF;
-			
-			const char1 = base64chars.indexOf(base64Data[0]);
-			const char2 = base64chars.indexOf(base64Data[1]);
-			if (char1 === -1 || char2 === -1) return LEDControlMode.OFF;
-			
-			// eslint-disable-next-line no-bitwise
-			const mode = (char1 << 2) | (char2 >> 4);
-			
-			// Validate mode is within enum range
+			const mode = decodeSingleByte(base64Data);
 			if (mode >= 0 && mode <= 10) {
 				return mode as LEDControlMode;
 			}
-			
 			return LEDControlMode.OFF;
-		} catch (error) {
-			console.error('Failed to parse LED mode:', error);
-			return LEDControlMode.OFF;
-		}
 	}, []);
 
 	// Encode LED mode to base64 for writing
 	const encodeLEDMode = useCallback((mode: LEDControlMode): string => {
-		try {
-			const base64chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
-			const modeValue = Math.max(0, Math.min(10, mode)); // Clamp to valid range
-			
-			// Encode single byte to base64
-			// eslint-disable-next-line no-bitwise
-			const char1 = base64chars[modeValue >> 2];
-			// eslint-disable-next-line no-bitwise
-			const char2 = base64chars[(modeValue & 3) << 4];
-			
-			return char1 + char2 + '=='; // Pad with == for single byte
-		} catch (error) {
-			console.error('Failed to encode LED mode:', error);
-			return 'AA=='; // Default to OFF mode
-		}
+			const modeValue = Math.max(0, Math.min(10, mode));
+			return encodeSingleByte(modeValue);
 	}, []);
 
 	// Subscribe to LED status notifications

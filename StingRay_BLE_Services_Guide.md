@@ -9,7 +9,7 @@
 
 ## Overview
 
-The StingRay fitness sensor exposes **6 BLE services** providing comprehensive fitness monitoring, device control, and diagnostic capabilities. This document covers all services, their characteristics, data formats, and implementation guidelines for iOS applications.
+The StingRay fitness sensor exposes **7 BLE services** providing comprehensive fitness monitoring, device control, and diagnostic capabilities. This document covers all services, their characteristics, data formats, and implementation guidelines for iOS applications.
 
 **Major Update:** IMU data is no longer streamed over BLE. Instead, data is collected in a configurable FIFO buffer for TensorFlow model training and exported via Serial interface.
 
@@ -18,7 +18,8 @@ The StingRay fitness sensor exposes **6 BLE services** providing comprehensive f
 | Service | Purpose | Standard | Characteristics |
 |---------|---------|----------|----------------|
 | [Fatigue Monitoring](#fatigue-monitoring-service) | Health analytics | Custom | 1 |
-| [Statistics](#statistics-service) | FIFO monitoring & config | Custom | 3 |
+| [Statistics](#statistics-service) | FIFO monitoring & config | Custom | 4 |
+| [Control](#control-service) | State machine control | Custom | 1 |
 | [LED Control](#led-control-service) | Device state management | Custom | 1 |
 | [Battery](#battery-service) | Power monitoring | Standard | 1 |
 | [Step Counter](#step-counter-service) | Activity tracking | Standard | 1 |
@@ -68,7 +69,8 @@ func parseFatigueLevel(_ data: Data) -> UInt8 {
 ### Service Details
 - **Service UUID:** `fedcba98-7654-3210-fedc-ba9876543210`
 - **Type:** Custom 128-bit UUID  
-- **Purpose:** FIFO buffer monitoring, configuration, and training data management
+- **Purpose:** FIFO buffer monitoring, configuration, and training data management (active in RUN/STOP control states)
+- **Notification Policy:** Updates pause automatically while the control state is STANDBY or OFF to reduce power draw.
 
 **Note:** This service replaces the previous IMU Data Service. Raw sensor data is now collected in a configurable FIFO buffer for TensorFlow model training instead of real-time streaming.
 
@@ -112,7 +114,7 @@ Bytes 8-11: timerIntervalMs (uint32_t) - Timer override (0=auto-calculate)
 - **Properties:** Write
 - **Data Type:** `uint8_t` (1 byte)
 - **Description:** Trigger Serial dump of collected data
-- **Security:** Only functional when device is in LED_AMBER mode
+- **Security:** Only functional when the control state is STANDBY (LED pulses blue)
 - **Command:** Write `1` to trigger dump
 
 #### 2.4 FIFO Tuning Parameters *(NEW)*
@@ -227,7 +229,7 @@ func requestFIFODump(peripheral: CBPeripheral, characteristic: CBCharacteristic)
 
 ### Training Data Export
 
-When FIFO dump is triggered (device must be in LED_AMBER mode), data is exported to Serial in CSV format:
+When FIFO dump is triggered (control state must be STANDBY and the LED will pulse blue), data is exported to Serial in CSV format:
 
 ```
 FIFO_DUMP_START
@@ -241,21 +243,55 @@ FIFO_DUMP_END
 
 **Usage for TensorFlow Training:**
 1. Configure FIFO parameters via BLE
-2. Collect data in active modes (LED_PULSE_* or LED_SOLID_*)
+2. Collect data while the control state is RUN (selected LED preference will be displayed)
 3. Monitor collection progress via Statistics service
-4. Switch to LED_AMBER mode
-5. Trigger dump via BLE command
+4. Request STANDBY via the Control characteristic or serial command (LED will pulse blue)
+5. Trigger dump via BLE command (control state must remain STANDBY)
 6. Capture Serial output for training dataset
 
 ---
 
-## 3. LED Control Service
+## 3. Control Service
+
+### Service Details
+- **Service UUID:** `F0000001-ABCD-4A0C-9A1A-1234567890AB`
+- **Type:** Custom 128-bit UUID
+- **Purpose:** Centralized control state machine for coordinating BLE, FIFO, and power behavior
+- **Characteristic UUID:** `F0000002-ABCD-4A0C-9A1A-1234567890AB` (Read, Write, Notify)
+
+### Control States
+
+| Value | State | Description |
+|-------|-------|-------------|
+| 0 | `CONTROL_STANDBY` | Low-power staging mode. FIFO operations allowed, LED forced to pulsing blue, advertising only. |
+| 1 | `CONTROL_RUN` | Primary capture mode. IMU samples stream into FIFO, LED follows user preference, diagnostics active. |
+| 2 | `CONTROL_STOP` | Pause mode. Collection halted, LED holds user preference, allows transition back to STANDBY. |
+| 3 | `CONTROL_OFF` | Deep idle. LED forced off, BLE characteristics (except Control) stop updating, only WAKE/STANDBY allowed via serial. |
+| 11 | `CONTROL_FIFO_RESET` | Special command value. Clears FIFO when written while already in STANDBY. Ignored otherwise. |
+
+### Transition Rules
+- `RUN → STOP` and `STOP → RUN` are permitted for pausing and resuming capture.
+- `STOP → STANDBY` transitions the device into low-power staging (required before entering `OFF`).
+- `OFF → STANDBY` is the only wake path from deep idle. BLE writes of `STANDBY` from any other state are ignored.
+- Direct `RUN → STANDBY` or `RUN → OFF` transitions are rejected to protect data integrity.
+- Attempting to use reserved values (anything other than 0,1,2,3,11) leaves the state unchanged.
+
+When the control characteristic changes, the firmware:
+- Publishes the new value back to subscribers for confirmation.
+- Updates LED behavior via `updateLedForState()` (pulsing blue in STANDBY, LED off in OFF, user preference otherwise).
+- Gating: FIFO configuration, dumps, and tuning writes are only honored when the active state is STANDBY.
+- Suppresses Statistics and Diagnostics notifications while in STANDBY or OFF to minimize traffic.
+
+---
+
+## 4. LED Control Service
 
 ### Service Details
 - **Service UUID:** `19B10010-E8F2-537E-4F6C-D104768A1214`
 - **Type:** Custom 128-bit UUID
-- **Purpose:** Device operational state control and power management
+- **Purpose:** Persist user-selected LED preference for active control states (RUN/STOP). STANDBY and OFF override this value.
 - **Alternative Control:** Serial commands (`LED <mode>`, `MODE <mode>`, `LED_STATUS`)
+- **Validation:** Firmware rejects writes to reserved values (`LED_PULSE_BLUE`, `LED_OFF`) or any request while the control state is OFF.
 
 ### Characteristics
 
@@ -268,16 +304,18 @@ FIFO_DUMP_END
 
 ### LED Mode Values
 
-| Value | Mode | LED Behavior | Power Mode | Data Transmission |
-|-------|------|-------------|------------|------------------|
-| 0 | `LED_AMBER` | Solid amber | Standby | Battery monitoring only |
-| 1 | `LED_PULSE_RED` | Pulsing red | Active | Full IMU + fatigue data |
-| 2 | `LED_PULSE_GREEN` | Pulsing green | Active | Full IMU + fatigue data |
-| 3 | `LED_PULSE_BLUE` | Pulsing blue | Active | Full IMU + fatigue data |
-| 4 | `LED_SOLID_RED` | Solid red | Active | Full IMU + fatigue data |
-| 5 | `LED_SOLID_GREEN` | Solid green | Active | Full IMU + fatigue data |
-| 6 | `LED_SOLID_BLUE` | Solid blue | Active | Full IMU + fatigue data |
-| 10 | `LED_OFF` | All LEDs off | Low power | No transmission, step reset |
+| Value | Mode | LED Behavior | Usage |
+|-------|------|-------------|-------|
+| 0 | `LED_AMBER` | Solid amber | User preference for RUN/STOP |
+| 1 | `LED_PULSE_RED` | Pulsing red | User preference for RUN/STOP |
+| 2 | `LED_PULSE_GREEN` | Pulsing green | User preference for RUN/STOP |
+| 3 | `LED_PULSE_BLUE` | Pulsing blue | Reserved: automatically applied in STANDBY |
+| 4 | `LED_SOLID_RED` | Solid red | User preference for RUN/STOP |
+| 5 | `LED_SOLID_GREEN` | Solid green | User preference for RUN/STOP |
+| 6 | `LED_SOLID_BLUE` | Solid blue | User preference for RUN/STOP |
+| 10 | `LED_OFF` | All LEDs off | Reserved: automatically applied in OFF |
+
+**Note:** When the control state transitions to STANDBY the firmware overrides the LED to pulsing blue (value `3`). When entering OFF the LED is forced off (value `10`). Writes requesting either reserved value are rejected to preserve control-state signaling.
 
 **iOS Implementation:**
 ```swift
@@ -313,7 +351,7 @@ func setLEDMode(_ mode: LEDMode, peripheral: CBPeripheral, characteristic: CBCha
 
 ---
 
-## 4. Battery Service
+## 5. Battery Service
 
 ### Service Details
 - **Service UUID:** `180F` (Standard Bluetooth SIG)
@@ -342,7 +380,7 @@ func parseBatteryLevel(_ data: Data) -> UInt8 {
 
 ---
 
-## 5. Step Counter Service
+## 6. Step Counter Service
 
 ### Service Details
 - **Service UUID:** `1814` (Running Speed and Cadence - Standard)
@@ -372,7 +410,7 @@ func parseStepCount(_ data: Data) -> UInt32 {
 
 ---
 
-## 6. Diagnostic Service
+## 7. Diagnostic Service
 
 ### Service Details
 - **Service UUID:** `87654321-4321-8765-4321-210987654321`

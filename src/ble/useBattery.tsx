@@ -1,6 +1,7 @@
 import { useCallback, useEffect } from 'react';
 import { useBle } from './BleProvider';
 import type { BleError, Characteristic } from 'react-native-ble-plx';
+import { decodeSingleByte } from './base64';
 
 // Standard Bluetooth Battery Service UUIDs
 const BATTERY_SERVICE_UUID = '180f';
@@ -22,24 +23,8 @@ export const useBattery = ({
 
 	// Parse battery level from base64 (single byte, 0-100%)
 	const parseBatteryLevel = useCallback((base64Data: string): number => {
-		try {
-			// Decode first byte to get battery percentage
-			const base64chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
-			if (base64Data.length < 2) return 0;
-			
-			const char1 = base64chars.indexOf(base64Data[0]);
-			const char2 = base64chars.indexOf(base64Data[1]);
-			if (char1 === -1 || char2 === -1) return 0;
-			
-			// eslint-disable-next-line no-bitwise
-			const level = (char1 << 2) | (char2 >> 4);
-			
-			// Clamp to valid percentage range
+			const level = decodeSingleByte(base64Data);
 			return Math.max(0, Math.min(100, level));
-		} catch (error) {
-			console.error('Failed to parse battery level:', error);
-			return 0;
-		}
 	}, []);
 
 	// Subscribe to battery level notifications

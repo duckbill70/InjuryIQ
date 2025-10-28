@@ -105,7 +105,7 @@ export const ControlServicePanel: React.FC = () => {
       </View>
 
       {/* Device selector (simple pills for now) */}
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 8, marginBottom: 12 }}> 
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 8, marginBottom: 12 }}>
         {connectedDevices.length === 0 ? (
           <Text style={theme.textStyles.body}>No devices connected</Text>
         ) : (
@@ -139,41 +139,50 @@ export const ControlServicePanel: React.FC = () => {
 
       {/* State buttons */}
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
-        {[ControlState.STANDBY, ControlState.RUN, ControlState.STOP, ControlState.OFF].map((s) => (
-          <TouchableOpacity
-            key={s}
-            onPress={() => applyState(s)}
-            disabled={!deviceId}
-            style={{
-              paddingVertical: 10,
-              paddingHorizontal: 12,
-              borderRadius: 6,
-              backgroundColor: theme.colors.primary,
-              opacity: deviceId ? 1 : 0.5,
-            }}
-          >
-            <Text style={theme.textStyles.buttonLabel}>{controlStateLabel(s)}</Text>
-          </TouchableOpacity>
-        ))}
+        {[ControlState.STANDBY, ControlState.RUN, ControlState.STOP, ControlState.OFF].map((s) => {
+          const isOff = s === ControlState.OFF;
+          const canPress = !!deviceId && (!isOff || currentState === ControlState.STANDBY);
+          return (
+            <TouchableOpacity
+              key={s}
+              onPress={() => applyState(s)}
+              disabled={!canPress}
+              style={{
+                paddingVertical: 10,
+                paddingHorizontal: 12,
+                borderRadius: 6,
+                backgroundColor: theme.colors.primary,
+                opacity: canPress ? 1 : 0.5,
+              }}
+            >
+              <Text style={theme.textStyles.buttonLabel}>{controlStateLabel(s)}</Text>
+            </TouchableOpacity>
+          );
+        })}
 
-        {/* FIFO Reset */}
-        <TouchableOpacity
-          onPress={onResetFifo}
-          disabled={!deviceId}
-          style={{
-            paddingVertical: 10,
-            paddingHorizontal: 12,
-            borderRadius: 6,
-            backgroundColor: theme.colors.warn,
-            opacity: deviceId ? 1 : 0.5,
-          }}
-        >
-          <Text style={theme.textStyles.buttonLabel}>FIFO RESET</Text>
-        </TouchableOpacity>
+        {/* FIFO Reset: enabled only in STANDBY */}
+        {(() => {
+          const canResetFifo = !!deviceId && currentState === ControlState.STANDBY;
+          return (
+            <TouchableOpacity
+              onPress={onResetFifo}
+              disabled={!canResetFifo}
+              style={{
+                paddingVertical: 10,
+                paddingHorizontal: 12,
+                borderRadius: 6,
+                backgroundColor: canResetFifo ? theme.colors.warn : theme.colors.muted,
+                opacity: 1,
+              }}
+            >
+              <Text style={theme.textStyles.buttonLabel}>FIFO RESET</Text>
+            </TouchableOpacity>
+          );
+        })()}
       </View>
 
       {/* Notes */}
-      <Text style={[theme.textStyles.body2, { color: theme.colors.muted, marginTop: 12 }]}>
+      <Text style={[theme.textStyles.body2, { color: theme.colors.muted, marginTop: 12 }]}> 
         Firmware enforces valid transitions. STANDBY is required before OFF and FIFO Reset.
       </Text>
     </View>

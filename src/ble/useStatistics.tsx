@@ -1,5 +1,5 @@
 /* eslint-disable no-bitwise */
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useBle } from './BleProvider';
 import type { BleError, Characteristic } from 'react-native-ble-plx';
 import { decodeBase64ToBytes, encodeBytesToBase64 } from './base64';
@@ -71,13 +71,13 @@ export const calculateEstimatedRemainingMinutes = (stats: FIFOStatistics): numbe
 };
 
 const parseStatisticsBytes = (bytes: number[]): FIFOStatistics | null => {
-	if (bytes.length < 29) {
-		if (__DEV__) console.warn('[Statistics] FIFO statistics payload too short:', bytes.length);
+	// Firmware sends 29 bytes (0..28). Docs mention 32 with reserved tail. Accept 29 or 32 only.
+	if (!(bytes.length === 29 || bytes.length === 32)) {
+		if (__DEV__) console.warn('[Statistics] Unexpected FIFO stats length:', bytes.length);
 		return null;
 	}
 
-	// Handle both 29-byte (actual firmware) and 32-byte (documented) formats
-	const stats = {
+	return {
 		currentSize: getUint32LE(bytes, 0),
 		maxSamples: getUint32LE(bytes, 4),
 		totalSamples: getUint32LE(bytes, 8),
@@ -87,8 +87,19 @@ const parseStatisticsBytes = (bytes: number[]): FIFOStatistics | null => {
 		uptimeSeconds: getUint32LE(bytes, 24),
 		systemLoadPercent: bytes[28] ?? 0,
 	};
+};
 
-	return stats;
+// Basic sanity checks to avoid showing bogus initial values
+const isLikelyValidStats = (stats: FIFOStatistics): boolean => {
+	// collectionRate should be within plausible IMU range; docs/config constrain to <= 200 Hz
+	if (stats.collectionRate < 1 || stats.collectionRate > 200) return false;
+	// capacity must be known and non-zero
+	if (stats.maxSamples <= 0) return false;
+	// currentSize cannot exceed capacity
+	if (stats.currentSize < 0 || stats.currentSize > stats.maxSamples) return false;
+	// system load is a percentage
+	if (stats.systemLoadPercent < 0 || stats.systemLoadPercent > 100) return false;
+	return true;
 };
 
 const parseConfigurationBytes = (bytes: number[]): FIFOConfiguration | null => {
@@ -128,6 +139,9 @@ export const useStatistics = ({ deviceId, onStatisticsUpdate, enabled = true }: 
 	const { connected } = useBle();
 	const device = connected[deviceId]?.device;
 
+	// De-dupe identical stats to avoid flicker
+	const lastStatsRef = useRef<string | null>(null);
+
 	const parseStatisticsData = useCallback((base64Data: string): FIFOStatistics | null => {
 		const bytes = decodeBase64ToBytes(base64Data);
 		return parseStatisticsBytes(bytes);
@@ -153,7 +167,7 @@ export const useStatistics = ({ deviceId, onStatisticsUpdate, enabled = true }: 
 				return;
 			}
 
-			if (__DEV__) console.log('[Statistics] Subscribing to FIFO statistics notifications...');
+			//if (__DEV__) console.log('[Statistics] Subscribing to FIFO statistics notifications...');
 
 			await device.monitorCharacteristicForService(
 				STATS_SERVICE_UUID,
@@ -170,13 +184,17 @@ export const useStatistics = ({ deviceId, onStatisticsUpdate, enabled = true }: 
 
 					if (characteristic?.value) {
 						const stats = parseStatisticsData(characteristic.value);
-						if (stats) {
-							onStatisticsUpdate?.(stats);
+						if (stats && isLikelyValidStats(stats)) {
+							const sig = JSON.stringify(stats);
+							if (sig !== lastStatsRef.current) {
+								lastStatsRef.current = sig;
+								onStatisticsUpdate?.(stats);
+							}
 						}
 					}
 				}
 			);
-			if (__DEV__) console.log('[Statistics] Successfully subscribed to FIFO statistics');
+			//if (__DEV__) console.log('[Statistics] Successfully subscribed to FIFO statistics');
 		} catch (error) {
 			if (
 				error instanceof Error &&
@@ -211,7 +229,14 @@ export const useStatistics = ({ deviceId, onStatisticsUpdate, enabled = true }: 
 			);
 
 			if (characteristic?.value) {
-				return parseStatisticsData(characteristic.value);
+				const stats = parseStatisticsData(characteristic.value);
+				if (stats && isLikelyValidStats(stats)) {
+					const sig = JSON.stringify(stats);
+					if (sig !== lastStatsRef.current) {
+						lastStatsRef.current = sig;
+					}
+				}
+				return stats && isLikelyValidStats(stats) ? stats : null;
 			}
 		} catch (error) {
 			console.error('[Statistics] Failed to read statistics:', error);

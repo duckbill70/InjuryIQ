@@ -37,6 +37,14 @@ export const DiagnosticsPanel: React.FC = () => {
   const [fifoStats, setFifoStats] = useState<FIFOStatistics | null>(null);
   const [fifoConfig, setFifoConfig] = useState<FIFOConfiguration | null>(null);
   const [fifoTuning, setFifoTuning] = useState<FIFOTuning | null>(null);
+  const [lastStatsUpdatedAt, setLastStatsUpdatedAt] = useState<number | null>(null);
+  const [statsTick, setStatsTick] = useState(0); // drive 'N s ago' updates
+
+  // refresh the 'last updated N s ago' indicator every second
+  useEffect(() => {
+    const id = setInterval(() => setStatsTick((t) => t + 1), 1000);
+    return () => clearInterval(id);
+  }, []);
 
   // Recompute if connected set changes
   useEffect(() => {
@@ -78,7 +86,10 @@ export const DiagnosticsPanel: React.FC = () => {
   } = useStatistics({
     deviceId,
     enabled: !!deviceId,
-    onStatisticsUpdate: (stats) => setFifoStats(stats),
+    onStatisticsUpdate: (stats) => {
+      setFifoStats(stats);
+      setLastStatsUpdatedAt(Date.now());
+    },
   });
 
   // Initial read when device changes
@@ -101,7 +112,10 @@ export const DiagnosticsPanel: React.FC = () => {
 
       // Read statistics
       const stats = await readStatistics();
-      if (!cancelled && stats) setFifoStats(stats);
+      if (!cancelled && stats) {
+        setFifoStats(stats);
+        setLastStatsUpdatedAt(Date.now());
+      }
 
       const config = await readConfiguration();
       if (!cancelled && config) setFifoConfig(config);
@@ -133,7 +147,10 @@ export const DiagnosticsPanel: React.FC = () => {
     if (sysStatus) setSystemStatus(sysStatus);
 
     const stats = await readStatistics();
-    if (stats) setFifoStats(stats);
+    if (stats) {
+      setFifoStats(stats);
+      setLastStatsUpdatedAt(Date.now());
+    }
 
     const config = await readConfiguration();
     if (config) setFifoConfig(config);
@@ -241,76 +258,102 @@ export const DiagnosticsPanel: React.FC = () => {
           </View>
 
           {/* Error Code */}
-          <View style={[theme.viewStyles.rowBetween, { marginBottom: 6 }]}>
+          <View style={[theme.viewStyles.rowBetween, { marginBottom: 6 }]}> 
             <Text style={theme.textStyles.body}>Error Code:</Text>
-            <Text style={[theme.textStyles.body, { fontWeight: '600', color: errorCode === ErrorCode.ERR_NONE ? theme.colors.good : theme.colors.danger }]}>
+            <Text
+              style={[
+                theme.textStyles.body,
+                {
+                  fontWeight: '600',
+                  color:
+                    errorCode === null
+                      ? theme.colors.muted
+                      : errorCode === ErrorCode.ERR_NONE
+                      ? theme.colors.good
+                      : theme.colors.danger,
+                },
+              ]}
+            >
               {errorCode !== null ? errorCode : '—'}
             </Text>
           </View>
 
-          {errorDesc && (
-            <Text style={[theme.textStyles.body2, { color: theme.colors.muted, marginBottom: 8 }]}>
-              {errorDesc}
+          {/* Error description (optional) */}
+          <Text style={[theme.textStyles.body2, { color: errorDesc ? theme.colors.muted : theme.colors.muted, marginBottom: 8 }]}> 
+            {errorDesc || ''}
+          </Text>
+
+          {/* System Status (with placeholders) */}
+          <View style={[theme.viewStyles.rowBetween, { marginBottom: 4 }]}> 
+            <Text style={theme.textStyles.body2}>BLE Status:</Text>
+            <Text style={[theme.textStyles.body2, { color: systemStatus ? theme.colors.text : theme.colors.muted }]}>
+              {systemStatus ? (systemStatus.bleStatus === 2 ? 'Connected' : systemStatus.bleStatus === 1 ? 'Available' : 'Unavailable') : '—'}
             </Text>
-          )}
+          </View>
 
-          {/* System Status */}
-          {systemStatus && (
-            <>
-              <View style={[theme.viewStyles.rowBetween, { marginBottom: 4 }]}>
-                <Text style={theme.textStyles.body2}>BLE Status:</Text>
-                <Text style={theme.textStyles.body2}>{systemStatus.bleStatus === 2 ? 'Connected' : systemStatus.bleStatus === 1 ? 'Available' : 'Unavailable'}</Text>
-              </View>
+          <View style={[theme.viewStyles.rowBetween, { marginBottom: 4 }]}> 
+            <Text style={theme.textStyles.body2}>IMU Status:</Text>
+            <Text style={[theme.textStyles.body2, { color: systemStatus ? theme.colors.text : theme.colors.muted }]}>
+              {systemStatus ? (systemStatus.imuStatus === 1 ? 'Ready' : 'Failed') : '—'}
+            </Text>
+          </View>
 
-              <View style={[theme.viewStyles.rowBetween, { marginBottom: 4 }]}>
-                <Text style={theme.textStyles.body2}>IMU Status:</Text>
-                <Text style={theme.textStyles.body2}>{systemStatus.imuStatus === 1 ? 'Ready' : 'Failed'}</Text>
-              </View>
+          <View style={[theme.viewStyles.rowBetween, { marginBottom: 4 }]}> 
+            <Text style={theme.textStyles.body2}>LED Mode:</Text>
+            <Text style={[theme.textStyles.body2, { color: systemStatus ? theme.colors.text : theme.colors.muted }]}>
+              {systemStatus ? systemStatus.ledMode : '—'}
+            </Text>
+          </View>
 
-              <View style={[theme.viewStyles.rowBetween, { marginBottom: 4 }]}>
-                <Text style={theme.textStyles.body2}>LED Mode:</Text>
-                <Text style={theme.textStyles.body2}>{systemStatus.ledMode}</Text>
-              </View>
+          <View style={[theme.viewStyles.rowBetween, { marginBottom: 4 }]}> 
+            <Text style={theme.textStyles.body2}>Battery:</Text>
+            <Text style={[theme.textStyles.body2, { color: systemStatus ? theme.colors.text : theme.colors.muted }]}>
+              {systemStatus ? `${systemStatus.batteryLevel}%` : '—'}
+            </Text>
+          </View>
 
-              <View style={[theme.viewStyles.rowBetween, { marginBottom: 4 }]}>
-                <Text style={theme.textStyles.body2}>Battery:</Text>
-                <Text style={theme.textStyles.body2}>{systemStatus.batteryLevel}%</Text>
-              </View>
+          <View style={[theme.viewStyles.rowBetween, { marginBottom: 4 }]}> 
+            <Text style={theme.textStyles.body2}>Uptime:</Text>
+            <Text style={[theme.textStyles.body2, { color: systemStatus ? theme.colors.text : theme.colors.muted }]}>
+              {systemStatus ? formatUptime(systemStatus.uptimeSeconds) : '—'}
+            </Text>
+          </View>
 
-              <View style={[theme.viewStyles.rowBetween, { marginBottom: 4 }]}>
-                <Text style={theme.textStyles.body2}>Uptime:</Text>
-                <Text style={theme.textStyles.body2}>{formatUptime(systemStatus.uptimeSeconds)}</Text>
-              </View>
+          <View style={[theme.viewStyles.rowBetween, { marginBottom: 4 }]}> 
+            <Text style={theme.textStyles.body2}>Total Errors:</Text>
+            <Text style={[theme.textStyles.body2, { color: systemStatus ? theme.colors.text : theme.colors.muted }]}>
+              {systemStatus ? systemStatus.totalErrorCount : '—'}
+            </Text>
+          </View>
 
-              <View style={[theme.viewStyles.rowBetween, { marginBottom: 4 }]}>
-                <Text style={theme.textStyles.body2}>Total Errors:</Text>
-                <Text style={theme.textStyles.body2}>{systemStatus.totalErrorCount}</Text>
-              </View>
+          <View style={[theme.viewStyles.rowBetween, { marginBottom: 4 }]}> 
+            <Text style={theme.textStyles.body2}>Disconnects:</Text>
+            <Text style={[theme.textStyles.body2, { color: systemStatus ? theme.colors.text : theme.colors.muted }]}>
+              {systemStatus ? systemStatus.totalDisconnectCount : '—'}
+            </Text>
+          </View>
 
-              <View style={[theme.viewStyles.rowBetween, { marginBottom: 4 }]}>
-                <Text style={theme.textStyles.body2}>Disconnects:</Text>
-                <Text style={theme.textStyles.body2}>{systemStatus.totalDisconnectCount}</Text>
-              </View>
+          <View style={[theme.viewStyles.rowBetween, { marginBottom: 4 }]}> 
+            <Text style={theme.textStyles.body2}>BLE Write Failures:</Text>
+            <Text style={[theme.textStyles.body2, { color: systemStatus ? theme.colors.text : theme.colors.muted }]}>
+              {systemStatus ? systemStatus.bleWriteFailures : '—'}
+            </Text>
+          </View>
 
-              <View style={[theme.viewStyles.rowBetween, { marginBottom: 4 }]}>
-                <Text style={theme.textStyles.body2}>BLE Write Failures:</Text>
-                <Text style={theme.textStyles.body2}>{systemStatus.bleWriteFailures}</Text>
-              </View>
-
-              <View style={[theme.viewStyles.rowBetween, { marginBottom: 4 }]}>
-                <Text style={theme.textStyles.body2}>Max Loop Time:</Text>
-                <Text style={theme.textStyles.body2}>{systemStatus.maxLoopTimeMs} ms</Text>
-              </View>
-            </>
-          )}
+          <View style={[theme.viewStyles.rowBetween, { marginBottom: 4 }]}> 
+            <Text style={theme.textStyles.body2}>Max Loop Time:</Text>
+            <Text style={[theme.textStyles.body2, { color: systemStatus ? theme.colors.text : theme.colors.muted }]}>
+              {systemStatus ? `${systemStatus.maxLoopTimeMs} ms` : '—'}
+            </Text>
+          </View>
 
           {!systemStatus && deviceId && (
-            <Text style={[theme.textStyles.body2, { color: theme.colors.muted, fontStyle: 'italic' }]}>
-              No system status data (R)
+            <Text style={[theme.textStyles.body2, { color: theme.colors.muted, fontStyle: 'italic', marginTop: 4 }]}> 
+              Waiting for diagnostics…
             </Text>
           )}
 
-          <Text style={[theme.textStyles.xsmall, { color: theme.colors.muted, marginTop: 6 }]}>
+          <Text style={[theme.textStyles.xsmall, { color: theme.colors.muted, marginTop: 6 }]}> 
             Characteristics: Error Code (R/N), System Status (R/N)
           </Text>
         </View>
@@ -322,7 +365,7 @@ export const DiagnosticsPanel: React.FC = () => {
             <Text style={[theme.textStyles.body, { fontWeight: '700', marginLeft: 6 }]}>Statistics Service (FIFO)</Text>
           </View>
 
-          {/* Important Notice */}
+          {/* Important Notice 
           <View style={{ backgroundColor: theme.colors.warn, padding: 8, borderRadius: 6, marginBottom: 8 }}>
             <Text style={[theme.textStyles.body2, { color: theme.colors.white, fontWeight: '600' }]}>
               ⚠️ FIFO Stats only update when Control state is RUN or STOP
@@ -330,69 +373,105 @@ export const DiagnosticsPanel: React.FC = () => {
             <Text style={[theme.textStyles.xsmall, { color: theme.colors.white, marginTop: 2 }]}>
               Notifications are suppressed in STANDBY/OFF modes. Use Control panel to set device to RUN.
             </Text>
-          </View>
+          </View> */}
 
-          {/* FIFO Statistics */}
-          {fifoStats && (
-            <>
-              <View style={[theme.viewStyles.rowBetween, { marginBottom: 4 }]}>
-                <Text style={theme.textStyles.body2}>Current Size:</Text>
-                <Text style={theme.textStyles.body2}>{fifoStats.currentSize} samples</Text>
-              </View>
+          {/* FIFO Statistics (show placeholders until first update) */}
+          <>
+            <View style={[theme.viewStyles.rowBetween, { marginBottom: 4 }]}> 
+              <Text style={theme.textStyles.body2}>Current Size:</Text>
+              <Text style={[theme.textStyles.body2, { color: fifoStats ? theme.colors.text : theme.colors.muted }]}>
+                {fifoStats ? `${fifoStats.currentSize} samples` : '—'}
+              </Text>
+            </View>
 
-              <View style={[theme.viewStyles.rowBetween, { marginBottom: 4 }]}>
-                <Text style={theme.textStyles.body2}>Max Samples:</Text>
-                <Text style={theme.textStyles.body2}>{fifoStats.maxSamples}</Text>
-              </View>
+            <View style={[theme.viewStyles.rowBetween, { marginBottom: 4 }]}> 
+              <Text style={theme.textStyles.body2}>Max Samples:</Text>
+              <Text style={[theme.textStyles.body2, { color: fifoStats ? theme.colors.text : theme.colors.muted }]}>
+                {fifoStats ? fifoStats.maxSamples : '—'}
+              </Text>
+            </View>
 
-              <View style={[theme.viewStyles.rowBetween, { marginBottom: 4 }]}>
-                <Text style={theme.textStyles.body2}>Fill Percentage:</Text>
-                <Text style={[theme.textStyles.body2, { fontWeight: '600', color: fillPct > 90 ? theme.colors.danger : fillPct > 70 ? theme.colors.warn : theme.colors.good }]}>
-                  {fillPct.toFixed(1)}%
-                </Text>
-              </View>
+            <View style={[theme.viewStyles.rowBetween, { marginBottom: 4 }]}> 
+              <Text style={theme.textStyles.body2}>Fill Percentage:</Text>
+              <Text
+                style={[
+                  theme.textStyles.body2,
+                  {
+                    fontWeight: fifoStats ? '600' as const : '400' as const,
+                    color: fifoStats
+                      ? (fillPct > 90 ? theme.colors.danger : fillPct > 70 ? theme.colors.warn : theme.colors.good)
+                      : theme.colors.muted,
+                  },
+                ]}
+              >
+                {fifoStats ? `${fillPct.toFixed(1)}%` : '—'}
+              </Text>
+            </View>
 
-              <View style={[theme.viewStyles.rowBetween, { marginBottom: 4 }]}>
-                <Text style={theme.textStyles.body2}>Total Samples:</Text>
-                <Text style={theme.textStyles.body2}>{fifoStats.totalSamples}</Text>
-              </View>
+            <View style={[theme.viewStyles.rowBetween, { marginBottom: 4 }]}> 
+              <Text style={theme.textStyles.body2}>Total Samples:</Text>
+              <Text style={[theme.textStyles.body2, { color: fifoStats ? theme.colors.text : theme.colors.muted }]}>
+                {fifoStats ? fifoStats.totalSamples : '—'}
+              </Text>
+            </View>
 
-              <View style={[theme.viewStyles.rowBetween, { marginBottom: 4 }]}>
-                <Text style={theme.textStyles.body2}>Overflow Count:</Text>
-                <Text style={[theme.textStyles.body2, { color: fifoStats.overflowCount > 0 ? theme.colors.warn : theme.colors.text }]}>
-                  {fifoStats.overflowCount} ({overflowPct.toFixed(1)}%)
-                </Text>
-              </View>
+            <View style={[theme.viewStyles.rowBetween, { marginBottom: 4 }]}> 
+              <Text style={theme.textStyles.body2}>Overflow Count:</Text>
+              <Text
+                style={[
+                  theme.textStyles.body2,
+                  { color: fifoStats ? (overflowPct > 0 ? theme.colors.warn : theme.colors.text) : theme.colors.muted },
+                ]}
+              >
+                {fifoStats ? `${fifoStats.overflowCount} (${overflowPct.toFixed(1)}%)` : '—'}
+              </Text>
+            </View>
 
-              <View style={[theme.viewStyles.rowBetween, { marginBottom: 4 }]}>
-                <Text style={theme.textStyles.body2}>Collection Rate:</Text>
-                <Text style={theme.textStyles.body2}>{fifoStats.collectionRate} Hz</Text>
-              </View>
+            <View style={[theme.viewStyles.rowBetween, { marginBottom: 4 }]}> 
+              <Text style={theme.textStyles.body2}>Collection Rate:</Text>
+              <Text style={[theme.textStyles.body2, { color: fifoStats ? theme.colors.text : theme.colors.muted }]}>
+                {fifoStats ? `${fifoStats.collectionRate} Hz` : '—'}
+              </Text>
+            </View>
 
-              <View style={[theme.viewStyles.rowBetween, { marginBottom: 4 }]}>
-                <Text style={theme.textStyles.body2}>Memory Used:</Text>
-                <Text style={theme.textStyles.body2}>{formatBytes(fifoStats.memoryUsedKB)}</Text>
-              </View>
+            <View style={[theme.viewStyles.rowBetween, { marginBottom: 4 }]}> 
+              <Text style={theme.textStyles.body2}>Memory Used:</Text>
+              <Text style={[theme.textStyles.body2, { color: fifoStats ? theme.colors.text : theme.colors.muted }]}>
+                {fifoStats ? formatBytes(fifoStats.memoryUsedKB) : '—'}
+              </Text>
+            </View>
 
-              <View style={[theme.viewStyles.rowBetween, { marginBottom: 4 }]}>
-                <Text style={theme.textStyles.body2}>System Load:</Text>
-                <Text style={[theme.textStyles.body2, { color: fifoStats.systemLoadPercent > 80 ? theme.colors.danger : fifoStats.systemLoadPercent > 60 ? theme.colors.warn : theme.colors.good }]}>
-                  {fifoStats.systemLoadPercent}%
-                </Text>
-              </View>
+            <View style={[theme.viewStyles.rowBetween, { marginBottom: 4 }]}> 
+              <Text style={theme.textStyles.body2}>System Load:</Text>
+              <Text
+                style={[
+                  theme.textStyles.body2,
+                  { color: fifoStats ? (fifoStats.systemLoadPercent > 80 ? theme.colors.danger : fifoStats.systemLoadPercent > 60 ? theme.colors.warn : theme.colors.good) : theme.colors.muted },
+                ]}
+              >
+                {fifoStats ? `${fifoStats.systemLoadPercent}%` : '—'}
+              </Text>
+            </View>
 
-              <View style={[theme.viewStyles.rowBetween, { marginBottom: 4 }]}>
-                <Text style={theme.textStyles.body2}>Est. Remaining:</Text>
-                <Text style={theme.textStyles.body2}>{remainingMins.toFixed(1)} min</Text>
-              </View>
-            </>
-          )}
+            <View style={[theme.viewStyles.rowBetween, { marginBottom: 4 }]}> 
+              <Text style={theme.textStyles.body2}>Est. Remaining:</Text>
+              <Text style={[theme.textStyles.body2, { color: fifoStats ? theme.colors.text : theme.colors.muted }]}>
+                {fifoStats ? `${remainingMins.toFixed(1)} min` : '—'}
+              </Text>
+            </View>
 
-          {!fifoStats && deviceId && (
-            <Text style={[theme.textStyles.body2, { color: theme.colors.muted, fontStyle: 'italic' }]}>
-              No FIFO statistics (R/N)
-            </Text>
-          )}
+            {lastStatsUpdatedAt && (
+              <Text style={[theme.textStyles.xsmall, { color: theme.colors.muted, marginTop: 4 }]}> 
+                Last updated {statsTick >= 0 ? Math.max(0, Math.floor((Date.now() - lastStatsUpdatedAt) / 1000)) : 0} s ago
+              </Text>
+            )}
+
+            {!fifoStats && deviceId && (
+              <Text style={[theme.textStyles.body2, { color: theme.colors.muted, fontStyle: 'italic', marginTop: 6 }]}> 
+                Waiting for FIFO stats…
+              </Text>
+            )}
+          </>
 
           <Text style={[theme.textStyles.xsmall, { color: theme.colors.muted, marginTop: 8 }]}>
             Characteristics: FIFO Stats (R/N)
@@ -406,28 +485,30 @@ export const DiagnosticsPanel: React.FC = () => {
             <Text style={[theme.textStyles.body, { fontWeight: '700', marginLeft: 6 }]}>FIFO Configuration</Text>
           </View>
 
-          {fifoConfig && (
-            <>
-              <View style={[theme.viewStyles.rowBetween, { marginBottom: 4 }]}>
-                <Text style={theme.textStyles.body2}>Capacity (minutes):</Text>
-                <Text style={theme.textStyles.body2}>{fifoConfig.capacityMinutes}</Text>
-              </View>
+          <View style={[theme.viewStyles.rowBetween, { marginBottom: 4 }]}> 
+            <Text style={theme.textStyles.body2}>Capacity (minutes):</Text>
+            <Text style={[theme.textStyles.body2, { color: fifoConfig ? theme.colors.text : theme.colors.muted }]}>
+              {fifoConfig ? fifoConfig.capacityMinutes : '—'}
+            </Text>
+          </View>
 
-              <View style={[theme.viewStyles.rowBetween, { marginBottom: 4 }]}>
-                <Text style={theme.textStyles.body2}>Collection Freq (Hz):</Text>
-                <Text style={theme.textStyles.body2}>{fifoConfig.collectionFreqHz}</Text>
-              </View>
+          <View style={[theme.viewStyles.rowBetween, { marginBottom: 4 }]}> 
+            <Text style={theme.textStyles.body2}>Collection Freq (Hz):</Text>
+            <Text style={[theme.textStyles.body2, { color: fifoConfig ? theme.colors.text : theme.colors.muted }]}>
+              {fifoConfig ? fifoConfig.collectionFreqHz : '—'}
+            </Text>
+          </View>
 
-              <View style={[theme.viewStyles.rowBetween, { marginBottom: 4 }]}>
-                <Text style={theme.textStyles.body2}>Timer Interval (ms):</Text>
-                <Text style={theme.textStyles.body2}>{fifoConfig.timerIntervalMs === 0 ? 'Auto' : fifoConfig.timerIntervalMs}</Text>
-              </View>
-            </>
-          )}
+          <View style={[theme.viewStyles.rowBetween, { marginBottom: 4 }]}> 
+            <Text style={theme.textStyles.body2}>Timer Interval (ms):</Text>
+            <Text style={[theme.textStyles.body2, { color: fifoConfig ? theme.colors.text : theme.colors.muted }]}>
+              {fifoConfig ? (fifoConfig.timerIntervalMs === 0 ? 'Auto' : fifoConfig.timerIntervalMs) : '—'}
+            </Text>
+          </View>
 
           {!fifoConfig && deviceId && (
-            <Text style={[theme.textStyles.body2, { color: theme.colors.muted, fontStyle: 'italic' }]}>
-              No FIFO config (R/W)
+            <Text style={[theme.textStyles.body2, { color: theme.colors.muted, fontStyle: 'italic', marginTop: 4 }]}> 
+              Waiting for FIFO configuration…
             </Text>
           )}
 
@@ -443,33 +524,37 @@ export const DiagnosticsPanel: React.FC = () => {
             <Text style={[theme.textStyles.body, { fontWeight: '700', marginLeft: 6 }]}>FIFO Tuning</Text>
           </View>
 
-          {fifoTuning && (
-            <>
-              <View style={[theme.viewStyles.rowBetween, { marginBottom: 4 }]}>
-                <Text style={theme.textStyles.body2}>Debug Level:</Text>
-                <Text style={theme.textStyles.body2}>{fifoTuning.debugLevel}</Text>
-              </View>
+          <View style={[theme.viewStyles.rowBetween, { marginBottom: 4 }]}> 
+            <Text style={theme.textStyles.body2}>Debug Level:</Text>
+            <Text style={[theme.textStyles.body2, { color: fifoTuning ? theme.colors.text : theme.colors.muted }]}>
+              {fifoTuning ? fifoTuning.debugLevel : '—'}
+            </Text>
+          </View>
 
-              <View style={[theme.viewStyles.rowBetween, { marginBottom: 4 }]}>
-                <Text style={theme.textStyles.body2}>Auto Optimize:</Text>
-                <Text style={theme.textStyles.body2}>{fifoTuning.autoOptimize ? 'On' : 'Off'}</Text>
-              </View>
+          <View style={[theme.viewStyles.rowBetween, { marginBottom: 4 }]}> 
+            <Text style={theme.textStyles.body2}>Auto Optimize:</Text>
+            <Text style={[theme.textStyles.body2, { color: fifoTuning ? theme.colors.text : theme.colors.muted }]}>
+              {fifoTuning ? (fifoTuning.autoOptimize ? 'On' : 'Off') : '—'}
+            </Text>
+          </View>
 
-              <View style={[theme.viewStyles.rowBetween, { marginBottom: 4 }]}>
-                <Text style={theme.textStyles.body2}>Compression Mode:</Text>
-                <Text style={theme.textStyles.body2}>{fifoTuning.compressionMode}</Text>
-              </View>
+          <View style={[theme.viewStyles.rowBetween, { marginBottom: 4 }]}> 
+            <Text style={theme.textStyles.body2}>Compression Mode:</Text>
+            <Text style={[theme.textStyles.body2, { color: fifoTuning ? theme.colors.text : theme.colors.muted }]}>
+              {fifoTuning ? fifoTuning.compressionMode : '—'}
+            </Text>
+          </View>
 
-              <View style={[theme.viewStyles.rowBetween, { marginBottom: 4 }]}>
-                <Text style={theme.textStyles.body2}>Reserved:</Text>
-                <Text style={theme.textStyles.body2}>{fifoTuning.reserved}</Text>
-              </View>
-            </>
-          )}
+          <View style={[theme.viewStyles.rowBetween, { marginBottom: 4 }]}> 
+            <Text style={theme.textStyles.body2}>Reserved:</Text>
+            <Text style={[theme.textStyles.body2, { color: fifoTuning ? theme.colors.text : theme.colors.muted }]}>
+              {fifoTuning ? fifoTuning.reserved : '—'}
+            </Text>
+          </View>
 
           {!fifoTuning && deviceId && (
-            <Text style={[theme.textStyles.body2, { color: theme.colors.muted, fontStyle: 'italic' }]}>
-              No FIFO tuning data (R/W)
+            <Text style={[theme.textStyles.body2, { color: theme.colors.muted, fontStyle: 'italic', marginTop: 4 }]}> 
+              Waiting for FIFO tuning…
             </Text>
           )}
 

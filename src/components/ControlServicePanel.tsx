@@ -142,6 +142,9 @@ export const ControlServicePanel: React.FC = () => {
         {[ControlState.STANDBY, ControlState.RUN, ControlState.STOP, ControlState.OFF].map((s) => {
           const isOff = s === ControlState.OFF;
           const canPress = !!deviceId && (!isOff || currentState === ControlState.STANDBY);
+          const bg = isOff
+            ? (canPress ? theme.colors.danger : theme.colors.primary)
+            : theme.colors.primary;
           return (
             <TouchableOpacity
               key={s}
@@ -151,7 +154,7 @@ export const ControlServicePanel: React.FC = () => {
                 paddingVertical: 10,
                 paddingHorizontal: 12,
                 borderRadius: 6,
-                backgroundColor: theme.colors.primary,
+                backgroundColor: bg,
                 opacity: canPress ? 1 : 0.5,
               }}
             >

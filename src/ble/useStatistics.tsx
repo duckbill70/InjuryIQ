@@ -141,6 +141,31 @@ export const useStatistics = ({ deviceId, onStatisticsUpdate, enabled = true }: 
 
 	// De-dupe identical stats to avoid flicker
 	const lastStatsRef = useRef<string | null>(null);
+	// Track whether we've discovered services/characteristics for this device
+	const servicesReadyRef = useRef<boolean>(false);
+
+	// Reset discovery flag when device changes
+	useEffect(() => {
+		servicesReadyRef.current = false;
+	}, [device]);
+
+	const ensureDeviceReady = useCallback(async (): Promise<boolean> => {
+		if (!device) return false;
+		try {
+			const isConnected = await device.isConnected();
+			if (!isConnected) return false;
+			if (!servicesReadyRef.current) {
+				await device.discoverAllServicesAndCharacteristics();
+				servicesReadyRef.current = true;
+			}
+			return true;
+		} catch (err) {
+			if (__DEV__) console.warn('[Statistics] Device not ready:', err);
+			return false;
+		}
+	}, [device]);
+
+		const delay = useCallback((ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms)), []);
 
 	const parseStatisticsData = useCallback((base64Data: string): FIFOStatistics | null => {
 		const bytes = decodeBase64ToBytes(base64Data);
@@ -161,9 +186,9 @@ export const useStatistics = ({ deviceId, onStatisticsUpdate, enabled = true }: 
 		if (!device || !enabled) return;
 
 		try {
-			const isConnected = await device.isConnected();
-			if (!isConnected) {
-				if (__DEV__) console.warn('[Statistics] Device not connected for statistics subscription');
+			const ready = await ensureDeviceReady();
+			if (!ready) {
+				if (__DEV__) console.warn('[Statistics] Device not ready for statistics subscription');
 				return;
 			}
 
@@ -174,8 +199,14 @@ export const useStatistics = ({ deviceId, onStatisticsUpdate, enabled = true }: 
 				FIFO_STATS_CHARACTERISTIC_UUID,
 				(error: BleError | null, characteristic: Characteristic | null) => {
 					if (error) {
-						if (error.message?.includes('Characteristic') && error.message?.includes('not found')) {
+						// Filter expected/transient errors to avoid console spam
+						const msg = error.message || '';
+						if (msg.includes('not found')) {
 							if (__DEV__) console.log('[Statistics] Device does not expose FIFO statistics characteristic');
+							return;
+						}
+						if (msg.includes('Operation was cancelled') || msg.includes('read failed')) {
+							if (__DEV__) console.debug('[Statistics] Transient monitor error:', msg);
 							return;
 						}
 						console.error('[Statistics] Monitoring error:', error);
@@ -206,27 +237,51 @@ export const useStatistics = ({ deviceId, onStatisticsUpdate, enabled = true }: 
 			}
 			console.error('[Statistics] Failed to subscribe to statistics:', error);
 		}
-	}, [device, enabled, onStatisticsUpdate, parseStatisticsData]);
+	}, [device, enabled, onStatisticsUpdate, parseStatisticsData, ensureDeviceReady]);
 
 	const unsubscribe = useCallback(async () => {
 		if (!device) return;
 		// react-native-ble-plx cleans up monitors on disconnect or re-subscribe; nothing to do.
 	}, [device]);
 
-	const readStatistics = useCallback(async (): Promise<FIFOStatistics | null> => {
+		const readStatistics = useCallback(async (): Promise<FIFOStatistics | null> => {
 		if (!device) return null;
 
 		try {
-			const isConnected = await device.isConnected();
-			if (!isConnected) {
-				if (__DEV__) console.warn('[Statistics] Device not connected for statistics read');
+			const ready = await ensureDeviceReady();
+			if (!ready) {
+				if (__DEV__) console.warn('[Statistics] Device not ready for statistics read');
 				return null;
 			}
 
-			const characteristic = await device.readCharacteristicForService(
-				STATS_SERVICE_UUID,
-				FIFO_STATS_CHARACTERISTIC_UUID
-			);
+				let characteristic: Characteristic | null = null;
+				try {
+					characteristic = await device.readCharacteristicForService(
+						STATS_SERVICE_UUID,
+						FIFO_STATS_CHARACTERISTIC_UUID
+					);
+						} catch (e: unknown) {
+							const msg: string = (e as Error)?.message || '';
+					// Retry once after a short delay for transient iOS stack timing issues
+					if (msg.includes('read failed') || msg.includes('Operation was cancelled')) {
+						if (__DEV__) console.debug('[Statistics] Read failed, retrying once in 200ms');
+						await delay(200);
+						try {
+							characteristic = await device.readCharacteristicForService(
+								STATS_SERVICE_UUID,
+								FIFO_STATS_CHARACTERISTIC_UUID
+							);
+									} catch (e2: unknown) {
+										const msg2: string = (e2 as Error)?.message || '';
+										if (__DEV__) console.debug('[Statistics] Read retry failed:', msg2 || e2);
+							return null;
+						}
+					} else {
+						// Non-transient error; log in dev only
+									if (__DEV__) console.warn('[Statistics] Read statistics error:', msg || e);
+						return null;
+					}
+				}
 
 			if (characteristic?.value) {
 				const stats = parseStatisticsData(characteristic.value);
@@ -236,22 +291,23 @@ export const useStatistics = ({ deviceId, onStatisticsUpdate, enabled = true }: 
 						lastStatsRef.current = sig;
 					}
 				}
-				return stats && isLikelyValidStats(stats) ? stats : null;
+					return stats && isLikelyValidStats(stats) ? stats : null;
 			}
 		} catch (error) {
-			console.error('[Statistics] Failed to read statistics:', error);
+				// Fallback catch: treat as transient in dev
+				if (__DEV__) console.debug('[Statistics] Failed to read statistics (outer):', error);
 		}
 
 		return null;
-	}, [device, parseStatisticsData]);
+		}, [device, parseStatisticsData, ensureDeviceReady, delay]);
 
 	const readConfiguration = useCallback(async (): Promise<FIFOConfiguration | null> => {
 		if (!device) return null;
 
 		try {
-			const isConnected = await device.isConnected();
-			if (!isConnected) {
-				console.warn('Device not connected for configuration read');
+			const ready = await ensureDeviceReady();
+			if (!ready) {
+				console.warn('Device not ready for configuration read');
 				return null;
 			}
 
@@ -268,7 +324,7 @@ export const useStatistics = ({ deviceId, onStatisticsUpdate, enabled = true }: 
 		}
 
 		return null;
-	}, [device, parseConfiguration]);
+	}, [device, parseConfiguration, ensureDeviceReady]);
 
 	const writeConfiguration = useCallback(
 		async (config: FIFOConfiguration): Promise<boolean> => {
@@ -282,6 +338,11 @@ export const useStatistics = ({ deviceId, onStatisticsUpdate, enabled = true }: 
 				if (!isConnected) {
 					console.warn('Device not connected for configuration write');
 					return false;
+				}
+
+				if (!servicesReadyRef.current) {
+					await device.discoverAllServicesAndCharacteristics();
+					servicesReadyRef.current = true;
 				}
 
 				const bytes: number[] = [];
@@ -308,9 +369,9 @@ export const useStatistics = ({ deviceId, onStatisticsUpdate, enabled = true }: 
 		if (!device) return false;
 
 		try {
-			const isConnected = await device.isConnected();
-			if (!isConnected) {
-				console.warn('Device not connected for FIFO dump request');
+			const ready = await ensureDeviceReady();
+			if (!ready) {
+				console.warn('Device not ready for FIFO dump request');
 				return false;
 			}
 
@@ -325,15 +386,15 @@ export const useStatistics = ({ deviceId, onStatisticsUpdate, enabled = true }: 
 			console.error('Failed to request FIFO dump:', error);
 			return false;
 		}
-	}, [device]);
+	}, [device, ensureDeviceReady]);
 
 	const readTuning = useCallback(async (): Promise<FIFOTuning | null> => {
 		if (!device) return null;
 
 		try {
-			const isConnected = await device.isConnected();
-			if (!isConnected) {
-				console.warn('Device not connected for tuning read');
+			const ready = await ensureDeviceReady();
+			if (!ready) {
+				console.warn('Device not ready for tuning read');
 				return null;
 			}
 
@@ -350,7 +411,7 @@ export const useStatistics = ({ deviceId, onStatisticsUpdate, enabled = true }: 
 		}
 
 		return null;
-	}, [device, parseTuning]);
+	}, [device, parseTuning, ensureDeviceReady]);
 
 	const writeTuning = useCallback(
 		async (tuning: FIFOTuning): Promise<boolean> => {

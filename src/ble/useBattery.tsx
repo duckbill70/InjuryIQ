@@ -79,7 +79,7 @@ export const useBattery = ({
 		try {
 			// Note: react-native-ble-plx doesn't have cancelTransaction
 			// The subscription will be automatically cleaned up when the device disconnects
-			console.log('Battery monitoring will stop when device disconnects');
+			//console.log('Battery monitoring will stop when device disconnects');
 		} catch (error) {
 			console.error('Failed to unsubscribe from battery level:', error);
 		}

@@ -6,7 +6,7 @@ import { useTheme } from '../theme/ThemeContext';
 import { useControl, ControlState } from '../ble/useControl';
 import { useBattery } from '../ble/useBattery';
 import { useStatistics } from '../ble/useStatistics';
-import { Settings, Lightbulb, Lock, Unlock, Trash } from 'lucide-react-native';
+import { Settings, Lightbulb, Lock, Unlock, Trash, Power } from 'lucide-react-native';
 import FootIcon from './FootIcon';
 
 interface DeviceSettingsPanelProps {
@@ -53,7 +53,12 @@ const DeviceBox: React.FC<DeviceBoxProps> = ({ position, device, ledMode, enable
 	const [fillPct, setFillPct] = useState<number | null>(null);
 
 	// Hooks for control state
-	const { subscribe: subCtl, unsubscribe: unsubCtl, readState } = useControl({
+	const {
+		subscribe: subCtl,
+		unsubscribe: unsubCtl,
+		readState,
+		setState,
+	} = useControl({
 		deviceId,
 		enabled: !!deviceId,
 		onStateUpdate: (s) => setControlState(s),
@@ -76,29 +81,33 @@ const DeviceBox: React.FC<DeviceBoxProps> = ({ position, device, ledMode, enable
 		};
 	}, [deviceId, readState, subCtl, unsubCtl]);
 
-    // Battery percent via Battery Service
-    const { subscribe: subBatt, unsubscribe: unsubBatt, readBatteryLevel } = useBattery({
-        deviceId,
-        enabled: !!deviceId,
-        onBatteryUpdate: (level) => setBatteryPct(level),
-    });
+	// Battery percent via Battery Service
+	const {
+		subscribe: subBatt,
+		unsubscribe: unsubBatt,
+		readBatteryLevel,
+	} = useBattery({
+		deviceId,
+		enabled: !!deviceId,
+		onBatteryUpdate: (level) => setBatteryPct(level),
+	});
 
-    useEffect(() => {
-        let cancelled = false;
-        if (!deviceId) {
-            setBatteryPct(null);
-            return;
-        }
-        (async () => {
-            const level = await readBatteryLevel();
-            if (!cancelled && level !== null) setBatteryPct(level);
-        })();
-        subBatt();
-        return () => {
-            cancelled = true;
-            unsubBatt();
-        };
-    }, [deviceId, readBatteryLevel, subBatt, unsubBatt]);	// Hooks for statistics: FIFO fill percentage
+	useEffect(() => {
+		let cancelled = false;
+		if (!deviceId) {
+			setBatteryPct(null);
+			return;
+		}
+		(async () => {
+			const level = await readBatteryLevel();
+			if (!cancelled && level !== null) setBatteryPct(level);
+		})();
+		subBatt();
+		return () => {
+			cancelled = true;
+			unsubBatt();
+		};
+	}, [deviceId, readBatteryLevel, subBatt, unsubBatt]); // Hooks for statistics: FIFO fill percentage
 	const {
 		subscribe: subStats,
 		unsubscribe: unsubStats,
@@ -134,11 +143,11 @@ const DeviceBox: React.FC<DeviceBoxProps> = ({ position, device, ledMode, enable
 		return LED_MODE_OPTIONS[nextIndex].value;
 	};
 
-    // Allow LED changes in STANDBY and STOP (disabled in RUN and OFF)
-    const canChangeLED = !!device && enabled && controlState === ControlState.STOP;
-    
-    // Allow device position changes (assign/remove) only in STOP
-    const canChangePosition = !!device && enabled && controlState === ControlState.STOP;
+	// Allow LED changes in STANDBY and STOP (disabled in RUN and OFF)
+	const canChangeLED = !!device && enabled && controlState === ControlState.STOP;
+
+	// Allow device position changes (assign/remove) only in STOP
+	const canChangePosition = !!device && enabled && controlState === ControlState.STOP;
 
 	const handleLEDStep = () => {
 		if (device && canChangeLED) {
@@ -149,118 +158,188 @@ const DeviceBox: React.FC<DeviceBoxProps> = ({ position, device, ledMode, enable
 
 	const currentLEDOption = LED_MODE_OPTIONS.find((opt) => opt.value === ledMode);
 
+	// Handle power button (Standby/Off toggle)
+	const handlePowerToggle = useCallback(async () => {
+		if (!device) return;
+
+		// Determine target state: if OFF, go to STANDBY; otherwise go to OFF
+		const targetState = controlState === ControlState.OFF ? ControlState.STANDBY : ControlState.OFF;
+
+		// OFF can only be set from STANDBY (firmware rule)
+		if (targetState === ControlState.OFF && controlState !== ControlState.STANDBY) {
+			Alert.alert('Power Off', 'Device must be in STANDBY state before powering off.');
+			return;
+		}
+
+		const ok = await setState(targetState);
+		if (!ok) {
+			Alert.alert('Control', `Failed to set ${targetState === ControlState.STANDBY ? 'STANDBY' : 'OFF'} state.`);
+		}
+	}, [device, controlState, setState]);
+
 	return (
-		<View
-			style={[
-				theme.viewStyles.card,
-				{
-					backgroundColor: 'rgba(0,0,0,0.02)',
-					height: 190,
-					borderWidth: 2,
-					borderColor: device ? POSITION_COLORS[position] : theme.colors.border,
-					opacity: enabled ? 1 : 0.7,
-					padding: 5,
-				},
-			]}
-		>
-			{/* Position Header */}
-			<View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 6, borderBottomWidth: 1, borderBottomColor: theme.colors.border }}>
-				<Text style={[theme.textStyles.body, { fontWeight: '600', color: POSITION_COLORS[position] }]}>{POSITION_LABELS[position]}</Text>
-			</View>
+		<View style={{ flexDirection: 'column', gap: 10 }}>
 
-			{/* Content Area - Fixed Height to Ensure Consistent Sizing */}
-			<View style={{ flex: 1, justifyContent: 'space-between' }}>
-				{device ? (
-					<>
-						{/* Watermark */}
-						<View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center', opacity: 0.08 }}>
-							<FootIcon size={120} side={position === 'leftFoot' ? 'left' : 'right'} color={POSITION_COLORS[position]} />
-						</View>
+			{/* Device */}
+			<View
+				style={[
+					theme.viewStyles.card,
+					{
+						backgroundColor: 'rgba(0,0,0,0.02)',
+						height: 190,
+						borderWidth: 2,
+						borderColor: device ? POSITION_COLORS[position] : theme.colors.border,
+						opacity: enabled ? 1 : 0.7,
+						padding: 5,
+					},
+				]}
+			>
+				{/* Position Header */}
+				<View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 6, borderBottomWidth: 1, borderBottomColor: theme.colors.border }}>
+					<Text style={[theme.textStyles.body, { fontWeight: '600', color: POSITION_COLORS[position] }]}>{POSITION_LABELS[position]}</Text>
+				</View>
 
-						{/* Device Info */}
-						<View style={{ marginBottom: 8 }}>
-							<Text style={[theme.textStyles.body, { fontWeight: '600' }]}>{device.name || 'StingRay'}</Text>
-							<Text style={[theme.textStyles.body2, { color: theme.colors.muted }]}>{device.id.slice(-6)}</Text>
-							<View style={{ marginTop: 6 }}>
-								<View style={[theme.viewStyles.rowBetween, { marginBottom: 2 }]}>
-									<Text style={theme.textStyles.body2}>State:</Text>
-									<Text style={[theme.textStyles.body2, { fontWeight: '600' }]}>
-										{controlState === null
-											? '—'
-											: controlState === ControlState.STANDBY
-											? 'STANDBY'
-											: controlState === ControlState.RUN
-											? 'RUN'
-											: controlState === ControlState.STOP
-											? 'STOP'
-											: controlState === ControlState.OFF
-											? 'OFF'
-											: '—'}
-									</Text>
-								</View>
-								<View style={[theme.viewStyles.rowBetween, { marginBottom: 2 }]}>
-									<Text style={theme.textStyles.body2}>Battery:</Text>
-									<Text style={theme.textStyles.body2}>{batteryPct !== null ? `${batteryPct}%` : '—'}</Text>
-								</View>
-								<View style={[theme.viewStyles.rowBetween]}>
-									<Text style={theme.textStyles.body2}>FIFO Fill:</Text>
-									<Text style={theme.textStyles.body2}>{fillPct !== null ? `${fillPct.toFixed(1)}%` : '—'}</Text>
+				{/* Content Area - Fixed Height to Ensure Consistent Sizing */}
+				<View style={{ flex: 1, justifyContent: 'space-between' }}>
+					{device ? (
+						<>
+							{/* Watermark */}
+							<View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center', opacity: 0.08 }}>
+								<FootIcon size={120} side={position === 'leftFoot' ? 'left' : 'right'} color={POSITION_COLORS[position]} />
+							</View>
+
+							{/* Device Info */}
+							<View style={{ marginBottom: 8 }}>
+								<Text style={[theme.textStyles.body, { fontWeight: '600' }]}>{device.name || 'StingRay'}</Text>
+								<Text style={[theme.textStyles.body2, { color: theme.colors.muted }]}>{device.id.slice(-6)}</Text>
+								<View style={{ marginTop: 6 }}>
+									<View style={[theme.viewStyles.rowBetween, { marginBottom: 2 }]}>
+										<Text style={theme.textStyles.body2}>State:</Text>
+										<Text style={[theme.textStyles.body2, { fontWeight: '600' }]}>
+											{controlState === null
+												? '—'
+												: controlState === ControlState.STANDBY
+												? 'STANDBY'
+												: controlState === ControlState.RUN
+												? 'RUN'
+												: controlState === ControlState.STOP
+												? 'STOP'
+												: controlState === ControlState.OFF
+												? 'OFF'
+												: '—'}
+										</Text>
+									</View>
+									<View style={[theme.viewStyles.rowBetween, { marginBottom: 2 }]}>
+										<Text style={theme.textStyles.body2}>Battery:</Text>
+										<Text style={theme.textStyles.body2}>{batteryPct !== null ? `${batteryPct}%` : '—'}</Text>
+									</View>
+									<View style={[theme.viewStyles.rowBetween]}>
+										<Text style={theme.textStyles.body2}>FIFO Fill:</Text>
+										<Text style={theme.textStyles.body2}>{fillPct !== null ? `${fillPct.toFixed(1)}%` : '—'}</Text>
+									</View>
 								</View>
 							</View>
-						</View>
 
-						{/* Control Buttons */}
-						<View style={{ flexDirection: 'row', alignContent: 'center', justifyContent: 'space-between' }}>
-							<Pressable
-								style={({ pressed }) => [
-									{
-										//backgroundColor: canChangeLED ? currentLEDOption?.color : theme.colors.muted,
-										padding: 10,
-										borderRadius: 4,
-										marginBottom: 8,
-									},
-									!canChangeLED ? { opacity: 0.5 } : { opacity: pressed ? 0.7 : 1 },
-									{ transform: [{ scale: pressed ? 0.92 : 1 }] },
-								]}
-								onPress={handleLEDStep}
-								disabled={!canChangeLED}
-							>
-								<View style={[theme.viewStyles.rowCenter, { justifyContent: 'center' }]}>
-									<Lightbulb size={30} color={canChangeLED ? currentLEDOption?.color : theme.colors.muted} fill={canChangeLED ? currentLEDOption?.color : theme.colors.muted}/>
-								</View>
-							</Pressable>
+							{/* Control Buttons */}
+							<View style={{ flexDirection: 'row', alignContent: 'center', justifyContent: 'space-between' }}>
+								<Pressable
+									style={({ pressed }) => [
+										{
+											//backgroundColor: canChangeLED ? currentLEDOption?.color : theme.colors.muted,
+											padding: 10,
+											borderRadius: 4,
+											marginBottom: 8,
+										},
+										!canChangeLED ? { opacity: 0.5 } : { opacity: pressed ? 0.7 : 1 },
+										{ transform: [{ scale: pressed ? 0.92 : 1 }] },
+									]}
+									onPress={handleLEDStep}
+									disabled={!canChangeLED}
+								>
+									<View style={[theme.viewStyles.rowCenter, { justifyContent: 'center' }]}>
+										<Lightbulb size={30} color={canChangeLED ? currentLEDOption?.color : theme.colors.muted} fill={canChangeLED ? currentLEDOption?.color : theme.colors.muted} />
+									</View>
+								</Pressable>
 
+								<Pressable
+									style={({ pressed }) => [
+										{
+											//backgroundColor: canChangePosition ? theme.colors.danger : theme.colors.muted,
+											padding: 10,
+											borderRadius: 4,
+											marginBottom: 8,
+										},
+										!canChangePosition ? { opacity: 0.5 } : { opacity: pressed ? 0.8 : 1 },
+										{ transform: [{ scale: pressed ? 0.95 : 1 }] },
+									]}
+									onPress={() => canChangePosition && onRemoveDevice(device.id)}
+									disabled={!canChangePosition}
+								>
+									<Trash size={30} color={canChangePosition ? theme.colors.danger : theme.colors.muted} />
+								</Pressable>
+							</View>
+						</>
+					) : (
+						// Empty slot - show assign button
+						<View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
 							<Pressable
-								style={({ pressed }) => [
-									{
-										//backgroundColor: canChangePosition ? theme.colors.danger : theme.colors.muted,
-										padding: 10,
-										borderRadius: 4,
-										marginBottom: 8,
-									},
-									!canChangePosition ? { opacity: 0.5 } : { opacity: pressed ? 0.8 : 1 },
-									{ transform: [{ scale: pressed ? 0.95 : 1 }] },
-								]}
-								onPress={() => canChangePosition && onRemoveDevice(device.id)}
-								disabled={!canChangePosition}
+								style={({ pressed }) => [{ borderRadius: 8 }, !enabled ? { opacity: 0.5 } : { opacity: pressed ? 0.85 : 1 }, { transform: [{ scale: pressed ? 0.98 : 1 }] }]}
+								onPress={() => enabled && onAssignDevice(position)}
+								disabled={!enabled}
 							>
-								<Trash size={30} color={canChangePosition ? theme.colors.danger : theme.colors.muted} />
+								<FootIcon size={100} side={position === 'leftFoot' ? 'left' : 'right'} color={theme.colors.primary} />
 							</Pressable>
 						</View>
-					</>
-				) : (
-					// Empty slot - show assign button
-					<View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+					)}
+				</View>
+				
+			</View>
+
+			{/* Device Buttons */}
+			<View
+				style={[
+					theme.viewStyles.card,
+					{
+						//backgroundColor: 'rgba(0,0,0,0.02)',
+						//height: 50,
+						//borderWidth: 2,
+						//borderColor: device ? POSITION_COLORS[position] : theme.colors.border,
+						opacity: enabled ? 1 : 0.7,
+						padding: 5,
+					},
+				]}
+			>
+				{device && (
+					<View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
 						<Pressable
 							style={({ pressed }) => [
-								{ borderRadius: 8 },
-								!enabled ? { opacity: 0.5 } : { opacity: pressed ? 0.85 : 1 },
-								{ transform: [{ scale: pressed ? 0.98 : 1 }] },
+								{
+									flex: 1,
+									height: 40,
+									borderRadius: 6,
+									backgroundColor: controlState === ControlState.OFF 
+										? (enabled ? theme.colors.good : theme.colors.muted)
+										: (enabled && controlState === ControlState.STANDBY ? theme.colors.danger : theme.colors.muted),
+									justifyContent: 'center',
+									alignItems: 'center',
+								},
+								!enabled || (controlState !== ControlState.STANDBY && controlState !== ControlState.OFF) 
+									? { opacity: 0.5 } 
+									: { opacity: pressed ? 0.8 : 1 },
+								{ transform: [{ scale: pressed ? 0.97 : 1 }] },
 							]}
-							onPress={() => enabled && onAssignDevice(position)}
-							disabled={!enabled}
+							onPress={handlePowerToggle}
+							disabled={!enabled || (controlState !== ControlState.STANDBY && controlState !== ControlState.OFF)}
 						>
-							<FootIcon size={100} side={position === 'leftFoot' ? 'left' : 'right'} color={theme.colors.primary} />
+							<View style={[theme.viewStyles.rowCenter, { gap: 8 }]}>
+								<Power 
+									size={20} 
+									color={theme.colors.white} 
+								/>
+								<Text style={[theme.textStyles.buttonLabel, { fontSize: theme.fontSizes.md }]}>
+									{controlState === ControlState.OFF ? 'STANDBY' : 'OFF'}
+								</Text>
+							</View>
 						</Pressable>
 					</View>
 				)}
@@ -490,25 +569,17 @@ export const DeviceSettingsPanel: React.FC<DeviceSettingsPanelProps> = ({ enable
 	return (
 		<View style={[theme.viewStyles.panelContainer, { backgroundColor: theme.colors.white }]}>
 			{/* Header */}
-			<View style={[theme.viewStyles.panelTitle, theme.viewStyles.rowBetween]}>
-				<View style={{ flexDirection: 'row', alignItems: 'center' }}>
-					<Settings size={20} color={theme.colors.primary} />
+			<View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, minHeight: 40 }}>
+				{/* Bluetooth icon left */}
+				<View style={{ width: 40, alignItems: 'center', justifyContent: 'center' }}>
+					<Settings size={28} color={theme.colors.primary} />
 				</View>
-				<View style={theme.viewStyles.rowCenter}>
-					{enabled ? <Unlock size={18} color={theme.colors.good} /> : <Lock size={18} color={theme.colors.muted} />}
-					<Text
-						style={[
-							theme.textStyles.body,
-							{
-								marginLeft: 4,
-								//fontSize: 12,
-								color: enabled ? theme.colors.good : theme.colors.muted,
-							},
-						]}
-					>
-						{enabled ? 'Unlocked' : 'Locked'}
-					</Text>
+				{/* Title center */}
+				<View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+					<Text style={[theme.textStyles.panelTitle, { marginBottom: 0, fontSize: theme.fontSizes.lg }]}>Device Manager</Text>
 				</View>
+				{/* Connected count right */}
+				<View style={{ width: 40, alignItems: 'center', justifyContent: 'center' }}>{enabled ? <Unlock size={28} color={theme.colors.good} /> : <Lock size={18} color={theme.colors.muted} />}</View>
 			</View>
 
 			{/* Position Boxes - 2 on top row, 1 on bottom */}

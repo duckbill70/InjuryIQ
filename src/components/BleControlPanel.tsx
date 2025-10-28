@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, Pressable, Alert } from 'react-native';
 import { useBle } from '../ble/BleProvider';
 import { useTheme } from '../theme/ThemeContext';
 import { 
@@ -7,7 +7,7 @@ import {
 	BluetoothSearching, 
 	Wifi, 
 	WifiOff, 
-	CheckCircle
+	//CheckCircle
 } from 'lucide-react-native';
 
 export const BleControlPanel: React.FC = () => {
@@ -16,12 +16,12 @@ export const BleControlPanel: React.FC = () => {
 		scanning, 
 		isPoweredOn, 
 		connected, 
-		devicesByPosition,
+		//devicesByPosition,
 		startScan, 
 		stopScan
 	} = useBle();
 
-	const [autoScanEnabled, setAutoScanEnabled] = useState(true);
+	const [autoScanEnabled, setAutoScanEnabled] = useState(false);
 	//const [lastScanTime, setLastScanTime] = useState<Date | null>(null);
 
 	// Auto-scan configuration
@@ -108,16 +108,31 @@ export const BleControlPanel: React.FC = () => {
 	}, []);
 
 	const connectedCount = Object.keys(connected).length;
-	const hasAllPositions = !!(devicesByPosition.leftFoot && devicesByPosition.rightFoot && devicesByPosition.racket);
+	//const hasAllPositions = !!(devicesByPosition.leftFoot && devicesByPosition.rightFoot && devicesByPosition.racket);
 
 	return (
 		<View style={[theme.viewStyles.panelContainer, { backgroundColor: theme.colors.background }]}>
-			{/* Header */}
-			<View style={theme.viewStyles.panelTitle}>
-				<Text style={theme.textStyles.panelTitle}>BLE Device Control</Text>
-			</View>
-
-			{/* Status Row */}
+           {/* Header */}
+           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, minHeight: 40 }}>
+               {/* Bluetooth icon left */}
+               <View style={{ width: 40, alignItems: 'center', justifyContent: 'center' }}>
+                   <Bluetooth
+                       size={28}
+                       color={isPoweredOn ? theme.colors.primary : theme.colors.muted}
+                   />
+               </View>
+               {/* Title center */}
+               <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+                   <Text style={[theme.textStyles.panelTitle, {marginBottom: 0, fontSize: theme.fontSizes.lg}]}>BLE Device Control</Text>
+               </View>
+               {/* Connected count right */}
+               <View style={{ width: 40, alignItems: 'center', justifyContent: 'center' }}>
+                   <Text style={[theme.textStyles.panelTitle, { marginBottom: 0, fontWeight: '600', color: connectedCount === 3 ? theme.colors.good : theme.colors.black, fontSize: theme.fontSizes.lg }]}> 
+                       {connectedCount}/3
+                   </Text>
+               </View>
+           </View>			
+		   {/* Status Row 
 			<View style={[theme.viewStyles.rowBetween, { marginBottom: 16 }]}>
 				<View style={theme.viewStyles.rowCenter}>
 					{isPoweredOn ? (
@@ -126,6 +141,7 @@ export const BleControlPanel: React.FC = () => {
 						<Bluetooth size={20} color={theme.colors.muted} />
 					)}
 					<Text style={[theme.textStyles.body, { 
+						fontSize: theme.fontSizes.lg,
 						color: isPoweredOn ? theme.colors.good : theme.colors.muted,
 						marginLeft: 8 
 					}]}>
@@ -143,57 +159,79 @@ export const BleControlPanel: React.FC = () => {
 						<CheckCircle size={16} color={theme.colors.good} style={{ marginLeft: 4 }} />
 					)}
 				</View>
-			</View>
+			</View> */}
 
 			{/* Control Buttons */}
 			<View style={[theme.viewStyles.rowBetween, { marginBottom: 16, gap: 12 }]}>
-				{/* Manual Scan Button */}
-				<TouchableOpacity
-					style={[
-						theme.viewStyles.button,
-						{ 
-							flex: 1,
-							backgroundColor: scanning ? theme.colors.warn : theme.colors.primary,
-							opacity: isPoweredOn ? 1 : 0.5
-						}
-					]}
-					onPress={handleManualScan}
-					disabled={!isPoweredOn}
-				>
-					<View style={theme.viewStyles.rowCenter}>
-						{scanning ? (
-							<BluetoothSearching size={18} color={theme.colors.white} />
-						) : (
-							<Bluetooth size={18} color={theme.colors.white} />
-						)}
-						<Text style={[theme.textStyles.buttonLabel, { marginLeft: 8 }]}>
-							{scanning ? 'Stop Scan' : 'Manual Scan'}
-						</Text>
-					</View>
-				</TouchableOpacity>
+				   {/* Manual Scan Button */}
+				   <Pressable
+					   style={({ pressed }) => [
+						   theme.viewStyles.button,
+						   {
+							   flex: 1,
+							   height: 48,
+							   borderRadius: 10,
+							   backgroundColor: scanning ? theme.colors.warn : theme.colors.primary,
+							   opacity: isPoweredOn ? 1 : 0.5,
+							   transform: [{ scale: pressed ? 0.97 : 1 }],
+							   shadowColor: '#000',
+							   shadowOffset: { width: 0, height: 2 },
+							   shadowOpacity: 0.08,
+							   shadowRadius: 4,
+							   elevation: 2,
+						   },
+						   pressed && { backgroundColor: scanning ? 'rgba(255, 186, 0, 0.85)' : 'rgba(0,122,255,0.85)' },
+					   ]}
+					   onPress={handleManualScan}
+					   disabled={!isPoweredOn}
+					   accessibilityLabel="Manual Scan"
+					   accessibilityRole="button"
+				   >
+					   <View style={theme.viewStyles.rowCenter}>
+						   {scanning ? (
+							   <BluetoothSearching size={18} color={theme.colors.white} />
+						   ) : (
+							   <Bluetooth size={18} color={theme.colors.white} />
+						   )}
+						   <Text style={[theme.textStyles.buttonLabel, { marginLeft: 8, fontSize: theme.fontSizes.lg, }]}> 
+							   {scanning ? 'Stop Scan' : 'Manual Scan'}
+						   </Text>
+					   </View>
+				   </Pressable>
 
-				{/* Auto-Scan Toggle */}
-				<TouchableOpacity
-					style={[
-						theme.viewStyles.button,
-						{ 
-							flex: 1,
-							backgroundColor: autoScanEnabled ? theme.colors.good : theme.colors.muted
-						}
-					]}
-					onPress={toggleAutoScan}
-				>
-					<View style={theme.viewStyles.rowCenter}>
-						{autoScanEnabled ? (
-							<Wifi size={18} color={theme.colors.white} />
-						) : (
-							<WifiOff size={18} color={theme.colors.white} />
-						)}
-						<Text style={[theme.textStyles.buttonLabel, { marginLeft: 8 }]}>
-							Auto-Scan {autoScanEnabled ? 'ON' : 'OFF'}
-						</Text>
-					</View>
-				</TouchableOpacity>
+				   {/* Auto-Scan Toggle */}
+				   <Pressable
+					   style={({ pressed }) => [
+						   theme.viewStyles.button,
+						   {
+							   flex: 1,
+							   height: 48,
+							   borderRadius: 10,
+							   backgroundColor: autoScanEnabled ? theme.colors.good : theme.colors.muted,
+							   transform: [{ scale: pressed ? 0.97 : 1 }],
+							   shadowColor: '#000',
+							   shadowOffset: { width: 0, height: 2 },
+							   shadowOpacity: 0.08,
+							   shadowRadius: 4,
+							   elevation: 2,
+						   },
+						   pressed && { backgroundColor: autoScanEnabled ? 'rgba(52,199,89,0.85)' : 'rgba(142,142,147,0.85)' },
+					   ]}
+					   onPress={toggleAutoScan}
+					   accessibilityLabel="Toggle Auto-Scan"
+					   accessibilityRole="button"
+				   >
+					   <View style={theme.viewStyles.rowCenter}>
+						   {autoScanEnabled ? (
+							   <Wifi size={18} color={theme.colors.white} />
+						   ) : (
+							   <WifiOff size={18} color={theme.colors.white} />
+						   )}
+						   <Text style={[theme.textStyles.buttonLabel, { marginLeft: 8,fontSize: theme.fontSizes.lg, }]}> 
+							   Auto-Scan
+						   </Text>
+					   </View>
+				   </Pressable>
 			</View>
 
 			{/* Last Scan Time 

@@ -23,10 +23,7 @@ export default function HomeScreen() {
 					<SessionControlPanel />
 				</View>
 
-				{/* BLE Control Panel */}
-				<View style={{ marginBottom: 10 }}>
-					<BleControlPanel />
-				</View>
+				
 
 				{/* Device Settings Panel */}
 				<View style={{ marginBottom: 10 }}>
@@ -39,8 +36,13 @@ export default function HomeScreen() {
 				</View>
 
 				{/* Device Diagnostics */}
-				<View style={{ marginBottom: 100 }}>
+				<View style={{ marginBottom: 10 }}>
 					<DiagnosticsPanel />
+				</View>
+
+				{/* BLE Control Panel */}
+				<View style={{ marginBottom: 100 }}>
+					<BleControlPanel />
 				</View>
 				
 			</ScrollView>

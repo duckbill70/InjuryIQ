@@ -26,6 +26,8 @@ import { useBle } from '../ble/BleProvider';
 import { useStepCounter } from '../ble/useStepCounter';
 import { useFatigue } from '../ble/useFatigue';
 import { useStatistics, type FIFOStatistics } from '../ble/useStatistics';
+import { ControlState } from '../ble/useControl';
+import { DeviceController } from './DeviceController';
 
 // Supported sports
 export type Sport = 'tennis' | 'running' | 'hiking' | 'padel';
@@ -62,7 +64,7 @@ export interface SessionFooter {
 
 export interface SessionEntry {
   timestamp: string;
-  type: 'gps' | 'steps' | 'fatigue' | 'statistics' | 'pause' | 'resume';
+  type: 'gps' | 'steps' | 'fatigue' | 'statistics' | 'pause' | 'resume' | 'device_state_error' | 'device_disconnect' | 'device_reconnect';
   data: unknown;
   position?: string;
   deviceId?: string;
@@ -78,6 +80,9 @@ interface SessionContextType {
   logStep: (stepData: unknown, position?: string) => void;
   logFatigue: (fatigueData: unknown, position?: string) => void;
   logStatistics: (statisticsData: FIFOStatistics, deviceId: string, position?: string) => void;
+  logDeviceStateError: (deviceId: string, expectedState: string, actualState: string, position?: string) => void;
+  logDeviceDisconnect: (deviceId: string, position?: string) => void;
+  logDeviceReconnect: (deviceId: string, position?: string) => void;
 }
 
 const SessionContext = createContext<SessionContextType | undefined>(undefined);
@@ -93,6 +98,7 @@ const SESSION_LOG_INTERVAL = 1000; // ms
 export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isActive, setIsActive] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
+  const [deviceTargetState, setDeviceTargetState] = useState<ControlState | null>(null);
   const isActiveRef = useRef(isActive);
   const isPausedRef = useRef(isPaused);
   const sessionFile = useRef<string | null>(null);
@@ -102,7 +108,7 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const pauseStartRef = useRef<number | null>(null);
 
   // BLE context for devices
-  const { connected } = useBle();
+  const { connected, setConnectionCallbacks } = useBle();
 
   // Stats accumulator
   const statsRef = useRef({
@@ -183,6 +189,7 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
     sessionStartTime.current = Date.now();
     setIsActive(true);
     setIsPaused(false);
+    setDeviceTargetState(ControlState.RUN); // Signal devices to go to RUN state
 
     // Reset stats
     statsRef.current = {
@@ -245,6 +252,7 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   // Stop session
   const stopSession = useCallback((footerData?: SessionFooter) => {
+    setDeviceTargetState(ControlState.STOP); // Signal devices to go to STOP state
     setIsActive(false);
     setIsPaused(false);
     if (gpsInterval.current) {
@@ -299,6 +307,9 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
       RNFS.appendFile(sessionFile.current, JSON.stringify({ type: 'footer', ...stopData }) + '\n', 'utf8');
       sessionStartTime.current = null;
     }
+    
+    // Clear device target state after a delay to allow controllers to process
+    setTimeout(() => setDeviceTargetState(null), 2000);
   }, []);
 
   // Pause session
@@ -356,6 +367,39 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
     });
   }, [logEntry]);
 
+  // Log device state error
+  const logDeviceStateError = useCallback((deviceId: string, expectedState: string, actualState: string, position?: string) => {
+    logEntry({
+      timestamp: new Date().toISOString(),
+      type: 'device_state_error',
+      data: { expectedState, actualState },
+      position,
+      deviceId,
+    });
+  }, [logEntry]);
+
+  // Log device disconnect
+  const logDeviceDisconnect = useCallback((deviceId: string, position?: string) => {
+    logEntry({
+      timestamp: new Date().toISOString(),
+      type: 'device_disconnect',
+      data: null,
+      position,
+      deviceId,
+    });
+  }, [logEntry]);
+
+  // Log device reconnect
+  const logDeviceReconnect = useCallback((deviceId: string, position?: string) => {
+    logEntry({
+      timestamp: new Date().toISOString(),
+      type: 'device_reconnect',
+      data: null,
+      position,
+      deviceId,
+    });
+  }, [logEntry]);
+
   // Clean up on unmount
   React.useEffect(() => {
     return () => {
@@ -366,9 +410,43 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
     };
   }, []);
 
+  // Register connection event callbacks
+  React.useEffect(() => {
+    setConnectionCallbacks({
+      onDisconnected: (deviceId, position) => {
+        logDeviceDisconnect(deviceId, position);
+      },
+      onReconnected: (deviceId, position) => {
+        logDeviceReconnect(deviceId, position);
+      },
+    });
+  }, [logDeviceDisconnect, logDeviceReconnect, setConnectionCallbacks]);
+
   return (
-    <SessionContext.Provider value={{ isActive, isPaused, startSession, stopSession, pauseSession, resumeSession, logStep, logFatigue, logStatistics }}>
+    <SessionContext.Provider value={{ 
+      isActive, 
+      isPaused, 
+      startSession, 
+      stopSession, 
+      pauseSession, 
+      resumeSession, 
+      logStep, 
+      logFatigue, 
+      logStatistics,
+      logDeviceStateError,
+      logDeviceDisconnect,
+      logDeviceReconnect,
+    }}>
       {children}
+      {/* Device controllers to manage device states */}
+      {Object.keys(connected).map(deviceId => (
+        <DeviceController
+          key={deviceId}
+          deviceId={deviceId}
+          targetState={deviceTargetState}
+          position={connected[deviceId]?.position}
+        />
+      ))}
       {/* Subscribe to BLE events for each connected device when session is active */}
       {isActive && Object.keys(connected).map(deviceId => (
         <BleDeviceSubscriber

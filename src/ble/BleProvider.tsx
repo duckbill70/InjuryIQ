@@ -51,6 +51,14 @@ export type BleContextValue = {
 	unassignDevicePosition: (deviceId: string) => void;
 	updateDeviceColor: (deviceId: string, color: string) => void;
 	
+	// Connection event callbacks
+	onDeviceDisconnected?: (deviceId: string, position?: string) => void;
+	onDeviceReconnected?: (deviceId: string, position?: string) => void;
+	setConnectionCallbacks: (callbacks: { 
+		onDisconnected?: (deviceId: string, position?: string) => void;
+		onReconnected?: (deviceId: string, position?: string) => void;
+	}) => void;
+	
 	// System status
 	isPoweredOn: boolean;
 	scanOnce: (opts?: StartScanOpts) => Promise<Device[]>;
@@ -96,6 +104,19 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 	const [foundDeviceIds, setFoundDeviceIds] = useState<string[]>([]);
 	const [connected, setConnected] = useState<Record<string, ConnectedDevice>>({});
 	const [isPoweredOn, setIsPoweredOn] = useState(false);
+
+	// Connection event callbacks
+	const connectionCallbacksRef = useRef<{
+		onDisconnected?: (deviceId: string, position?: string) => void;
+		onReconnected?: (deviceId: string, position?: string) => void;
+	}>({});
+
+	const setConnectionCallbacks = useCallback((callbacks: {
+		onDisconnected?: (deviceId: string, position?: string) => void;
+		onReconnected?: (deviceId: string, position?: string) => void;
+	}) => {
+		connectionCallbacksRef.current = callbacks;
+	}, []);
 
 	//to use Notify
 	const { notify } = useNotify();
@@ -352,6 +373,8 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 	const registerDisconnectHandler = useCallback((id: string) => {
 		managerRef.current.onDeviceDisconnected(id, (error, _dev) => {
 			const friendlyName = connectedRef.current[id]?.name || id;
+			const position = connectedRef.current[id]?.position;
+			
 			if (__DEV__) console.warn(`[BLE] onDeviceDisconnected ${friendlyName}`, error?.message ?? '');
 			notify({
 				title: 'InjuryIQ',
@@ -360,6 +383,10 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 				foreground: true, // show even when app is open
 				bypassDedupe: __DEV__ ? true : false, // remove later; ensures it's not suppressed while testing
 			});
+			
+			// Call disconnect callback if registered
+			connectionCallbacksRef.current.onDisconnected?.(id, position);
+			
 			// Remove from connected but preserve position assignment for sticky behavior
 			setConnected((prev) => {
 				const next = { ...prev };
@@ -368,7 +395,7 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 			});
 			scheduleReconnect(id);
 		});
-	}, [notify, scheduleReconnect]);
+	}, [notify, scheduleReconnect]); // removed connectionCallbacks from deps as it's a ref
 
 	const connectToDevice = useCallback(async (device: Device, opts?: { manual?: boolean }) => {
 		const manager = managerRef.current;
@@ -412,6 +439,10 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 		registerDisconnectHandler(id);
 		await discoverAllForDevice(d);
 		const friendlyName = d.name || id;
+		// Get position after device is discovered and added to connectedRef
+		const connectedDevice = connectedRef.current[id] as ConnectedDevice | undefined;
+		const position = connectedDevice?.position;
+		
 		if (__DEV__) console.log(`[BLE] reconnected ${friendlyName}`);
 		notify({
 			title: 'InjuryIQ',
@@ -420,6 +451,9 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 			foreground: true, // show even when app is open
 			bypassDedupe: __DEV__ ? true : false, // remove later; ensures it's not suppressed while testing
 		});
+		
+		// Call reconnect callback if registered
+		connectionCallbacksRef.current.onReconnected?.(id, position);
 	};
 
 	const startScan: BleContextValue['startScan'] = useCallback(async (opts) => {
@@ -492,6 +526,11 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 		const timeoutMs = opts?.timeoutMs ?? DEFAULT_SCAN_TIMEOUT_MS;
 		const maxDevices = opts?.maxDevices ?? MAX_TARGET_DEVICES;
 
+		// Optionally clear previously found device ids (default: true)
+		if (opts?.clearFoundDevices !== false) {
+			setFoundDeviceIds([]);
+		}
+
 		return new Promise<Device[]>((resolve, reject) => {
 			const localSet = new Set<string>();
 			const results: Device[] = [];
@@ -504,6 +543,7 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 					managerRef.current.stopDeviceScan();
 				} catch {}
 				clearTimeout(timer);
+				setScanning(false);
 				if (ok) resolve(payload as Device[]);
 				else reject(payload as Error);
 			};
@@ -511,6 +551,7 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 			const timer = setTimeout(() => settle(true, results), timeoutMs);
 
 			try {
+				setScanning(true);
 				managerRef.current.startDeviceScan([KNOWN_SERVICE_UUID], { allowDuplicates: false }, (error, device) => {
 					if (error) {
 						console.warn('scanOnce error:', error);
@@ -552,6 +593,9 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 			assignDevicePosition,
 			unassignDevicePosition,
 			updateDeviceColor,
+			onDeviceDisconnected: connectionCallbacksRef.current.onDisconnected,
+			onDeviceReconnected: connectionCallbacksRef.current.onReconnected,
+			setConnectionCallbacks,
 			isPoweredOn,
 			scanOnce,
 		}),
@@ -566,6 +610,8 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 			assignDevicePosition,
 			unassignDevicePosition,
 			updateDeviceColor,
+			connectionCallbacksRef,
+			setConnectionCallbacks,
 			isPoweredOn,
 			scanOnce,
 		],

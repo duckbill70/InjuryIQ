@@ -63,17 +63,20 @@ export const useLEDControl = ({
 				LED_SERVICE_UUID,
 				LED_CONTROL_CHARACTERISTIC_UUID,
 				(error: BleError | null, characteristic: Characteristic | null) => {
-					if (error) {
-						// Check if it's a "characteristic not found" error - this is expected if device doesn't support LED control
-						if (error.message?.includes('Characteristic') && error.message?.includes('not found')) {
-							if (__DEV__) console.log('Device does not support LED control characteristic - this is normal for some devices');
-							return;
-						}
-						console.error('LED control monitoring error:', error);
+				if (error) {
+					// Check if it's a "characteristic not found" error - this is expected if device doesn't support LED control
+					if (error.message?.includes('Characteristic') && error.message?.includes('not found')) {
+						if (__DEV__) console.log('Device does not support LED control characteristic - this is normal for some devices');
 						return;
 					}
-
-					if (characteristic?.value) {
+					// Suppress expected disconnect/cancellation errors - device is reconnecting
+					if (error.message?.includes('was disconnected') || error.message?.includes('was cancelled')) {
+						if (__DEV__) console.log('[LEDControl] Device disconnected, monitor will restart on reconnect');
+						return;
+					}
+					console.error('LED control monitoring error:', error);
+					return;
+				}					if (characteristic?.value) {
 						const mode = parseLEDMode(characteristic.value);
 						if (onLEDStatusUpdate) {
 							onLEDStatusUpdate(mode);

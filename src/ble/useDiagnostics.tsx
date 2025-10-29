@@ -192,6 +192,11 @@ export const useDiagnostics = ({ deviceId, onSystemStatusUpdate, onErrorUpdate, 
               if (__DEV__) console.log('Device does not expose diagnostics system status characteristic');
               return;
             }
+            // Suppress expected disconnect/cancellation errors - device is reconnecting
+            if (error.message?.includes('was disconnected') || error.message?.includes('was cancelled')) {
+              if (__DEV__) console.log('[Diagnostics] Device disconnected, monitor will restart on reconnect');
+              return;
+            }
             console.error('System status monitoring error:', error);
             return;
           }
@@ -234,6 +239,11 @@ export const useDiagnostics = ({ deviceId, onSystemStatusUpdate, onErrorUpdate, 
           if (error) {
             if (error.message?.includes('Characteristic') && error.message?.includes('not found')) {
               if (__DEV__) console.log('Device does not expose diagnostics error characteristic');
+              return;
+            }
+            // Suppress expected disconnect/cancellation errors - device is reconnecting
+            if (error.message?.includes('was disconnected') || error.message?.includes('was cancelled')) {
+              if (__DEV__) console.log('[Diagnostics] Device disconnected, monitor will restart on reconnect');
               return;
             }
             console.error('Error code monitoring error:', error);

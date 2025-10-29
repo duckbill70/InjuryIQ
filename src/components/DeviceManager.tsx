@@ -13,7 +13,7 @@ import { useSession } from '../session/SessionProvider';
 import { Settings, Lightbulb, Lock, Unlock, Trash } from 'lucide-react-native';
 import FootIcon from './FootIcon';
 
-interface DeviceSettingsPanelProps {
+interface DeviceManagerProps {
 	enabled?: boolean; // Flag to enable/disable settings (for session state)
 }
 
@@ -196,25 +196,7 @@ const DeviceBox: React.FC<DeviceBoxProps> = ({ position, device, ledMode, enable
 		<View style={{ flexDirection: 'column', gap: 10 }}>
 
 			{/* Device */}
-			<View
-				style={[
-					theme.viewStyles.card,
-					{
-						backgroundColor: theme.colors.overlay,
-						height: LAYOUT_CONSTANTS.deviceBoxHeight,
-						borderWidth: 2,
-						borderColor: device ? POSITION_COLORS[position] : theme.colors.border,
-						opacity: enabled ? 1 : 0.7,
-						padding: 5,
-					},
-				]}
-			>
-				{/* Position Header */}
-				<View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 6, height: LAYOUT_CONSTANTS.headerHeight }}>
-					<Text style={[theme.textStyles.body, { fontWeight: '600', color: POSITION_COLORS[position], margin: 0 }]}>{POSITION_LABELS[position]}</Text>
-					 {device ? <PowerStateButton  deviceId={deviceId} buttonSize={CONTROL_BUTTON_STYLES.size} /> : null }
-				</View>
-
+			<View>
 				{/* Content Area - Fixed Height to Ensure Consistent Sizing */}
 				<View style={{ flex: 1, justifyContent: 'space-between' }}>
 					{device ? (
@@ -222,38 +204,6 @@ const DeviceBox: React.FC<DeviceBoxProps> = ({ position, device, ledMode, enable
 							{/* Watermark */}
 							<View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center', opacity: LAYOUT_CONSTANTS.watermarkOpacity }}>
 								<FootIcon size={LAYOUT_CONSTANTS.watermarkSize} side={position === 'leftFoot' ? 'left' : 'right'} color={currentLEDOption?.color} />
-							</View>
-
-							{/* Device Info */}
-							<View style={{ marginBottom: 8 }}>
-								<Text style={[theme.textStyles.body, { fontWeight: '600' }]}>{device.name || 'StingRay'}</Text>
-								<Text style={[theme.textStyles.body2, { color: theme.colors.muted }]}>{device.id.slice(-6)}</Text>
-								<View style={{ marginTop: 6 }}>
-									<View style={[theme.viewStyles.rowBetween, { marginBottom: 2 }]}>
-										<Text style={theme.textStyles.body}>State:</Text>
-										<Text style={[theme.textStyles.body, { fontWeight: '600' }]}>
-											{controlState === null
-												? '—'
-												: controlState === ControlState.STANDBY
-												? 'STANDBY'
-												: controlState === ControlState.RUN
-												? 'RUN'
-												: controlState === ControlState.STOP
-												? 'READY'
-												: controlState === ControlState.OFF
-												? 'OFF'
-												: '—'}
-										</Text>
-									</View>
-									<View style={[theme.viewStyles.rowBetween, { marginBottom: 2 }]}>
-										<Text style={theme.textStyles.body}>Battery:</Text>
-										<Text style={theme.textStyles.body}>{batteryPct !== null ? `${batteryPct}%` : '—'}</Text>
-									</View>
-									<View style={[theme.viewStyles.rowBetween]}>
-										<Text style={theme.textStyles.body}>FIFO Fill:</Text>
-										<Text style={theme.textStyles.body}>{fillPct !== null ? `${fillPct.toFixed(1)}%` : '—'}</Text>
-									</View>
-								</View>
 							</View>
 
 							{/* Control Buttons */}
@@ -280,23 +230,6 @@ const DeviceBox: React.FC<DeviceBoxProps> = ({ position, device, ledMode, enable
 									/>
 								</Pressable>
 
-								<Pressable
-									style={({ pressed }) => [
-										controlButtonBaseStyle,
-										{
-											backgroundColor: canChangePosition ? theme.colors.danger : theme.colors.muted,
-										},
-										!canChangePosition && { opacity: CONTROL_BUTTON_STYLES.disabledOpacity },
-										pressed && canChangePosition && { 
-											opacity: CONTROL_BUTTON_STYLES.pressedOpacity, 
-											transform: [{ scale: CONTROL_BUTTON_STYLES.pressedScale }] 
-										},
-									]}
-									onPress={() => canChangePosition && onRemoveDevice(device.id)}
-									disabled={!canChangePosition}
-								>
-									<Trash size={CONTROL_BUTTON_STYLES.iconSize} color={theme.colors.white} />
-								</Pressable>
 							</View>
 						</>
 					) : (
@@ -322,7 +255,7 @@ const DeviceBox: React.FC<DeviceBoxProps> = ({ position, device, ledMode, enable
 	);
 };
 
-export const DeviceSettingsPanel: React.FC<DeviceSettingsPanelProps> = () => {
+export const DeviceManager: React.FC<DeviceManagerProps> = () => {
 	const { connected, devicesByPosition, assignDevicePosition, unassignDevicePosition } = useBle();
 
 	const { theme } = useTheme();
@@ -541,31 +474,11 @@ export const DeviceSettingsPanel: React.FC<DeviceSettingsPanelProps> = () => {
 	);
 
 	return (
-		<View style={[theme.viewStyles.panelContainer, { backgroundColor: theme.colors.white }]}>
-			{/* Header */}
-			<View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, minHeight: 40 }}>
-				{/* Settings icon left */}
-				<View style={{ width: 40, alignItems: 'center', justifyContent: 'center' }}>
-					<Settings size={LAYOUT_CONSTANTS.headerIconSize} color={theme.colors.primary} />
-				</View>
-				{/* Title center */}
-				<View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-					<Text style={[theme.textStyles.panelTitle, { marginBottom: 0, fontSize: theme.fontSizes.lg }]}>Device Manager</Text>
-				</View>
-				{/* Lock/Unlock icon right */}
-				<View style={{ width: 40, alignItems: 'center', justifyContent: 'center' }}>
-					{!isActive ? (
-						<Unlock size={LAYOUT_CONSTANTS.headerIconSize} color={theme.colors.good} />
-					) : (
-						<Lock size={LAYOUT_CONSTANTS.headerIconSize} color={theme.colors.muted} />
-					)}
-				</View>
-			</View>
-
+		<View>
 			{/* Position Boxes - 2 on top row, 1 on bottom */}
-			<View style={{ marginBottom: 16 }}>
+			<View style={{ marginBottom: 20 }}>
 				{/* Top Row - Left Foot and Right Foot */}
-				<View style={[{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }]}>
+				<View style={[{ flexDirection: 'row', justifyContent: 'space-between'}]}>
 					{(['leftFoot', 'rightFoot'] as DevicePosition[]).map((position) => {
 						const device = devicesByPosition[position];
 						const ledMode = device ? ledModes[device.id] || LEDControlMode.AMBER : LEDControlMode.AMBER;
@@ -578,30 +491,6 @@ export const DeviceSettingsPanel: React.FC<DeviceSettingsPanelProps> = () => {
 					})}
 				</View>
 
-				{/* Bottom Row - Racket (centered) 
-				<View style={[{ flexDirection: 'row', justifyContent: 'center' }]}>
-					{(() => {
-						const position: DevicePosition = 'racket';
-						const device = devicesByPosition[position];
-						const ledMode = device ? (ledModes[device.id] || LEDControlMode.AMBER) : LEDControlMode.AMBER;
-
-						return (
-							// Same relative width as top row boxes
-							<View style={{ width: '48%' }}>
-								<DeviceBox
-									key={position}
-									position={position}
-									device={device || null}
-									ledMode={ledMode}
-									enabled={enabled}
-									onLEDModeChange={handleLEDModeChange}
-									onRemoveDevice={handleRemoveDevice}
-									onAssignDevice={handleAssignDevice}
-								/>
-							</View>
-						);
-					})()}
-				</View> */}
 			</View>
 		</View>
 	);

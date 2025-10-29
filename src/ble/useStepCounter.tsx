@@ -53,17 +53,20 @@ export const useStepCounter = ({ deviceId, onStepCountUpdate, enabled = true }: 
 			}
 
 			await device.monitorCharacteristicForService(STEP_SERVICE_UUID, STEP_COUNT_CHARACTERISTIC_UUID, (error: BleError | null, characteristic: Characteristic | null) => {
-				if (error) {
-					// Check if it's a "characteristic not found" error - this is expected if device doesn't support step counting
-					if (error.message?.includes('Characteristic') && error.message?.includes('not found')) {
-						if (__DEV__) console.log('Device does not support step counter characteristic - this is normal for some devices');
-						return;
-					}
-					console.error('Step counter monitoring error:', error);
+			if (error) {
+				// Check if it's a "characteristic not found" error - this is expected if device doesn't support step counting
+				if (error.message?.includes('Characteristic') && error.message?.includes('not found')) {
+					if (__DEV__) console.log('Device does not support step counter characteristic - this is normal for some devices');
 					return;
 				}
-
-						if (characteristic?.value) {
+				// Suppress expected disconnect/cancellation errors - device is reconnecting
+				if (error.message?.includes('was disconnected') || error.message?.includes('was cancelled')) {
+					if (__DEV__) console.log('[StepCounter] Device disconnected, monitor will restart on reconnect');
+					return;
+				}
+				console.error('Step counter monitoring error:', error);
+				return;
+			}						if (characteristic?.value) {
 							const stepCount = parseStepCount(characteristic.value);
 							if (lastStepCountRef.current !== null && stepCount < lastStepCountRef.current) {
 								// Counter reset (likely due to LED OFF / device reset)

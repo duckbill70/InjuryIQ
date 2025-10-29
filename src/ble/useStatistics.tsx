@@ -205,6 +205,10 @@ export const useStatistics = ({ deviceId, onStatisticsUpdate, enabled = true }: 
 							if (__DEV__) console.log('[Statistics] Device does not expose FIFO statistics characteristic');
 							return;
 						}
+						if (msg.includes('was disconnected') || msg.includes('was cancelled')) {
+							if (__DEV__) console.log('[Statistics] Device disconnected, monitor will restart on reconnect');
+							return;
+						}
 						if (msg.includes('Operation was cancelled') || msg.includes('read failed')) {
 							if (__DEV__) console.debug('[Statistics] Transient monitor error:', msg);
 							return;

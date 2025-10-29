@@ -80,6 +80,7 @@ const colors = {
 	white: '#ffffff',
 	amber: '#FFBF00',
 	deepGreen: '#059669', // emerald-600 - deep vivid rich green
+	overlay: 'rgba(0,0,0,0.1)', // subtle black overlay
 };
 
 export const lightTheme = {

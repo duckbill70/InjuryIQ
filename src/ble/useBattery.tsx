@@ -42,17 +42,20 @@ export const useBattery = ({
 				BATTERY_SERVICE_UUID,
 				BATTERY_LEVEL_CHARACTERISTIC_UUID,
 				(error: BleError | null, characteristic: Characteristic | null) => {
-					if (error) {
-						// Check if it's a "characteristic not found" error - this means device doesn't support battery service
-						if (error.message?.includes('Characteristic') && error.message?.includes('not found')) {
-							if (__DEV__) console.log('Device does not support battery level characteristic - this is normal for some devices');
-							return;
-						}
-						console.error('Battery monitoring error:', error);
+				if (error) {
+					// Check if it's a "characteristic not found" error - this means device doesn't support battery service
+					if (error.message?.includes('Characteristic') && error.message?.includes('not found')) {
+						if (__DEV__) console.log('Device does not support battery level characteristic - this is normal for some devices');
 						return;
 					}
-
-					if (characteristic?.value) {
+					// Suppress expected disconnect/cancellation errors - device is reconnecting
+					if (error.message?.includes('was disconnected') || error.message?.includes('was cancelled')) {
+						if (__DEV__) console.log('[Battery] Device disconnected, monitor will restart on reconnect');
+						return;
+					}
+					console.error('Battery monitoring error:', error);
+					return;
+				}					if (characteristic?.value) {
 						const level = parseBatteryLevel(characteristic.value);
 						if (onBatteryUpdate) {
 							onBatteryUpdate(level);

@@ -69,6 +69,11 @@ export const useControl = ({ deviceId, onStateUpdate, enabled = true }: UseContr
               if (__DEV__) console.log('Device does not expose Control characteristic');
               return;
             }
+            // Suppress expected disconnect/cancellation errors - device is reconnecting
+            if (error.message?.includes('was disconnected') || error.message?.includes('was cancelled')) {
+              if (__DEV__) console.log('[Control] Device disconnected, monitor will restart on reconnect');
+              return;
+            }
             console.error('Control monitoring error:', error);
             return;
           }

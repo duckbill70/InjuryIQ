@@ -35,6 +35,26 @@ const LED_MODE_OPTIONS = [
 	{ value: LEDControlMode.SOLID_BLUE, label: 'Collecting', shortLabel: 'S-B', color: '#3B82F6' },
 ];
 
+// Shared button styles - matching PowerStateCycler component
+const CONTROL_BUTTON_STYLES = {
+	size: 44,
+	borderRadius: 6,
+	borderWidth: 2,
+	iconSize: 24,
+	disabledOpacity: 0.4,
+	pressedOpacity: 0.7,
+	pressedScale: 0.95,
+};
+
+// Shared layout constants
+const LAYOUT_CONSTANTS = {
+	deviceBoxHeight: 230,
+	watermarkOpacity: 0.4,
+	watermarkSize: 140,
+	headerHeight: 50,
+	headerIconSize: 28,
+};
+
 // Compact device box component
 interface DeviceBoxProps {
 	position: DevicePosition;
@@ -160,6 +180,17 @@ const DeviceBox: React.FC<DeviceBoxProps> = ({ position, device, ledMode, enable
 
 	const currentLEDOption = LED_MODE_OPTIONS.find((opt) => opt.value === ledMode);
 
+	// Shared button base style
+	const controlButtonBaseStyle = {
+		width: CONTROL_BUTTON_STYLES.size,
+		height: CONTROL_BUTTON_STYLES.size,
+		borderRadius: CONTROL_BUTTON_STYLES.borderRadius,
+		alignItems: 'center' as const,
+		justifyContent: 'center' as const,
+		borderWidth: CONTROL_BUTTON_STYLES.borderWidth,
+		borderColor: theme.colors.white,
+	};
+
 	return (
 		<View style={{ flexDirection: 'column', gap: 10 }}>
 
@@ -169,7 +200,7 @@ const DeviceBox: React.FC<DeviceBoxProps> = ({ position, device, ledMode, enable
 					theme.viewStyles.card,
 					{
 						backgroundColor: 'rgba(0,0,0,0.1)',
-						height: 230,
+						height: LAYOUT_CONSTANTS.deviceBoxHeight,
 						borderWidth: 2,
 						borderColor: device ? POSITION_COLORS[position] : theme.colors.border,
 						opacity: enabled ? 1 : 0.7,
@@ -178,9 +209,9 @@ const DeviceBox: React.FC<DeviceBoxProps> = ({ position, device, ledMode, enable
 				]}
 			>
 				{/* Position Header */}
-				<View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 6, height: 50 }}>
+				<View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 6, height: LAYOUT_CONSTANTS.headerHeight }}>
 					<Text style={[theme.textStyles.body, { fontWeight: '600', color: POSITION_COLORS[position], margin: 0 }]}>{POSITION_LABELS[position]}</Text>
-					 {device ? <PowerStateButton  deviceId={deviceId} buttonSize={44} /> : null }
+					 {device ? <PowerStateButton  deviceId={deviceId} buttonSize={CONTROL_BUTTON_STYLES.size} /> : null }
 				</View>
 
 				{/* Content Area - Fixed Height to Ensure Consistent Sizing */}
@@ -188,8 +219,8 @@ const DeviceBox: React.FC<DeviceBoxProps> = ({ position, device, ledMode, enable
 					{device ? (
 						<>
 							{/* Watermark */}
-							<View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center', opacity: 0.4 }}>
-								<FootIcon size={140} side={position === 'leftFoot' ? 'left' : 'right'} color={currentLEDOption?.color} />
+							<View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center', opacity: LAYOUT_CONSTANTS.watermarkOpacity }}>
+								<FootIcon size={LAYOUT_CONSTANTS.watermarkSize} side={position === 'leftFoot' ? 'left' : 'right'} color={currentLEDOption?.color} />
 							</View>
 
 							{/* Device Info */}
@@ -228,56 +259,58 @@ const DeviceBox: React.FC<DeviceBoxProps> = ({ position, device, ledMode, enable
 							<View style={{ flexDirection: 'row', alignContent: 'center', justifyContent: 'space-between' }}>
 								<Pressable
 									style={({ pressed }) => [
+										controlButtonBaseStyle,
 										{
-											width: 44,
-											height: 44,
-											borderRadius: 6,
-											alignItems: 'center',
-											justifyContent: 'center',
-											borderWidth: 2,
-											borderColor: theme.colors.white,
 											backgroundColor: canChangePosition ? theme.colors.black : theme.colors.white,
 										},
-										!canChangeLED && { opacity: 0.4 },
-										pressed && canChangeLED && { opacity: 0.7, transform: [{ scale: 0.95 }] },
+										!canChangeLED && { opacity: CONTROL_BUTTON_STYLES.disabledOpacity },
+										pressed && canChangeLED && { 
+											opacity: CONTROL_BUTTON_STYLES.pressedOpacity, 
+											transform: [{ scale: CONTROL_BUTTON_STYLES.pressedScale }] 
+										},
 									]}
 									onPress={handleLEDStep}
 									disabled={!canChangeLED}
 								>
-									<Lightbulb size={24} color={canChangeLED ? currentLEDOption?.color : theme.colors.muted} fill={canChangeLED ? currentLEDOption?.color : theme.colors.muted} />
+									<Lightbulb 
+										size={CONTROL_BUTTON_STYLES.iconSize} 
+										color={canChangeLED ? currentLEDOption?.color : theme.colors.muted} 
+										fill={canChangeLED ? currentLEDOption?.color : theme.colors.muted} 
+									/>
 								</Pressable>
 
 								<Pressable
 									style={({ pressed }) => [
+										controlButtonBaseStyle,
 										{
-											width: 44,
-											height: 44,
-											borderRadius: 6,
-											alignItems: 'center',
-											justifyContent: 'center',
-											borderWidth: 2,
-											borderColor: theme.colors.white,
 											backgroundColor: canChangePosition ? theme.colors.danger : theme.colors.muted,
 										},
-										!canChangePosition && { opacity: 0.4 },
-										pressed && canChangePosition && { opacity: 0.7, transform: [{ scale: 0.95 }] },
+										!canChangePosition && { opacity: CONTROL_BUTTON_STYLES.disabledOpacity },
+										pressed && canChangePosition && { 
+											opacity: CONTROL_BUTTON_STYLES.pressedOpacity, 
+											transform: [{ scale: CONTROL_BUTTON_STYLES.pressedScale }] 
+										},
 									]}
 									onPress={() => canChangePosition && onRemoveDevice(device.id)}
 									disabled={!canChangePosition}
 								>
-									<Trash size={24} color={theme.colors.white} />
+									<Trash size={CONTROL_BUTTON_STYLES.iconSize} color={theme.colors.white} />
 								</Pressable>
 							</View>
 						</>
 					) : (
 						// Empty slot - show assign button
-						<View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', height: 230 }}>
+						<View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', height: LAYOUT_CONSTANTS.deviceBoxHeight }}>
 							<Pressable
-								style={({ pressed }) => [{ borderRadius: 8 }, !enabled ? { opacity: 0.5 } : { opacity: pressed ? 0.85 : 1 }, { transform: [{ scale: pressed ? 0.98 : 1 }] }]}
+								style={({ pressed }) => [
+									{ borderRadius: 8 }, 
+									!enabled ? { opacity: 0.5 } : { opacity: pressed ? 0.85 : 1 }, 
+									{ transform: [{ scale: pressed ? 0.98 : 1 }] }
+								]}
 								onPress={() => enabled && onAssignDevice(position)}
 								disabled={!enabled}
 							>
-								<FootIcon size={140} side={position === 'leftFoot' ? 'left' : 'right'} color={theme.colors.primary} />
+								<FootIcon size={LAYOUT_CONSTANTS.watermarkSize} side={position === 'leftFoot' ? 'left' : 'right'} color={theme.colors.primary} />
 							</Pressable>
 						</View>
 					)}
@@ -510,16 +543,22 @@ export const DeviceSettingsPanel: React.FC<DeviceSettingsPanelProps> = ({ enable
 		<View style={[theme.viewStyles.panelContainer, { backgroundColor: theme.colors.white }]}>
 			{/* Header */}
 			<View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, minHeight: 40 }}>
-				{/* Bluetooth icon left */}
+				{/* Settings icon left */}
 				<View style={{ width: 40, alignItems: 'center', justifyContent: 'center' }}>
-					<Settings size={28} color={theme.colors.primary} />
+					<Settings size={LAYOUT_CONSTANTS.headerIconSize} color={theme.colors.primary} />
 				</View>
 				{/* Title center */}
 				<View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
 					<Text style={[theme.textStyles.panelTitle, { marginBottom: 0, fontSize: theme.fontSizes.lg }]}>Device Manager</Text>
 				</View>
-				{/* Connected count right */}
-				<View style={{ width: 40, alignItems: 'center', justifyContent: 'center' }}>{enabled ? <Unlock size={28} color={theme.colors.good} /> : <Lock size={18} color={theme.colors.muted} />}</View>
+				{/* Lock/Unlock icon right */}
+				<View style={{ width: 40, alignItems: 'center', justifyContent: 'center' }}>
+					{enabled ? (
+						<Unlock size={LAYOUT_CONSTANTS.headerIconSize} color={theme.colors.good} />
+					) : (
+						<Lock size={18} color={theme.colors.muted} />
+					)}
+				</View>
 			</View>
 
 			{/* Position Boxes - 2 on top row, 1 on bottom */}

@@ -36,7 +36,7 @@ async function getSessionHeader(filePath: string): Promise<SessionHeader | null>
 		const firstLine = content.split('\n')[0];
 		if (firstLine) {
 			const parsed = JSON.parse(firstLine);
-			console.log('Parsed header:', parsed);
+			if (__DEV__) console.log('Parsed header:', parsed);
 			if (parsed.type === 'header') {
 				return parsed as SessionHeader;
 			}

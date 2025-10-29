@@ -8,7 +8,7 @@ export async function ensureGpsAuthorization(
     const res = await Geolocation.requestAuthorization(mode);
     // iOS returns: 'granted' | 'denied' | 'disabled' | 'restricted'
     // Note: 'authorizedAlways' and 'authorizedWhenInUse' are legacy values not in current types
-    console.log('[gps] RNGLS requestAuthorization ->', res);
+    if (__DEV__) console.log('[gps] RNGLS requestAuthorization ->', res);
     if (res === 'granted') {
       return true;
     }

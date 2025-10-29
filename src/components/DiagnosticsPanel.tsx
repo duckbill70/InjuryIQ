@@ -161,9 +161,9 @@ export const DiagnosticsPanel: React.FC = () => {
 
   const handleDumpFifo = useCallback(async () => {
     if (!deviceId) return;
-    const ok = await requestFifoDump();
-    if (ok) {
-      console.log('FIFO dump requested - check Serial output');
+    const success = await requestFifoDump();
+    if (success) {
+      if (__DEV__) console.log('FIFO dump requested - check Serial output');
     } else {
       console.warn('FIFO dump request failed (must be in STANDBY)');
     }

@@ -94,12 +94,14 @@ export function useNotify(opts: NotifyOpts = {}) {
 	const debugCheck = useCallback(
 		async (tag = 'notify') => {
 			const s = await getPermissionStatus();
-			console.log(`[${tag}] iOS auth status:`, s, {
-				NOT_DETERMINED: AuthorizationStatus.NOT_DETERMINED,
-				DENIED: AuthorizationStatus.DENIED,
-				AUTHORIZED: AuthorizationStatus.AUTHORIZED,
-				PROVISIONAL: AuthorizationStatus.PROVISIONAL,
-			});
+			if (__DEV__) {
+				console.log(`[${tag}] iOS auth status:`, s, {
+					NOT_DETERMINED: AuthorizationStatus.NOT_DETERMINED,
+					DENIED: AuthorizationStatus.DENIED,
+					AUTHORIZED: AuthorizationStatus.AUTHORIZED,
+					PROVISIONAL: AuthorizationStatus.PROVISIONAL,
+				});
+			}
 		},
 		[getPermissionStatus],
 	);

@@ -10,8 +10,6 @@ import { SessionFileList } from '../components';
 //import { useAuth } from '../auth/AuthProvider';
 //import { useTheme } from '../theme/ThemeContext';
 
-//import FileTable from '../file/FileTable';
-
 //type Recordings = RouteProp<RootStackParamList, 'Recordings'>;
 
 export default function RecordingsScreen() {

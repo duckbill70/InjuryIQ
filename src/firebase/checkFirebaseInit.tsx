@@ -1,14 +1,10 @@
-import { getApps, getApp } from '@react-native-firebase/app';
+import firebase from '@react-native-firebase/app';
 
-export function checkFirebaseInit() {
-	const apps = getApps();
-	if (apps.length === 0) {
-		console.warn('No Firebase apps have been initialized!');
-		return null;
+export const checkFirebaseInit = () => {
+	const defaultApp = firebase.app(); // should get [DEFAULT] app
+	if (__DEV__) {
+		console.log('Firebase default app initialized:', defaultApp.name);
+		console.log('Config options:', defaultApp.options); // shows plist values
 	}
-
-	const defaultApp = getApp(); // should be "[DEFAULT]"
-	console.log('Firebase default app initialized:', defaultApp.name);
-	console.log('Config options:', defaultApp.options); // shows plist values
 	return defaultApp;
-}
+};

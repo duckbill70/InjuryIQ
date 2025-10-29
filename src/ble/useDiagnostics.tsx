@@ -189,7 +189,7 @@ export const useDiagnostics = ({ deviceId, onSystemStatusUpdate, onErrorUpdate, 
         (error: BleError | null, characteristic: Characteristic | null) => {
           if (error) {
             if (error.message?.includes('Characteristic') && error.message?.includes('not found')) {
-              console.log('Device does not expose diagnostics system status characteristic');
+              if (__DEV__) console.log('Device does not expose diagnostics system status characteristic');
               return;
             }
             console.error('System status monitoring error:', error);
@@ -210,7 +210,7 @@ export const useDiagnostics = ({ deviceId, onSystemStatusUpdate, onErrorUpdate, 
         (error.message.includes('Service') || error.message.includes('Characteristic')) &&
         error.message.includes('not found')
       ) {
-        console.log('Device does not support diagnostics system status');
+        if (__DEV__) console.log('Device does not support diagnostics system status');
         return;
       }
       console.error('Failed to subscribe to system status:', error);
@@ -233,7 +233,7 @@ export const useDiagnostics = ({ deviceId, onSystemStatusUpdate, onErrorUpdate, 
         (error: BleError | null, characteristic: Characteristic | null) => {
           if (error) {
             if (error.message?.includes('Characteristic') && error.message?.includes('not found')) {
-              console.log('Device does not expose diagnostics error characteristic');
+              if (__DEV__) console.log('Device does not expose diagnostics error characteristic');
               return;
             }
             console.error('Error code monitoring error:', error);
@@ -254,7 +254,7 @@ export const useDiagnostics = ({ deviceId, onSystemStatusUpdate, onErrorUpdate, 
         (error.message.includes('Service') || error.message.includes('Characteristic')) &&
         error.message.includes('not found')
       ) {
-        console.log('Device does not support diagnostics error logging');
+        if (__DEV__) console.log('Device does not support diagnostics error logging');
         return;
       }
       console.error('Failed to subscribe to error codes:', error);
@@ -294,7 +294,7 @@ export const useDiagnostics = ({ deviceId, onSystemStatusUpdate, onErrorUpdate, 
         (error.message.includes('Service') || error.message.includes('Characteristic')) &&
         error.message.includes('not found')
       ) {
-        console.log('Device does not support diagnostics service');
+        if (__DEV__) console.log('Device does not support diagnostics service');
         return null;
       }
       console.error('Failed to read system status:', error);

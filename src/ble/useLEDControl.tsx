@@ -66,7 +66,7 @@ export const useLEDControl = ({
 					if (error) {
 						// Check if it's a "characteristic not found" error - this is expected if device doesn't support LED control
 						if (error.message?.includes('Characteristic') && error.message?.includes('not found')) {
-							console.log('Device does not support LED control characteristic - this is normal for some devices');
+							if (__DEV__) console.log('Device does not support LED control characteristic - this is normal for some devices');
 							return;
 						}
 						console.error('LED control monitoring error:', error);
@@ -86,7 +86,7 @@ export const useLEDControl = ({
 			if (error instanceof Error && 
 				(error.message.includes('Service') || error.message.includes('Characteristic')) && 
 				error.message.includes('not found')) {
-				console.log('Device does not support LED control service - this is normal for some devices');
+				if (__DEV__) console.log('Device does not support LED control service - this is normal for some devices');
 				return;
 			}
 			console.error('Failed to subscribe to LED control:', error);

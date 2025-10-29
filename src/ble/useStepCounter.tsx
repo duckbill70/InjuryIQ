@@ -56,7 +56,7 @@ export const useStepCounter = ({ deviceId, onStepCountUpdate, enabled = true }: 
 				if (error) {
 					// Check if it's a "characteristic not found" error - this is expected if device doesn't support step counting
 					if (error.message?.includes('Characteristic') && error.message?.includes('not found')) {
-						console.log('Device does not support step counter characteristic - this is normal for some devices');
+						if (__DEV__) console.log('Device does not support step counter characteristic - this is normal for some devices');
 						return;
 					}
 					console.error('Step counter monitoring error:', error);
@@ -78,7 +78,7 @@ export const useStepCounter = ({ deviceId, onStepCountUpdate, enabled = true }: 
 		} catch (error) {
 			// Handle service/characteristic not found gracefully
 			if (error instanceof Error && (error.message.includes('Service') || error.message.includes('Characteristic')) && error.message.includes('not found')) {
-				console.log('Device does not support step counter service - this is normal for some devices');
+				if (__DEV__) console.log('Device does not support step counter service - this is normal for some devices');
 				return;
 			}
 			console.error('Failed to subscribe to step counter:', error);
@@ -92,7 +92,7 @@ export const useStepCounter = ({ deviceId, onStepCountUpdate, enabled = true }: 
 		try {
 			// Note: react-native-ble-plx doesn't have cancelTransaction
 			// The subscription will be automatically cleaned up when the device disconnects
-			console.log('Step counter monitoring will stop when device disconnects');
+			if (__DEV__) console.log('Step counter monitoring will stop when device disconnects');
 		} catch (error) {
 			console.error('Failed to unsubscribe from step counter:', error);
 		}

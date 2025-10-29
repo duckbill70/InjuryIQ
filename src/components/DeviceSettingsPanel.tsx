@@ -8,6 +8,7 @@ import { useControl, ControlState } from '../ble/useControl';
 import { useBattery } from '../ble/useBattery';
 import { useStatistics } from '../ble/useStatistics';
 import { PowerStateButton } from './PowerStateCycler';
+import { useSession } from '../session/SessionProvider';
 
 import { Settings, Lightbulb, Lock, Unlock, Trash } from 'lucide-react-native';
 import FootIcon from './FootIcon';
@@ -329,6 +330,8 @@ export const DeviceSettingsPanel: React.FC<DeviceSettingsPanelProps> = ({ enable
 	// LED control states for each device
 	const [ledModes, setLedModes] = useState<Record<string, LEDControlMode>>({});
 
+	const { isActive } = useSession()
+
 	// Available devices that can be assigned
 	//const availableDevices = Object.values(connected).filter(device => !device.position);
 
@@ -370,12 +373,10 @@ export const DeviceSettingsPanel: React.FC<DeviceSettingsPanelProps> = ({ enable
 						return mode as LEDControlMode;
 					}
 				}
-			} catch (error) {
-				// Device might not support LED control - this is normal
-				console.log(`Device ${deviceId} does not support LED control or read failed:`, error);
-			}
-
-			return LEDControlMode.AMBER; // Default fallback
+		} catch (error) {
+			// Device might not support LED control - this is normal
+			if (__DEV__) console.log(`Device ${deviceId} does not support LED control or read failed:`, error);
+		}			return LEDControlMode.AMBER; // Default fallback
 		},
 		[connected],
 	);
@@ -433,15 +434,15 @@ export const DeviceSettingsPanel: React.FC<DeviceSettingsPanelProps> = ({ enable
 				const encodedMode = char1 + char2 + '==';
 
 				// Send the command directly to the device using the same UUIDs as useLEDControl
-				await device.writeCharacteristicWithResponseForService(
-					'19b10010-e8f2-537e-4f6c-d104768a1214', // LED_SERVICE_UUID
-					'19b10010-e8f2-537e-4f6c-d104768a1215', // LED_CONTROL_CHARACTERISTIC_UUID
-					encodedMode,
-				);
+			await device.writeCharacteristicWithResponseForService(
+				'19b10010-e8f2-537e-4f6c-d104768a1214', // LED_SERVICE_UUID
+				'19b10010-e8f2-537e-4f6c-d104768a1215', // LED_CONTROL_CHARACTERISTIC_UUID
+				encodedMode,
+			);
 
-				console.log(`Successfully set LED mode for device ${deviceId} to ${mode}`);
-			} catch (error) {
-				console.warn(`Failed to set LED mode for device ${deviceId}:`, error);
+			if (__DEV__) console.log(`Successfully set LED mode for device ${deviceId} to ${mode}`);
+		} catch (error) {
+			console.warn(`Failed to set LED mode for device ${deviceId}:`, error);
 				// Revert the local state on error - set back to previous value or default
 				setLedModes((prev) => ({ ...prev, [deviceId]: LEDControlMode.AMBER }));
 				Alert.alert('Error', `Failed to set LED mode: ${error}`);
@@ -553,10 +554,10 @@ export const DeviceSettingsPanel: React.FC<DeviceSettingsPanelProps> = ({ enable
 				</View>
 				{/* Lock/Unlock icon right */}
 				<View style={{ width: 40, alignItems: 'center', justifyContent: 'center' }}>
-					{enabled ? (
+					{!isActive ? (
 						<Unlock size={LAYOUT_CONSTANTS.headerIconSize} color={theme.colors.good} />
 					) : (
-						<Lock size={18} color={theme.colors.muted} />
+						<Lock size={LAYOUT_CONSTANTS.headerIconSize} color={theme.colors.muted} />
 					)}
 				</View>
 			</View>
@@ -571,7 +572,7 @@ export const DeviceSettingsPanel: React.FC<DeviceSettingsPanelProps> = ({ enable
 
 						return (
 							<View key={position} style={{ width: '49%' }}>
-								<DeviceBox position={position} device={device || null} ledMode={ledMode} enabled={enabled} onLEDModeChange={handleLEDModeChange} onRemoveDevice={handleRemoveDevice} onAssignDevice={handleAssignDevice} />
+								<DeviceBox position={position} device={device || null} ledMode={ledMode} enabled={!isActive} onLEDModeChange={handleLEDModeChange} onRemoveDevice={handleRemoveDevice} onAssignDevice={handleAssignDevice} />
 							</View>
 						);
 					})}

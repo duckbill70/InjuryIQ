@@ -232,7 +232,7 @@ export const useStatistics = ({ deviceId, onStatisticsUpdate, enabled = true }: 
 				(error.message.includes('Service') || error.message.includes('Characteristic')) &&
 				error.message.includes('not found')
 			) {
-				console.log('[Statistics] Device does not support statistics service');
+				if (__DEV__) console.log('[Statistics] Device does not support statistics service');
 				return;
 			}
 			console.error('[Statistics] Failed to subscribe to statistics:', error);

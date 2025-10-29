@@ -119,7 +119,7 @@ export const cleanupOldDevices = async (): Promise<void> => {
 		});
 		
 		await saveDevicePositions(cleanedDevices);
-		console.log('[BLE] Cleaned up old device entries');
+		if (__DEV__) console.log('[BLE] Cleaned up old device entries');
 	} catch (error) {
 		console.warn('[BLE] Failed to cleanup old devices:', error);
 	}

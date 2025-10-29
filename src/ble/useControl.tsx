@@ -66,7 +66,7 @@ export const useControl = ({ deviceId, onStateUpdate, enabled = true }: UseContr
         (error: BleError | null, characteristic: Characteristic | null) => {
           if (error) {
             if (error.message?.includes('Characteristic') && error.message?.includes('not found')) {
-              console.log('Device does not expose Control characteristic');
+              if (__DEV__) console.log('Device does not expose Control characteristic');
               return;
             }
             console.error('Control monitoring error:', error);
@@ -85,7 +85,7 @@ export const useControl = ({ deviceId, onStateUpdate, enabled = true }: UseContr
         (error.message.includes('Service') || error.message.includes('Characteristic')) &&
         error.message.includes('not found')
       ) {
-        console.log('Device does not support Control service');
+        if (__DEV__) console.log('Device does not support Control service');
         return;
       }
       console.error('Failed to subscribe to Control service:', error);

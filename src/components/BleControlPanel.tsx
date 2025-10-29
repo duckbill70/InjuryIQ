@@ -21,6 +21,7 @@ export const BleControlPanel: React.FC = () => {
 		stopScan
 	} = useBle();
 
+
 	const [autoScanEnabled, setAutoScanEnabled] = useState(false);
 	//const [lastScanTime, setLastScanTime] = useState<Date | null>(null);
 
@@ -39,13 +40,13 @@ export const BleControlPanel: React.FC = () => {
 		const interval = setInterval(async () => {
 			if (scanning) return; // Don't interrupt ongoing scan
 
-			const currentConnectedCount = Object.keys(connected).length;
-			if (currentConnectedCount >= MAX_DEVICES) return; // Already have max devices
+		const currentConnectedCount = Object.keys(connected).length;
+		if (currentConnectedCount >= MAX_DEVICES) return; // Already have max devices
 
-			try {
-				console.log(`[AutoScan] Starting auto-scan (${currentConnectedCount}/${MAX_DEVICES} devices connected)`);
-				//setLastScanTime(new Date());
-				await startScan({ 
+		try {
+			if (__DEV__) console.log(`[AutoScan] Starting auto-scan (${currentConnectedCount}/${MAX_DEVICES} devices connected)`);
+			//setLastScanTime(new Date());
+			await startScan({
 					timeoutMs: SCAN_DURATION_MS, 
 					maxDevices: MAX_DEVICES - currentConnectedCount,
 					clearFoundDevices: false // Don't clear existing devices during auto-scan
@@ -55,13 +56,13 @@ export const BleControlPanel: React.FC = () => {
 			}
 		}, AUTO_SCAN_INTERVAL_MS);
 
-		// Initial scan if no devices connected
-		if (connectedCount === 0) {
-			const initialScan = async () => {
-				try {
-					console.log('[AutoScan] Starting initial scan');
-					//setLastScanTime(new Date());
-					await startScan({ 
+	// Initial scan if no devices connected
+	if (connectedCount === 0) {
+		const initialScan = async () => {
+			try {
+				if (__DEV__) console.log('[AutoScan] Starting initial scan');
+				//setLastScanTime(new Date());
+				await startScan({
 						timeoutMs: SCAN_DURATION_MS, 
 						maxDevices: MAX_DEVICES,
 						clearFoundDevices: true // Clear for initial scan

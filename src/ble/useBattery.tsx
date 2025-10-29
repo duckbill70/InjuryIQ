@@ -45,7 +45,7 @@ export const useBattery = ({
 					if (error) {
 						// Check if it's a "characteristic not found" error - this means device doesn't support battery service
 						if (error.message?.includes('Characteristic') && error.message?.includes('not found')) {
-							console.log('Device does not support battery level characteristic - this is normal for some devices');
+							if (__DEV__) console.log('Device does not support battery level characteristic - this is normal for some devices');
 							return;
 						}
 						console.error('Battery monitoring error:', error);
@@ -65,7 +65,7 @@ export const useBattery = ({
 			if (error instanceof Error && 
 				(error.message.includes('Service') || error.message.includes('Characteristic')) && 
 				error.message.includes('not found')) {
-				console.log('Device does not support battery service - this is normal for some devices');
+				if (__DEV__) console.log('Device does not support battery service - this is normal for some devices');
 				return;
 			}
 			console.error('Failed to subscribe to battery level:', error);
@@ -109,7 +109,7 @@ export const useBattery = ({
 			if (error instanceof Error && 
 				(error.message.includes('Service') || error.message.includes('Characteristic')) && 
 				error.message.includes('not found')) {
-				console.log('Device does not support battery service - this is normal for some devices');
+				if (__DEV__) console.log('Device does not support battery service - this is normal for some devices');
 				return null;
 			}
 			console.error('Failed to read battery level:', error);

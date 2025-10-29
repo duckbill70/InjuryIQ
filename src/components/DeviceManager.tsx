@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, Pressable, Alert } from 'react-native';
+import { View, Pressable, Alert } from 'react-native';
 
 import { useBle, DevicePosition } from '../ble/BleProvider';
 import { LEDControlMode } from '../ble/useLEDControl';
@@ -7,10 +7,10 @@ import { useTheme } from '../theme/ThemeContext';
 import { useControl, ControlState } from '../ble/useControl';
 import { useBattery } from '../ble/useBattery';
 import { useStatistics } from '../ble/useStatistics';
-import { PowerStateButton } from './PowerStateCycler';
+// import { PowerStateButton } from './PowerStateCycler';
 import { useSession } from '../session/SessionProvider';
 
-import { Settings, Lightbulb, Lock, Unlock, Trash } from 'lucide-react-native';
+import { ArrowLeftRight } from 'lucide-react-native';
 import FootIcon from './FootIcon';
 
 interface DeviceManagerProps {
@@ -36,20 +36,20 @@ const LED_MODE_OPTIONS = [
 	{ value: LEDControlMode.SOLID_BLUE, label: 'Collecting', shortLabel: 'S-B', color: '#3B82F6' },
 ];
 
-// Shared button styles - matching PowerStateCycler component
-const CONTROL_BUTTON_STYLES = {
-	size: 44,
-	borderRadius: 6,
-	borderWidth: 2,
-	iconSize: 24,
-	disabledOpacity: 0.4,
-	pressedOpacity: 0.7,
-	pressedScale: 0.95,
-};
+// Shared button styles - matching PowerStateCycler component (not used now; kept for future controls)
+// const CONTROL_BUTTON_STYLES = {
+// 	size: 44,
+// 	borderRadius: 6,
+// 	borderWidth: 2,
+// 	iconSize: 24,
+// 	disabledOpacity: 0.4,
+// 	pressedOpacity: 0.7,
+// 	pressedScale: 0.95,
+// };
 
 // Shared layout constants
 const LAYOUT_CONSTANTS = {
-	deviceBoxHeight: 230,
+	deviceBoxHeight: 150,
 	watermarkOpacity: 0.4,
 	watermarkSize: 140,
 	headerHeight: 50,
@@ -67,14 +67,14 @@ interface DeviceBoxProps {
 	onAssignDevice: (position: DevicePosition) => void;
 }
 
-const DeviceBox: React.FC<DeviceBoxProps> = ({ position, device, ledMode, enabled, onLEDModeChange, onRemoveDevice, onAssignDevice }) => {
+const DeviceBox: React.FC<DeviceBoxProps> = ({ position, device, ledMode, enabled, onLEDModeChange, onRemoveDevice: _onRemoveDevice, onAssignDevice }) => {
 	const { theme } = useTheme();
 	const deviceId = device?.id || '';
 
 	// Device state/battery/FIFO fill
 	const [controlState, setControlState] = useState<ControlState | null>(null);
-	const [batteryPct, setBatteryPct] = useState<number | null>(null);
-	const [fillPct, setFillPct] = useState<number | null>(null);
+	const [_batteryPct, setBatteryPct] = useState<number | null>(null);
+	const [_fillPct, setFillPct] = useState<number | null>(null);
 
 	// Hooks for control state
 	const {
@@ -170,7 +170,7 @@ const DeviceBox: React.FC<DeviceBoxProps> = ({ position, device, ledMode, enable
 	const canChangeLED = !!device && enabled && controlState === ControlState.STOP;
 
 	// Allow device position changes (assign/remove) only in STOP
-	const canChangePosition = !!device && enabled && controlState === ControlState.STOP;
+	// const canChangePosition = !!device && enabled && controlState === ControlState.STOP;
 
 	const handleLEDStep = () => {
 		if (device && canChangeLED) {
@@ -181,75 +181,62 @@ const DeviceBox: React.FC<DeviceBoxProps> = ({ position, device, ledMode, enable
 
 	const currentLEDOption = LED_MODE_OPTIONS.find((opt) => opt.value === ledMode);
 
-	// Shared button base style
-	const controlButtonBaseStyle = {
-		width: CONTROL_BUTTON_STYLES.size,
-		height: CONTROL_BUTTON_STYLES.size,
-		borderRadius: CONTROL_BUTTON_STYLES.borderRadius,
-		alignItems: 'center' as const,
-		justifyContent: 'center' as const,
-		borderWidth: CONTROL_BUTTON_STYLES.borderWidth,
-		borderColor: theme.colors.white,
-	};
+	// Shared button base style (no longer used after removing separate control button)
+	// const controlButtonBaseStyle = {
+	// 	width: CONTROL_BUTTON_STYLES.size,
+	// 	height: CONTROL_BUTTON_STYLES.size,
+	// 	borderRadius: CONTROL_BUTTON_STYLES.borderRadius,
+	// 	alignItems: 'center' as const,
+	// 	justifyContent: 'center' as const,
+	// 	borderWidth: CONTROL_BUTTON_STYLES.borderWidth,
+	// 	borderColor: theme.colors.white,
+	// };
 
 	return (
-		<View style={{ flexDirection: 'column', gap: 10 }}>
+		<View style={{ flexDirection: 'column' }}>
 
 			{/* Device */}
-			<View>
-				{/* Content Area - Fixed Height to Ensure Consistent Sizing */}
-				<View style={{ flex: 1, justifyContent: 'space-between' }}>
-					{device ? (
-						<>
-							{/* Watermark */}
-							<View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center', opacity: LAYOUT_CONSTANTS.watermarkOpacity }}>
-								<FootIcon size={LAYOUT_CONSTANTS.watermarkSize} side={position === 'leftFoot' ? 'left' : 'right'} color={currentLEDOption?.color} />
-							</View>
-
-							{/* Control Buttons */}
-							<View style={{ flexDirection: 'row', alignContent: 'center', justifyContent: 'space-between' }}>
-								<Pressable
-									style={({ pressed }) => [
-										controlButtonBaseStyle,
-										{
-											backgroundColor: canChangePosition ? theme.colors.black : theme.colors.white,
-										},
-										!canChangeLED && { opacity: CONTROL_BUTTON_STYLES.disabledOpacity },
-										pressed && canChangeLED && { 
-											opacity: CONTROL_BUTTON_STYLES.pressedOpacity, 
-											transform: [{ scale: CONTROL_BUTTON_STYLES.pressedScale }] 
-										},
-									]}
-									onPress={handleLEDStep}
-									disabled={!canChangeLED}
-								>
-									<Lightbulb 
-										size={CONTROL_BUTTON_STYLES.iconSize} 
-										color={canChangeLED ? currentLEDOption?.color : theme.colors.muted} 
-										fill={canChangeLED ? currentLEDOption?.color : theme.colors.muted} 
-									/>
-								</Pressable>
-
-							</View>
-						</>
-					) : (
-						// Empty slot - show assign button
-						<View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', height: LAYOUT_CONSTANTS.deviceBoxHeight }}>
+			<View style={{ height: LAYOUT_CONSTANTS.deviceBoxHeight, width: '100%', position: 'relative', justifyContent: 'center', alignItems: 'center' }}>
+				{device ? (
+					<>
+						{/* Watermark (pressable to cycle color/LED mode) */}
+						<View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center' }} pointerEvents="box-none">
 							<Pressable
+								accessibilityRole="button"
+								accessibilityLabel={`Toggle ${position === 'leftFoot' ? 'left' : 'right'} device color`}
+								onPress={handleLEDStep}
+								disabled={!canChangeLED}
 								style={({ pressed }) => [
-									{ borderRadius: 8 }, 
-									!enabled ? { opacity: 0.5 } : { opacity: pressed ? 0.85 : 1 }, 
-									{ transform: [{ scale: pressed ? 0.98 : 1 }] }
+									// No base opacity when a device is present; keep fully opaque
+									pressed && canChangeLED && { transform: [{ scale: 0.97 }] },
 								]}
-								onPress={() => enabled && onAssignDevice(position)}
-								disabled={!enabled}
 							>
-								<FootIcon size={LAYOUT_CONSTANTS.watermarkSize} side={position === 'leftFoot' ? 'left' : 'right'} color={theme.colors.primary} />
+								<FootIcon 
+									size={LAYOUT_CONSTANTS.watermarkSize} 
+									side={position === 'leftFoot' ? 'left' : 'right'} 
+									color={currentLEDOption?.color} 
+								/>
 							</Pressable>
 						</View>
-					)}
-				</View>
-				
+
+						{/* Control Buttons removed – foot watermark is now the color toggle */}
+					</>
+				) : (
+					// Empty slot - show assign button
+					<View style={{ justifyContent: 'center', alignItems: 'center' }}>
+						<Pressable
+							style={({ pressed }) => [
+								{ borderRadius: 8 }, 
+								!enabled ? { opacity: 0.5 } : { opacity: pressed ? 0.85 : 1 }, 
+								{ transform: [{ scale: pressed ? 0.98 : 1 }] }
+							]}
+							onPress={() => enabled && onAssignDevice(position)}
+							disabled={!enabled}
+						>
+							<FootIcon size={LAYOUT_CONSTANTS.watermarkSize} side={position === 'leftFoot' ? 'left' : 'right'} color={theme.colors.primary} />
+						</Pressable>
+					</View>
+				)}
 			</View>
 		</View>
 	);
@@ -257,7 +244,6 @@ const DeviceBox: React.FC<DeviceBoxProps> = ({ position, device, ledMode, enable
 
 export const DeviceManager: React.FC<DeviceManagerProps> = () => {
 	const { connected, devicesByPosition, assignDevicePosition, unassignDevicePosition } = useBle();
-
 	const { theme } = useTheme();
 
 	// LED control states for each device
@@ -313,6 +299,39 @@ export const DeviceManager: React.FC<DeviceManagerProps> = () => {
 		},
 		[connected],
 	);
+
+	// Swap state: prevent re-press until devices reach their new slots
+	const [isSwapping, setIsSwapping] = useState(false);
+	const [pendingSwap, setPendingSwap] = useState<{ leftId: string; rightId: string } | null>(null);
+
+	// Swap devices between left and right positions, preserving existing device colors
+	const handleSwapPositions = useCallback(async () => {
+		if (isSwapping) return;
+		const left = devicesByPosition.leftFoot;
+		const right = devicesByPosition.rightFoot;
+		if (!left || !right) return;
+		try {
+			setIsSwapping(true);
+			setPendingSwap({ leftId: left.id, rightId: right.id });
+			await assignDevicePosition(left.id, 'rightFoot', left.color || POSITION_COLORS.rightFoot);
+			await assignDevicePosition(right.id, 'leftFoot', right.color || POSITION_COLORS.leftFoot);
+		} catch (e) {
+			setIsSwapping(false);
+			setPendingSwap(null);
+			Alert.alert('Swap Failed', 'Unable to swap device positions.');
+		}
+	}, [devicesByPosition.leftFoot, devicesByPosition.rightFoot, assignDevicePosition, isSwapping]);
+
+	// Watch devicesByPosition to detect when swap completes; then re-enable the button
+	useEffect(() => {
+		if (!pendingSwap) return;
+		const leftNow = devicesByPosition.leftFoot;
+		const rightNow = devicesByPosition.rightFoot;
+		if (leftNow?.id === pendingSwap.rightId && rightNow?.id === pendingSwap.leftId) {
+			setIsSwapping(false);
+			setPendingSwap(null);
+		}
+	}, [devicesByPosition.leftFoot, devicesByPosition.rightFoot, pendingSwap]);
 
 	// Initialize LED modes by reading from connected devices
 	useEffect(() => {
@@ -436,13 +455,17 @@ export const DeviceManager: React.FC<DeviceManagerProps> = () => {
 				const option = allOptions[0];
 				if (!option.isUnassigned) {
 					// Moving from another position - confirm swap
-					Alert.alert('Move Device', `Move ${option.device.name || 'this device'} from ${POSITION_LABELS[option.device.position!]} to ${POSITION_LABELS[position]}?`, [
-						{ text: 'Cancel', style: 'cancel' },
-						{
-							text: 'Move',
-							onPress: () => assignDevicePosition(option.device.id, position, POSITION_COLORS[position]),
-						},
-					]);
+					Alert.alert(
+						'Move Device',
+						`Move ${option.device.name || 'this device'} from ${POSITION_LABELS[option.device.position!]} to ${POSITION_LABELS[position]}?`,
+						[
+							{ text: 'Cancel', style: 'cancel' },
+							{
+								text: 'Move',
+								onPress: () => assignDevicePosition(option.device.id, position, POSITION_COLORS[position]),
+							},
+						]
+					);
 				} else {
 					assignDevicePosition(option.device.id, position, POSITION_COLORS[position]);
 				}
@@ -454,13 +477,17 @@ export const DeviceManager: React.FC<DeviceManagerProps> = () => {
 						onPress: () => {
 							if (!option.isUnassigned) {
 								// Confirm move from another position
-								Alert.alert('Move Device', `Move this device from ${POSITION_LABELS[option.device.position!]} to ${POSITION_LABELS[position]}?`, [
-									{ text: 'Cancel', style: 'cancel' },
-									{
-										text: 'Move',
-										onPress: () => assignDevicePosition(option.device.id, position, POSITION_COLORS[position]),
-									},
-								]);
+								Alert.alert(
+									'Move Device',
+									`Move this device from ${POSITION_LABELS[option.device.position!]} to ${POSITION_LABELS[position]}?`,
+									[
+										{ text: 'Cancel', style: 'cancel' },
+										{
+											text: 'Move',
+											onPress: () => assignDevicePosition(option.device.id, position, POSITION_COLORS[position]),
+										},
+									]
+								);
 							} else {
 								assignDevicePosition(option.device.id, position, POSITION_COLORS[position]);
 							}
@@ -470,27 +497,90 @@ export const DeviceManager: React.FC<DeviceManagerProps> = () => {
 				]);
 			}
 		},
-		[connected, assignDevicePosition],
+		[connected, assignDevicePosition]
 	);
 
 	return (
 		<View>
-			{/* Position Boxes - 2 on top row, 1 on bottom */}
-			<View style={{ marginBottom: 20 }}>
-				{/* Top Row - Left Foot and Right Foot */}
-				<View style={[{ flexDirection: 'row', justifyContent: 'space-between'}]}>
-					{(['leftFoot', 'rightFoot'] as DevicePosition[]).map((position) => {
-						const device = devicesByPosition[position];
-						const ledMode = device ? ledModes[device.id] || LEDControlMode.AMBER : LEDControlMode.AMBER;
+			<View style={{ marginBottom: 12 }}>
+				{/* Top Row - Left/Swap/Right */}
+				<View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+					{/* Left */}
+					<View style={{ flex: 1 }}>
+						{(() => {
+							const position: DevicePosition = 'leftFoot';
+							const device = devicesByPosition[position];
+							const ledMode = device ? (ledModes[device.id] || LEDControlMode.AMBER) : LEDControlMode.AMBER;
+							return (
+								<DeviceBox 
+									position={position}
+									device={device || null}
+									ledMode={ledMode}
+									enabled={!isActive}
+									onLEDModeChange={handleLEDModeChange}
+									onRemoveDevice={handleRemoveDevice}
+									onAssignDevice={handleAssignDevice}
+								/>
+							);
+						})()}
+					</View>
 
-						return (
-							<View key={position} style={{ width: '49%' }}>
-								<DeviceBox position={position} device={device || null} ledMode={ledMode} enabled={!isActive} onLEDModeChange={handleLEDModeChange} onRemoveDevice={handleRemoveDevice} onAssignDevice={handleAssignDevice} />
-							</View>
-						);
-					})}
+					{/* Swap Button */}
+					<View style={{ width: 64, alignItems: 'center', justifyContent: 'center', marginHorizontal: 8 }}>
+						{(() => {
+							const left = devicesByPosition.leftFoot;
+							const right = devicesByPosition.rightFoot;
+							const swapDisabled = isActive || !left || !right || isSwapping;
+							return (
+								<Pressable
+									onPress={handleSwapPositions}
+									disabled={swapDisabled}
+									style={({ pressed }) => [
+										{
+											width: 60,
+											height: 60,
+											borderRadius: 30,
+											alignItems: 'center',
+											justifyContent: 'center',
+											borderWidth: 2,
+											borderColor: theme.colors.white,
+											backgroundColor: theme.colors.primary,
+											shadowColor: theme.colors.primary,
+											shadowOffset: { width: 0, height: 3 },
+											shadowOpacity: 0.4,
+											shadowRadius: 4,
+											elevation: 4,
+										},
+										swapDisabled && { opacity: 0.4 },
+										pressed && !swapDisabled && { opacity: 0.7, transform: [{ scale: 0.95 }], shadowOpacity: 0.2 },
+									]}
+								>
+									<ArrowLeftRight color={theme.colors.white} size={32} />
+								</Pressable>
+							);
+						})()}
+					</View>
+
+					{/* Right */}
+					<View style={{ flex: 1 }}>
+						{(() => {
+							const position: DevicePosition = 'rightFoot';
+							const device = devicesByPosition[position];
+							const ledMode = device ? (ledModes[device.id] || LEDControlMode.AMBER) : LEDControlMode.AMBER;
+							return (
+								<DeviceBox 
+									position={position}
+									device={device || null}
+									ledMode={ledMode}
+									enabled={!isActive}
+									onLEDModeChange={handleLEDModeChange}
+									onRemoveDevice={handleRemoveDevice}
+									onAssignDevice={handleAssignDevice}
+								/>
+							);
+						})()}
+					</View>
 				</View>
-
 			</View>
 		</View>
 	);

@@ -320,7 +320,7 @@ export const SessionControlPanel: React.FC = () => {
 			</View>
 
 			{/* Session Status - Interactive Graphic */}
-			<View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginVertical: 30 }}>
+			<View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 30 }}>
 				<View style={{ alignItems: 'center' }}>
 					{/* Status Circle with Animation */}
 					<Animated.View
@@ -394,9 +394,10 @@ export const SessionControlPanel: React.FC = () => {
 							{
 								textAlign: 'center',
 								color: 'white',
-								marginTop: 12,
+								marginTop: 6,
 								fontWeight: '600',
-								fontSize: 16,
+								fontSize: 14,
+								lineHeight: 16,
 							},
 						]}
 					>

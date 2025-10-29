@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View } from 'react-native';
 
 import { SessionFileList } from '../components';
 //import { RouteProp, useRoute } from '@react-navigation/native';
@@ -25,10 +25,10 @@ export default function RecordingsScreen() {
 			{/* <Text>Other screen!</Text>
 				<Text>Param: {route.params?.someParam}</Text> */}
 
-			{/* Header */}
+			{/* Header 
 			<View style={{ marginBottom: 10, paddingHorizontal: 10 }}>
 				<Text>Sessions</Text>
-			</View>
+			</View> */}
 
 			{/* File Content */}
 			<View style={{ marginBottom: 10, paddingHorizontal: 10 }}>

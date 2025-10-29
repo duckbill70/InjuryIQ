@@ -21,7 +21,7 @@ export const BleControlPanel: React.FC = () => {
 		stopScan
 	} = useBle();
 
-	const [autoScanEnabled, setAutoScanEnabled] = useState(true);
+	const [autoScanEnabled, setAutoScanEnabled] = useState(false);
 	//const [lastScanTime, setLastScanTime] = useState<Date | null>(null);
 
 	// Auto-scan configuration

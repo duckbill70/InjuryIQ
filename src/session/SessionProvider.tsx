@@ -1,9 +1,34 @@
 //
+// SessionProvider: Manages recording sessions with automatic metadata enrichment
+//
+// USAGE:
+// 1. Wrap your app with <SessionProvider>
+// 2. Use useSession() hook to access session controls
+// 3. Call startSession({ sport: 'tennis' }) - devices are auto-populated
+// 4. Use pauseSession() / resumeSession() to pause/resume recording
+// 5. Call stopSession() to end - duration and stats are automatically calculated
+//
+// AUTOMATIC ENRICHMENT:
+// - Header.devices: Populated from connected BLE devices (id, name, position)
+// - Footer.stats: GPS distance/speed, step counts, fatigue events, pause tracking
+// - BLE Events: Automatically subscribes to step counter, fatigue, and FIFO statistics
+//
+// SESSION FILE FORMAT (.jsonl):
+// Line 1: { type: 'header', startedAt, devices, sport }
+// Lines 2-N: { timestamp, type: 'gps'|'steps'|'fatigue'|'statistics'|'pause'|'resume', data, position? }
+// Last line: { type: 'footer', stoppedAt, duration, stats }
+//
 import React, { createContext, useContext, useRef, useState, useCallback } from 'react';
 // import { AppState } from 'react-native';
 import RNFS from 'react-native-fs';
 import Geolocation from 'react-native-geolocation-service';
+import { useBle } from '../ble/BleProvider';
+import { useStepCounter } from '../ble/useStepCounter';
+import { useFatigue } from '../ble/useFatigue';
+import { useStatistics, type FIFOStatistics } from '../ble/useStatistics';
 
+// Supported sports
+export type Sport = 'tennis' | 'running' | 'hiking' | 'padel';
 
 export interface DeviceInfo {
   id: string;
@@ -21,9 +46,8 @@ export interface LocationInfo {
 
 export interface SessionHeader {
   startedAt: string;
-  devices: DeviceInfo[];
-  locations: LocationInfo[];
-  sport: string;
+  devices?: DeviceInfo[];  // Optional: auto-populated from BLE if not provided
+  sport: Sport;
 }
 
 export interface SessionStats {
@@ -38,9 +62,10 @@ export interface SessionFooter {
 
 export interface SessionEntry {
   timestamp: string;
-  type: 'gps' | 'steps' | 'fatigue' | 'pause' | 'resume';
+  type: 'gps' | 'steps' | 'fatigue' | 'statistics' | 'pause' | 'resume';
   data: unknown;
   position?: string;
+  deviceId?: string;
 }
 
 interface SessionContextType {
@@ -52,6 +77,7 @@ interface SessionContextType {
   resumeSession: () => void;
   logStep: (stepData: unknown, position?: string) => void;
   logFatigue: (fatigueData: unknown, position?: string) => void;
+  logStatistics: (statisticsData: FIFOStatistics, deviceId: string, position?: string) => void;
 }
 
 const SessionContext = createContext<SessionContextType | undefined>(undefined);
@@ -70,8 +96,30 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const isActiveRef = useRef(isActive);
   const isPausedRef = useRef(isPaused);
   const sessionFile = useRef<string | null>(null);
+  const sessionStartTime = useRef<number | null>(null);
   // Use number for setInterval in React Native
   const gpsInterval = useRef<number | null>(null);
+  const pauseStartRef = useRef<number | null>(null);
+
+  // BLE context for devices
+  const { connected } = useBle();
+
+  // Stats accumulator
+  const statsRef = useRef({
+    gpsPointCount: 0,
+    lastLat: null as number | null,
+    lastLon: null as number | null,
+    distanceMeters: 0,
+    maxSpeedMps: null as number | null,
+    minAccuracyM: null as number | null,
+    maxAccuracyM: null as number | null,
+    stepsTotal: 0,
+    stepsLeft: 0,
+    stepsRight: 0,
+    fatigueEvents: 0,
+    pausedCount: 0,
+    pausedTotalSec: 0,
+  });
 
   // Remove unused header/footer state
 
@@ -79,9 +127,50 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
   React.useEffect(() => { isActiveRef.current = isActive; }, [isActive]);
   React.useEffect(() => { isPausedRef.current = isPaused; }, [isPaused]);
 
+  // Haversine distance in meters
+  const haversineMeters = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+    const toRad = (d: number) => (d * Math.PI) / 180;
+    const R = 6371000; // meters
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  };
+
   // Log entry (useCallback for stable reference)
   const logEntry = useCallback((entry: SessionEntry) => {
     if (sessionFile.current && isActiveRef.current && !isPausedRef.current) {
+      // Update stats
+      if (entry.type === 'gps') {
+  const coords = entry.data as Partial<{ latitude: number; longitude: number; accuracy: number; speed: number }>;
+        const lat = coords?.latitude;
+        const lon = coords?.longitude;
+        const acc = coords?.accuracy;
+        const spd = typeof coords?.speed === 'number' ? coords.speed : null;
+        if (typeof lat === 'number' && typeof lon === 'number') {
+          if (statsRef.current.lastLat != null && statsRef.current.lastLon != null) {
+            statsRef.current.distanceMeters += haversineMeters(statsRef.current.lastLat, statsRef.current.lastLon, lat, lon);
+          }
+          statsRef.current.lastLat = lat;
+          statsRef.current.lastLon = lon;
+          statsRef.current.gpsPointCount += 1;
+        }
+        if (typeof acc === 'number') {
+          statsRef.current.minAccuracyM = statsRef.current.minAccuracyM == null ? acc : Math.min(statsRef.current.minAccuracyM, acc);
+          statsRef.current.maxAccuracyM = statsRef.current.maxAccuracyM == null ? acc : Math.max(statsRef.current.maxAccuracyM, acc);
+        }
+        if (spd != null && spd >= 0) {
+          statsRef.current.maxSpeedMps = statsRef.current.maxSpeedMps == null ? spd : Math.max(statsRef.current.maxSpeedMps, spd);
+        }
+      } else if (entry.type === 'steps') {
+        statsRef.current.stepsTotal += 1;
+        if (entry.position === 'leftFoot') statsRef.current.stepsLeft += 1;
+        if (entry.position === 'rightFoot') statsRef.current.stepsRight += 1;
+      } else if (entry.type === 'fatigue') {
+        statsRef.current.fatigueEvents += 1;
+      }
+
       RNFS.appendFile(sessionFile.current, JSON.stringify(entry) + '\n', 'utf8');
       if (__DEV__) console.log (`[logEntry] : type [${entry.type}] & position [${entry.position}]  -`, entry.data)
     }
@@ -91,30 +180,68 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const startSession = useCallback((headerData: SessionHeader) => {
     const filename = `${RNFS.DocumentDirectoryPath}/session_${Date.now()}.jsonl`;
     sessionFile.current = filename;
+    sessionStartTime.current = Date.now();
     setIsActive(true);
     setIsPaused(false);
-    // Write header
-    RNFS.writeFile(filename, JSON.stringify({ type: 'header', ...headerData }) + '\n', 'utf8');
-    // Start GPS logging
-    gpsInterval.current = setInterval(() => {
-      if (!isPaused) {
-        Geolocation.getCurrentPosition(
-          pos => {
-            logEntry({
-              timestamp: new Date().toISOString(),
-              type: 'gps',
-              data: pos.coords,
-            });
-          },
-          error => {
-            // Handle error (log or ignore)
-            console.warn('GPS error:', error);
-          },
-          { enableHighAccuracy: true, timeout: 10000, maximumAge: 1000 }
-        );
-      }
-    }, SESSION_LOG_INTERVAL) as unknown as number;
-  }, [isPaused, logEntry]);
+
+    // Reset stats
+    statsRef.current = {
+      gpsPointCount: 0,
+      lastLat: null,
+      lastLon: null,
+      distanceMeters: 0,
+      maxSpeedMps: null,
+      minAccuracyM: null,
+      maxAccuracyM: null,
+      stepsTotal: 0,
+      stepsLeft: 0,
+      stepsRight: 0,
+      fatigueEvents: 0,
+      pausedCount: 0,
+      pausedTotalSec: 0,
+    };
+    pauseStartRef.current = null;
+
+    // Build devices from BLE (unless provided in headerData)
+    const devices = headerData.devices ?? Object.values(connected).map(d => ({
+      id: d.id,
+      name: d.name || undefined,
+      position: d.position,
+    }));
+
+    // Write header after enriching with devices
+    (async () => {
+      const startedAt = headerData.startedAt || new Date().toISOString();
+
+      const header: SessionHeader = {
+        startedAt,
+        devices,
+        sport: headerData.sport || 'hiking',
+      };
+
+      await RNFS.writeFile(filename, JSON.stringify({ type: 'header', ...header }) + '\n', 'utf8');
+
+      // Start GPS logging after header is written
+      gpsInterval.current = setInterval(() => {
+        if (!isPausedRef.current) {
+          Geolocation.getCurrentPosition(
+            pos => {
+              logEntry({
+                timestamp: new Date().toISOString(),
+                type: 'gps',
+                data: (pos as unknown as { coords: Partial<{ latitude: number; longitude: number; altitude: number; accuracy: number; speed: number }> }).coords,
+              });
+            },
+            error => {
+              // Handle error (log or ignore)
+              console.warn('GPS error:', error);
+            },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 1000 }
+          );
+        }
+      }, SESSION_LOG_INTERVAL) as unknown as number;
+    })();
+  }, [connected, logEntry]);
 
   // Stop session
   const stopSession = useCallback((footerData?: SessionFooter) => {
@@ -125,20 +252,74 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
       gpsInterval.current = null;
     }
     if (sessionFile.current) {
-      const stopData = footerData || { stoppedAt: new Date().toISOString(), duration: 0, stats: {} };
+      // Calculate duration in seconds
+      const duration = sessionStartTime.current 
+        ? Math.floor((Date.now() - sessionStartTime.current) / 1000)
+        : 0;
+      // If paused when stopping, fold in the pending paused time
+      if (pauseStartRef.current != null) {
+        const extra = Math.floor((Date.now() - pauseStartRef.current) / 1000);
+        statsRef.current.pausedTotalSec += extra;
+        statsRef.current.pausedCount += 1;
+        pauseStartRef.current = null;
+      }
+
+      const activeDurationSec = Math.max(0, duration - statsRef.current.pausedTotalSec);
+      const avgSpeedMps = activeDurationSec > 0 ? statsRef.current.distanceMeters / activeDurationSec : 0;
+
+      const stats: SessionStats = {
+        timing: {
+          activeDurationSec,
+          numPauses: statsRef.current.pausedCount,
+          totalPausedSec: statsRef.current.pausedTotalSec,
+        },
+        gps: {
+          gpsPointCount: statsRef.current.gpsPointCount,
+          distanceMeters: Math.round(statsRef.current.distanceMeters),
+          avgSpeedMps: Number(avgSpeedMps.toFixed(2)),
+          maxSpeedMps: statsRef.current.maxSpeedMps ?? 0,
+          minAccuracyM: statsRef.current.minAccuracyM ?? null,
+          maxAccuracyM: statsRef.current.maxAccuracyM ?? null,
+        },
+        steps: {
+          total: statsRef.current.stepsTotal,
+          left: statsRef.current.stepsLeft,
+          right: statsRef.current.stepsRight,
+        },
+        fatigue: {
+          events: statsRef.current.fatigueEvents,
+        },
+      } as Record<string, unknown>;
+
+      const stopData = footerData || { 
+        stoppedAt: new Date().toISOString(), 
+        duration, 
+        stats 
+      };
       RNFS.appendFile(sessionFile.current, JSON.stringify({ type: 'footer', ...stopData }) + '\n', 'utf8');
+      sessionStartTime.current = null;
     }
   }, []);
 
   // Pause session
   const pauseSession = useCallback(() => {
     setIsPaused(true);
+    if (pauseStartRef.current == null) pauseStartRef.current = Date.now();
     logEntry({ timestamp: new Date().toISOString(), type: 'pause', data: null });
   }, [logEntry]);
 
   // Resume session
   const resumeSession = useCallback(() => {
     setIsPaused(false);
+    // Update ref immediately so logEntry will work
+    isPausedRef.current = false;
+    
+    if (pauseStartRef.current != null) {
+      const pausedSec = Math.floor((Date.now() - pauseStartRef.current) / 1000);
+      statsRef.current.pausedTotalSec += pausedSec;
+      statsRef.current.pausedCount += 1;
+      pauseStartRef.current = null;
+    }
     logEntry({ timestamp: new Date().toISOString(), type: 'resume', data: null });
   }, [logEntry]);
 
@@ -164,6 +345,17 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
     });
   }, [logEntry]);
 
+  // Log FIFO statistics
+  const logStatistics = useCallback((statisticsData: FIFOStatistics, deviceId: string, position?: string) => {
+    logEntry({
+      timestamp: new Date().toISOString(),
+      type: 'statistics',
+      data: statisticsData,
+      position,
+      deviceId,
+    });
+  }, [logEntry]);
+
   // Clean up on unmount
   React.useEffect(() => {
     return () => {
@@ -175,8 +367,47 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }, []);
 
   return (
-    <SessionContext.Provider value={{ isActive, isPaused, startSession, stopSession, pauseSession, resumeSession, logStep, logFatigue }}>
+    <SessionContext.Provider value={{ isActive, isPaused, startSession, stopSession, pauseSession, resumeSession, logStep, logFatigue, logStatistics }}>
       {children}
+      {/* Subscribe to BLE events for each connected device when session is active */}
+      {isActive && Object.keys(connected).map(deviceId => (
+        <BleDeviceSubscriber
+          key={deviceId}
+          deviceId={deviceId}
+          enabled={isActive}
+        />
+      ))}
     </SessionContext.Provider>
   );
+};
+
+// Component to subscribe to BLE events for a single device
+const BleDeviceSubscriber: React.FC<{ deviceId: string; enabled: boolean }> = ({ deviceId, enabled }) => {
+  const { logStatistics } = useSession();
+  const { connected } = useBle();
+  const device = connected[deviceId];
+  const position = device?.position;
+
+  // Subscribe to step counter (hook handles logging internally)
+  useStepCounter({
+    deviceId,
+    enabled,
+  });
+
+  // Subscribe to fatigue (hook handles logging internally)
+  useFatigue({
+    deviceId,
+    enabled,
+  });
+
+  // Subscribe to FIFO statistics
+  useStatistics({
+    deviceId,
+    enabled,
+    onStatisticsUpdate: (stats) => {
+      logStatistics(stats, deviceId, position);
+    },
+  });
+
+  return null;
 };

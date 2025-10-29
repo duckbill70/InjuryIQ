@@ -67,6 +67,7 @@ const colors = {
 	text: '#1C1C1E',
 	primary: '#007AFF',
 	dgrey: '#f3f4f6',
+	darkGrey: '#4b5563', // gray-600 - dark grey
 	danger: '#ef4444', // red-500
 	warn: '#f59e0b', // amber-500
 	mid: '#eab308', // yellow-500
@@ -78,6 +79,7 @@ const colors = {
 	black: '#000000',
 	white: '#ffffff',
 	amber: '#FFBF00',
+	deepGreen: '#059669', // emerald-600 - deep vivid rich green
 };
 
 export const lightTheme = {

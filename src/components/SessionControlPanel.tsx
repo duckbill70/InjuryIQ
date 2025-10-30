@@ -7,6 +7,7 @@ import { useSession, type Sport } from '../session/SessionProvider';
 import { useBle } from '../ble/BleProvider';
 import { useNotify } from '../notify/useNotify';
 import { DeviceManager } from './DeviceManager';
+import { AlertOverlay } from './AlertOverlay';
 
 // Button styling constants - matching PowerStateCycler
 const BUTTON_STYLES = {
@@ -394,7 +395,7 @@ export const SessionControlPanel: React.FC = () => {
 							{
 								textAlign: 'center',
 								color: 'white',
-								marginTop: 6,
+								marginTop: 12,
 								fontWeight: '600',
 								fontSize: 14,
 								lineHeight: 16,
@@ -409,37 +410,12 @@ export const SessionControlPanel: React.FC = () => {
 			{/* Devices */}
 			<DeviceManager />
 
-			{/* Fixed height container for warning to prevent layout shifts */}
-			<View style={{ minHeight: 60, marginTop: 16 }}>
-				{bleWarning && (
-					<View
-						style={{
-							backgroundColor: theme.colors.warn,
-							borderRadius: 8,
-							padding: 8,
-						}}
-					>
-						<View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-							<Text style={{ color: theme.colors.white, flex: 1 }}>{bleWarning}</Text>
-							<Pressable
-								onPress={() => setBleWarning(null)}
-								style={({ pressed }) => [
-									{
-										paddingVertical: 6,
-										paddingHorizontal: 10,
-										borderRadius: 6,
-										borderWidth: 1,
-										borderColor: theme.colors.white,
-									},
-									pressed && { opacity: 0.8 },
-								]}
-							>
-								<Text style={{ color: theme.colors.white, fontWeight: '600' }}>Dismiss</Text>
-							</Pressable>
-						</View>
-					</View>
-				)}
-			</View>
+			{/* BLE Warning overlay */}
+			<AlertOverlay
+				visible={!!bleWarning}
+				message={bleWarning || ''}
+				onDismiss={() => setBleWarning(null)}
+			/>
 
 			{/* Scanning overlay - covers entire view */}
 			{scanning && (

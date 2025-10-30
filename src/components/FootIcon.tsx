@@ -9,7 +9,7 @@ const FootIcon = ({ size = 24, color = '#030104', side = 'left' }) => {
       width={size}
       height={size}
       viewBox="0 0 25.799 25.799"
-      style={isRight ? { transform: [{ scaleX: -1 }] } : {backgroundColor: 'balck'}}
+      style={isRight ? { transform: [{ scaleX: -1 }] } : {}}
     >
       <G>
         <Path

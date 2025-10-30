@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { View, Pressable, Alert } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { View, Pressable, Alert, AppState, AppStateStatus } from 'react-native';
 
 import { useBle, DevicePosition } from '../ble/BleProvider';
 import { LEDControlMode } from '../ble/useLEDControl';
@@ -9,8 +9,11 @@ import { useBattery } from '../ble/useBattery';
 import { useStatistics } from '../ble/useStatistics';
 // import { PowerStateButton } from './PowerStateCycler';
 import { useSession } from '../session/SessionProvider';
+import BatteryIcon from './BatteryIcon';
+import FifoFillBadge from './FifoFillBadge';
+import ControlStateIcon from './ControlStateIcon';
 
-import { ArrowLeftRight } from 'lucide-react-native';
+import { ArrowLeftRight, Bluetooth } from 'lucide-react-native';
 import FootIcon from './FootIcon';
 
 interface DeviceManagerProps {
@@ -70,6 +73,7 @@ interface DeviceBoxProps {
 const DeviceBox: React.FC<DeviceBoxProps> = ({ position, device, ledMode, enabled, onLEDModeChange, onRemoveDevice: _onRemoveDevice, onAssignDevice }) => {
 	const { theme } = useTheme();
 	const deviceId = device?.id || '';
+	const longPressTriggeredRef = useRef(false);
 
 	// Device state/battery/FIFO fill
 	const [controlState, setControlState] = useState<ControlState | null>(null);
@@ -181,6 +185,14 @@ const DeviceBox: React.FC<DeviceBoxProps> = ({ position, device, ledMode, enable
 
 	const currentLEDOption = LED_MODE_OPTIONS.find((opt) => opt.value === ledMode);
 
+	// Corner icon placement depending on foot side
+	const isLeftSide = position === 'leftFoot';
+	// Use a stacked overlay container to stabilize positions and prevent micro-jumps
+	// Position it outside the pressable to avoid being affected by FootIcon transforms
+	const overlayStackStyle = isLeftSide
+		? { position: 'absolute' as const, left: 0, bottom: 8, flexDirection: 'column' as const }
+		: { position: 'absolute' as const, right: 0, bottom: 8, flexDirection: 'column' as const, alignItems: 'flex-end' as const };
+
 	// Shared button base style (no longer used after removing separate control button)
 	// const controlButtonBaseStyle = {
 	// 	width: CONTROL_BUTTON_STYLES.size,
@@ -204,11 +216,26 @@ const DeviceBox: React.FC<DeviceBoxProps> = ({ position, device, ledMode, enable
 							<Pressable
 								accessibilityRole="button"
 								accessibilityLabel={`Toggle ${position === 'leftFoot' ? 'left' : 'right'} device color`}
-								onPress={handleLEDStep}
-								disabled={!canChangeLED}
+								onPress={() => {
+									if (longPressTriggeredRef.current) {
+										longPressTriggeredRef.current = false;
+										return;
+									}
+									handleLEDStep();
+								}}
+								onLongPress={() => {
+									if (!enabled || !deviceId) return;
+									longPressTriggeredRef.current = true;
+									_onRemoveDevice(deviceId);
+								}}
+								delayLongPress={450}
+								hitSlop={8}
+								pressRetentionOffset={{ top: 8, left: 8, right: 8, bottom: 8 }}
+								disabled={!enabled || !device}
 								style={({ pressed }) => [
 									// No base opacity when a device is present; keep fully opaque
-									pressed && canChangeLED && { transform: [{ scale: 0.97 }] },
+									(!enabled || !device) && { opacity: 0.4 },
+									pressed && canChangeLED && enabled && device && { transform: [{ scale: 0.97 }] },
 								]}
 							>
 								<FootIcon 
@@ -218,12 +245,18 @@ const DeviceBox: React.FC<DeviceBoxProps> = ({ position, device, ledMode, enable
 								/>
 							</Pressable>
 						</View>
+						{/* Stacked overlay: state (top), battery (middle), FIFO (bottom) - positioned outside Pressable */}
+						<View style={overlayStackStyle} pointerEvents="none">
+							<ControlStateIcon state={controlState} style={{ marginBottom: 6 }} />
+							<BatteryIcon level={_batteryPct} style={{ marginBottom: 6 }} />
+							<FifoFillBadge value={_fillPct} fontSize={12} />
+						</View>
 
 						{/* Control Buttons removed – foot watermark is now the color toggle */}
 					</>
 				) : (
 					// Empty slot - show assign button
-					<View style={{ justifyContent: 'center', alignItems: 'center' }}>
+					<>
 						<Pressable
 							style={({ pressed }) => [
 								{ borderRadius: 8 }, 
@@ -233,9 +266,15 @@ const DeviceBox: React.FC<DeviceBoxProps> = ({ position, device, ledMode, enable
 							onPress={() => enabled && onAssignDevice(position)}
 							disabled={!enabled}
 						>
-							<FootIcon size={LAYOUT_CONSTANTS.watermarkSize} side={position === 'leftFoot' ? 'left' : 'right'} color={theme.colors.primary} />
+							<FootIcon size={LAYOUT_CONSTANTS.watermarkSize} side={position === 'leftFoot' ? 'left' : 'right'} color={theme.colors.white} />
 						</Pressable>
-					</View>
+						{/* Placeholder stacked overlay mirrors the device-present layout */}
+						<View style={overlayStackStyle} pointerEvents="none">
+							<ControlStateIcon state={null} style={{ marginBottom: 6 }} />
+							<BatteryIcon level={null} style={{ marginBottom: 6 }} />
+							<FifoFillBadge value={null} fontSize={12} />
+						</View>
+					</>
 				)}
 			</View>
 		</View>
@@ -243,13 +282,57 @@ const DeviceBox: React.FC<DeviceBoxProps> = ({ position, device, ledMode, enable
 };
 
 export const DeviceManager: React.FC<DeviceManagerProps> = () => {
-	const { connected, devicesByPosition, assignDevicePosition, unassignDevicePosition } = useBle();
+	const { connected, devicesByPosition, assignDevicePosition, unassignDevicePosition, scanning, startScan, stopScan, isPoweredOn } = useBle();
 	const { theme } = useTheme();
 
 	// LED control states for each device
 	const [ledModes, setLedModes] = useState<Record<string, LEDControlMode>>({});
 
-	const { isActive } = useSession()
+	const { isActive } = useSession();
+
+	// Track if we're currently scanning (for foreground re-check)
+	const isScanningRef = useRef(false);
+
+	// Update scanning ref when scanning state changes
+	useEffect(() => {
+		isScanningRef.current = scanning;
+	}, [scanning]);
+
+	/**
+	 * Handle app state changes - re-check Bluetooth when returning to foreground during scan
+	 * 
+	 * This is important for the workflow where:
+	 * 1. User tries to scan but Bluetooth is off
+	 * 2. Alert prompts them to enable Bluetooth in Settings
+	 * 3. User switches to Settings app to enable Bluetooth
+	 * 4. When they return to the app, we re-check and either:
+	 *    - Continue the scan if Bluetooth is now on
+	 *    - Alert them again if Bluetooth is still off
+	 */
+	useEffect(() => {
+		const subscription = AppState.addEventListener('change', (nextAppState: AppStateStatus) => {
+			if (nextAppState === 'active' && isScanningRef.current) {
+				// App returned to foreground while scanning
+				// Re-check Bluetooth state in case user went to Settings to enable it
+				if (!isPoweredOn) {
+					// Bluetooth is still off, stop scan and alert user
+					stopScan();
+					Alert.alert(
+						'Bluetooth Required',
+						'Please enable Bluetooth to scan for devices.',
+						[
+							{ text: 'OK', style: 'default' },
+						]
+					);
+				}
+				// If Bluetooth is now on, scanning will continue automatically
+			}
+		});
+
+		return () => {
+			subscription.remove();
+		};
+	}, [isPoweredOn, stopScan]);
 
 	// Available devices that can be assigned
 	//const availableDevices = Object.values(connected).filter(device => !device.position);
@@ -321,6 +404,39 @@ export const DeviceManager: React.FC<DeviceManagerProps> = () => {
 			Alert.alert('Swap Failed', 'Unable to swap device positions.');
 		}
 	}, [devicesByPosition.leftFoot, devicesByPosition.rightFoot, assignDevicePosition, isSwapping]);
+
+	/**
+	 * Handle scan button press
+	 * - Check if Bluetooth is enabled
+	 * - If not, alert user to enable it in Settings
+	 * - If enabled, start scanning for devices
+	 */
+	const handleStartScan = useCallback(async () => {
+		if (scanning) {
+			// Already scanning, stop it
+			stopScan();
+			return;
+		}
+
+		if (!isPoweredOn) {
+			// Bluetooth is off - prompt user to enable it
+			Alert.alert(
+				'Bluetooth Required',
+				'Bluetooth is currently disabled. Please enable Bluetooth in Settings to scan for devices.',
+				[
+					{ text: 'OK', style: 'default' },
+				]
+			);
+			return;
+		}
+
+		// Start scanning
+		try {
+			await startScan({ timeoutMs: 15000, maxDevices: 3 });
+		} catch (error) {
+			Alert.alert('Scan Failed', `Unable to start scan: ${error}`);
+		}
+	}, [scanning, isPoweredOn, startScan, stopScan]);
 
 	// Watch devicesByPosition to detect when swap completes; then re-enable the button
 	useEffect(() => {
@@ -525,39 +641,78 @@ export const DeviceManager: React.FC<DeviceManagerProps> = () => {
 						})()}
 					</View>
 
-					{/* Swap Button */}
+					{/* Swap/Scan Button - Shows Scan when fewer than 2 devices, Swap when 2 devices present */}
 					<View style={{ width: 64, alignItems: 'center', justifyContent: 'center', marginHorizontal: 8 }}>
 						{(() => {
 							const left = devicesByPosition.leftFoot;
 							const right = devicesByPosition.rightFoot;
-							const swapDisabled = isActive || !left || !right || isSwapping;
-							return (
-								<Pressable
-									onPress={handleSwapPositions}
-									disabled={swapDisabled}
-									style={({ pressed }) => [
-										{
-											width: 60,
-											height: 60,
-											borderRadius: 30,
-											alignItems: 'center',
-											justifyContent: 'center',
-											borderWidth: 2,
-											borderColor: theme.colors.white,
-											backgroundColor: theme.colors.primary,
-											shadowColor: theme.colors.primary,
-											shadowOffset: { width: 0, height: 3 },
-											shadowOpacity: 0.4,
-											shadowRadius: 4,
-											elevation: 4,
-										},
-										swapDisabled && { opacity: 0.4 },
-										pressed && !swapDisabled && { opacity: 0.7, transform: [{ scale: 0.95 }], shadowOpacity: 0.2 },
-									]}
-								>
-									<ArrowLeftRight color={theme.colors.white} size={32} />
-								</Pressable>
-							);
+							const hasLeftAndRight = !!left && !!right;
+							
+							if (hasLeftAndRight) {
+								// Show swap button when both devices are present
+								const swapDisabled = isActive || isSwapping;
+								return (
+									<Pressable
+										onPress={handleSwapPositions}
+										disabled={swapDisabled}
+										style={({ pressed }) => [
+											{
+												width: 60,
+												height: 60,
+												borderRadius: 30,
+												alignItems: 'center',
+												justifyContent: 'center',
+												borderWidth: 2,
+												borderColor: theme.colors.white,
+												backgroundColor: theme.colors.primary,
+												shadowColor: theme.colors.primary,
+												shadowOffset: { width: 0, height: 3 },
+												shadowOpacity: 0.4,
+												shadowRadius: 4,
+												elevation: 4,
+											},
+											swapDisabled && { opacity: 0.4 },
+											pressed && !swapDisabled && { opacity: 0.7, transform: [{ scale: 0.95 }], shadowOpacity: 0.2 },
+										]}
+									>
+										<ArrowLeftRight color={theme.colors.white} size={32} />
+									</Pressable>
+								);
+							} else {
+								// Show scan button when fewer than 2 devices
+								const scanDisabled = isActive;
+								return (
+									<Pressable
+										onPress={handleStartScan}
+										disabled={scanDisabled}
+										style={({ pressed }) => [
+											{
+												width: 60,
+												height: 60,
+												borderRadius: 30,
+												alignItems: 'center',
+												justifyContent: 'center',
+												borderWidth: 2,
+												borderColor: theme.colors.white,
+												backgroundColor: scanning ? theme.colors.warn : theme.colors.primary,
+												shadowColor: scanning ? theme.colors.warn : theme.colors.primary,
+												shadowOffset: { width: 0, height: 3 },
+												shadowOpacity: 0.4,
+												shadowRadius: 4,
+												elevation: 4,
+											},
+											scanDisabled && { opacity: 0.4 },
+											pressed && !scanDisabled && { opacity: 0.7, transform: [{ scale: 0.95 }], shadowOpacity: 0.2 },
+											scanning && { 
+												shadowOpacity: 0.6,
+												transform: [{ scale: pressed ? 0.95 : 1 }],
+											},
+										]}
+									>
+										<Bluetooth color={theme.colors.white} size={32} />
+									</Pressable>
+								);
+							}
 						})()}
 					</View>
 

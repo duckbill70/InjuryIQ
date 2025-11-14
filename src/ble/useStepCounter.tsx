@@ -3,7 +3,6 @@ import { useCallback, useEffect, useRef } from 'react';
 import { useBle } from './BleProvider';
 import type { BleError, Characteristic } from 'react-native-ble-plx';
 import { decodeBase64ToBytes } from './base64';
-
 import { useSession } from '../session/SessionProvider';
 
 // StingRay Step Counter Service UUIDs (from StingRay BLE Services Guide)
@@ -18,88 +17,39 @@ interface UseStepCounterProps {
 
 export const useStepCounter = ({ deviceId, onStepCountUpdate, enabled = true }: UseStepCounterProps) => {
 	const { connected } = useBle();
-	const device = connected[deviceId]?.device;
-	const deviceInfo = connected[deviceId]; // This should have .position if your BLE provider sets it
+	const deviceInfo = connected[deviceId];
+	const device = deviceInfo?.device;
 	const position = deviceInfo?.position;
-
 	const { logStep } = useSession();
 
-		const lastStepCountRef = useRef<number | null>(null);
+	const lastStepCountRef = useRef<number | null>(null);
+	const subscriptionRef = useRef<{ remove: () => void } | null>(null);
+	
+	// Use refs for callbacks to maintain stability
+	const onStepCountUpdateRef = useRef(onStepCountUpdate);
+	const logStepRef = useRef(logStep);
+	const positionRef = useRef(position);
+	
+	useEffect(() => {
+		onStepCountUpdateRef.current = onStepCountUpdate;
+		logStepRef.current = logStep;
+		positionRef.current = position;
+	}, [onStepCountUpdate, logStep, position]);
 
-		// Parse step count from base64 (should be 4 bytes little-endian)
-		const parseStepCount = useCallback((base64Data: string): number => {
-			const bytes = decodeBase64ToBytes(base64Data);
-			if (bytes.length < 3) {
-				console.warn('Step count data too short:', bytes.length);
-				return 0;
-			}
-
-			let stepCount = bytes[0] | (bytes[1] << 8) | (bytes[2] << 16);
-			if (bytes.length >= 4) {
-				stepCount |= bytes[3] << 24;
-			}
-			return stepCount >>> 0;
-		}, []);
-
-	// Subscribe to step count notifications
-	const subscribe = useCallback(async () => {
-		if (!device || !enabled) return;
-
-		try {
-			const isConnected = await device.isConnected();
-			if (!isConnected) {
-				console.warn('Device not connected for step counter subscription');
-				return;
-			}
-
-			await device.monitorCharacteristicForService(STEP_SERVICE_UUID, STEP_COUNT_CHARACTERISTIC_UUID, (error: BleError | null, characteristic: Characteristic | null) => {
-			if (error) {
-				// Check if it's a "characteristic not found" error - this is expected if device doesn't support step counting
-				if (error.message?.includes('Characteristic') && error.message?.includes('not found')) {
-					if (__DEV__) console.log('Device does not support step counter characteristic - this is normal for some devices');
-					return;
-				}
-				// Suppress expected disconnect/cancellation errors - device is reconnecting
-				if (error.message?.includes('was disconnected') || error.message?.includes('was cancelled')) {
-					if (__DEV__) console.log('[StepCounter] Device disconnected, monitor will restart on reconnect');
-					return;
-				}
-				console.error('Step counter monitoring error:', error);
-				return;
-			}						if (characteristic?.value) {
-							const stepCount = parseStepCount(characteristic.value);
-							if (lastStepCountRef.current !== null && stepCount < lastStepCountRef.current) {
-								// Counter reset (likely due to LED OFF / device reset)
-								logStep({ type: 'reset', value: stepCount }, position);
-							} else {
-								logStep(stepCount, position);
-							}
-							lastStepCountRef.current = stepCount;
-							onStepCountUpdate?.(stepCount);
-						}
-			});
-		} catch (error) {
-			// Handle service/characteristic not found gracefully
-			if (error instanceof Error && (error.message.includes('Service') || error.message.includes('Characteristic')) && error.message.includes('not found')) {
-				if (__DEV__) console.log('Device does not support step counter service - this is normal for some devices');
-				return;
-			}
-			console.error('Failed to subscribe to step counter:', error);
+	// Parse step count from base64 (should be 4 bytes little-endian)
+	const parseStepCount = useCallback((base64Data: string): number => {
+		const bytes = decodeBase64ToBytes(base64Data);
+		if (bytes.length < 3) {
+			console.warn('Step count data too short:', bytes.length);
+			return 0;
 		}
-	}, [device, position, enabled, parseStepCount, onStepCountUpdate, logStep]);
 
-	// Unsubscribe from step count notifications
-	const unsubscribe = useCallback(async () => {
-		if (!device) return;
-
-		try {
-			// Note: react-native-ble-plx doesn't have cancelTransaction
-			// The subscription will be automatically cleaned up when the device disconnects
-			if (__DEV__) console.log('Step counter monitoring will stop when device disconnects');
-		} catch (error) {
-			console.error('Failed to unsubscribe from step counter:', error);
+		let stepCount = bytes[0] | (bytes[1] << 8) | (bytes[2] << 16);
+		if (bytes.length >= 4) {
+			stepCount |= bytes[3] << 24;
 		}
-	}, [device]);
+		return stepCount >>> 0;
+	}, []);
 
 	// Read current step count
 	const readStepCount = useCallback(async (): Promise<number | null> => {
@@ -107,22 +57,92 @@ export const useStepCounter = ({ deviceId, onStepCountUpdate, enabled = true }: 
 
 		try {
 			const isConnected = await device.isConnected();
-			if (!isConnected) {
-				console.warn('Device not connected for step count read');
-				return null;
-			}
+			if (!isConnected) return null;
 
-			const characteristic = await device.readCharacteristicForService(STEP_SERVICE_UUID, STEP_COUNT_CHARACTERISTIC_UUID);
+			const characteristic = await device.readCharacteristicForService(
+				STEP_SERVICE_UUID,
+				STEP_COUNT_CHARACTERISTIC_UUID
+			);
 
 			if (characteristic?.value) {
 				return parseStepCount(characteristic.value);
 			}
 		} catch (error) {
+			// Silently handle service/characteristic not found - device may not support step counter
+			if (error instanceof Error && 
+				(error.message.includes('Service') || error.message.includes('Characteristic')) && 
+				error.message.includes('not found')) {
+				return null;
+			}
 			console.error('Failed to read step count:', error);
 		}
 
 		return null;
 	}, [device, parseStepCount]);
+
+	// Subscribe to step count notifications
+	const subscribe = useCallback(async () => {
+		if (!device) return;
+		
+		try {
+			const isConnected = await device.isConnected();
+			if (!isConnected) return;
+
+			const subscription = device.monitorCharacteristicForService(
+				STEP_SERVICE_UUID,
+				STEP_COUNT_CHARACTERISTIC_UUID,
+				(error: BleError | null, characteristic: Characteristic | null) => {
+					if (error) {
+						// Silently ignore cancellation and disconnect errors
+						if (error.message?.includes('was cancelled') || 
+							error.message?.includes('was disconnected') ||
+							error.message?.includes('Operation was cancelled')) {
+							return;
+						}
+						// Silently ignore characteristic not found - device may not support step counter
+						if (error.message?.includes('Characteristic') && error.message?.includes('not found')) {
+							return;
+						}
+						console.warn('Step counter monitoring error:', error.message);
+						return;
+					}
+					
+					if (characteristic?.value) {
+						const stepCount = parseStepCount(characteristic.value);
+						
+						// Log step count changes
+						if (lastStepCountRef.current !== null && stepCount < lastStepCountRef.current) {
+							// Counter reset (likely due to device reset)
+							logStepRef.current?.({ type: 'reset', value: stepCount }, positionRef.current);
+						} else {
+							logStepRef.current?.(stepCount, positionRef.current);
+						}
+						
+						lastStepCountRef.current = stepCount;
+						onStepCountUpdateRef.current?.(stepCount);
+					}
+				}
+			);
+			
+			subscriptionRef.current = subscription;
+		} catch (error) {
+			// Silently handle service/characteristic not found - device may not support step counter
+			if (error instanceof Error && 
+				(error.message.includes('Service') || error.message.includes('Characteristic')) && 
+				error.message.includes('not found')) {
+				return;
+			}
+			console.warn('Failed to subscribe to step counter:', error);
+		}
+	}, [device, parseStepCount]);
+
+	// Unsubscribe from step count notifications
+	const unsubscribe = useCallback(() => {
+		if (subscriptionRef.current) {
+			subscriptionRef.current.remove();
+			subscriptionRef.current = null;
+		}
+	}, []);
 
 	// Auto-subscribe when enabled
 	useEffect(() => {
@@ -133,6 +153,13 @@ export const useStepCounter = ({ deviceId, onStepCountUpdate, enabled = true }: 
 			};
 		}
 	}, [enabled, device, subscribe, unsubscribe]);
+
+	// Cleanup on device change
+	useEffect(() => {
+		return () => {
+			unsubscribe();
+		};
+	}, [device, unsubscribe]);
 
 	return {
 		subscribe,

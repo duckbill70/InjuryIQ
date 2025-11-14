@@ -325,10 +325,26 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 		await manager.discoverAllServicesAndCharacteristicsForDevice(device.id);
 		const services = await manager.servicesForDevice(device.id);
 
+		// Debug: Log discovered services
+		if (__DEV__) {
+			console.log(`[BLE] Discovered ${services.length} services for ${device.name || device.id}:`);
+			services.forEach(svc => {
+				console.log(`  - ${svc.uuid}`);
+			});
+		}
+
 		const characteristicsByService: Record<string, Characteristic[]> = {};
 		for (const svc of services) {
 			const chars = await manager.characteristicsForDevice(device.id, svc.uuid);
 			characteristicsByService[svc.uuid.toLowerCase()] = chars;
+			
+			// Debug: Log characteristics for each service
+			if (__DEV__) {
+				console.log(`[BLE] Service ${svc.uuid} has ${chars.length} characteristics:`);
+				chars.forEach(char => {
+					console.log(`    - ${char.uuid}`);
+				});
+			}
 		}
 
 		// Try auto-assignment for new devices
@@ -472,32 +488,39 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 		setScanning(true);
 
 		const timeout = setTimeout(() => {
+		stopScan();
+	}, timeoutMs);
+
+	// Scan for all devices and filter by name pattern (devices may not advertise service UUIDs)
+	managerRef.current.startDeviceScan(null, { allowDuplicates: false }, (error, device) => {
+		if (error) {
+			clearTimeout(timeout);
 			stopScan();
-		}, timeoutMs);
+			console.warn('Scan error:', error);
+			return;
+		}
+		if (!device) return;
 
-		managerRef.current.startDeviceScan([KNOWN_SERVICE_UUID], { allowDuplicates: false }, (error, device) => {
-			if (error) {
-				clearTimeout(timeout);
-				stopScan();
-				console.warn('Scan error:', error);
-				return;
-			}
-			if (!device) return;
+		// Filter by STINGRAY device name pattern (case-insensitive)
+		const deviceName = device.name || device.localName;
+		if (!deviceName?.toUpperCase().startsWith('STINGRAY')) {
+			return; // Ignore non-STINGRAY devices
+		}
 
-			const id = device.id;
-			if (discoveredIdsRef.current.has(id)) return;
-			discoveredIdsRef.current.add(id);
-			setFoundDeviceIds(Array.from(discoveredIdsRef.current));
+		const id = device.id;
+		if (discoveredIdsRef.current.has(id)) return;
+		discoveredIdsRef.current.add(id);
+		setFoundDeviceIds(Array.from(discoveredIdsRef.current));
 
-			// Eager connect
-			connectToDevice(device, { manual: true }).catch((e) => console.warn('Connect failed', e));
+		// Eager connect
+		connectToDevice(device, { manual: true }).catch((e) => console.warn('Connect failed', e));
 
-			if (discoveredIdsRef.current.size >= maxDevices) {
-				clearTimeout(timeout);
-				stopScan();
-			}
-		});
-	}, [scanning, stopScan, ensurePoweredOn, connectToDevice]);
+		if (discoveredIdsRef.current.size >= maxDevices) {
+			clearTimeout(timeout);
+			stopScan();
+		}
+	});
+}, [scanning, stopScan, ensurePoweredOn, connectToDevice]);
 
 	const disconnectDevice = useCallback(async (id: string) => {
 		const manager = managerRef.current;
@@ -552,12 +575,20 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 
 			try {
 				setScanning(true);
-				managerRef.current.startDeviceScan([KNOWN_SERVICE_UUID], { allowDuplicates: false }, (error, device) => {
+				// Scan for all devices and filter by name pattern
+				managerRef.current.startDeviceScan(null, { allowDuplicates: false }, (error, device) => {
 					if (error) {
 						console.warn('scanOnce error:', error);
 						return settle(false, error);
 					}
 					if (!device) return;
+
+					// Filter by STINGRAY device name pattern (case-insensitive)
+					const deviceName = device.name || device.localName;
+					if (!deviceName?.toUpperCase().startsWith('STINGRAY')) {
+						return; // Ignore non-STINGRAY devices
+					}
+
 					const id = device.id;
 					if (localSet.has(id)) return;
 					localSet.add(id);

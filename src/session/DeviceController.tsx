@@ -18,8 +18,24 @@ export const DeviceController: React.FC<DeviceControllerProps> = ({
   position,
 }) => {
   const { logDeviceStateError } = useSession();
-  const { setState, readState } = useControl({ deviceId, enabled: true });
+  const [currentState, setCurrentState] = React.useState<ControlState | null>(null);
+  const { startRecording, stopRecording, readStatistics } = useControl({ 
+    deviceId, 
+    enabled: true,
+    onStateUpdate: (state) => setCurrentState(state),
+  });
   const prevTargetStateRef = React.useRef<ControlState | null>(null);
+
+  // Initialize current state
+  React.useEffect(() => {
+    const init = async () => {
+      const stats = await readStatistics();
+      if (stats) {
+        setCurrentState(stats.isRecording ? ControlState.RUNNING : ControlState.STOPPED);
+      }
+    };
+    init();
+  }, [deviceId, readStatistics]);
 
   React.useEffect(() => {
     // Only run when targetState changes
@@ -31,10 +47,14 @@ export const DeviceController: React.FC<DeviceControllerProps> = ({
 
     const setDeviceState = async () => {
       try {
-        const currentState = await readState();
-
         if (currentState !== targetState) {
-          const success = await setState(targetState);
+          let success = false;
+          
+          if (targetState === ControlState.RUNNING) {
+            success = await startRecording();
+          } else if (targetState === ControlState.STOPPED) {
+            success = await stopRecording();
+          }
 
           if (!success) {
             logDeviceStateError(
@@ -58,7 +78,7 @@ export const DeviceController: React.FC<DeviceControllerProps> = ({
     };
 
     setDeviceState();
-  }, [targetState, deviceId, position, setState, readState, logDeviceStateError]);
+  }, [targetState, currentState, deviceId, position, startRecording, stopRecording, logDeviceStateError]);
 
   return null;
 };

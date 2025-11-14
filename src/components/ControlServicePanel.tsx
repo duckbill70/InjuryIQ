@@ -1,22 +1,19 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, Alert } from 'react-native';
 import { useBle } from '../ble/BleProvider';
-import { useControl, ControlState } from '../ble/useControl';
+import { useControl, ControlState, SensorLocation, type FIFOStatistics } from '../ble/useControl';
+import { useBattery } from '../ble/useBattery';
 import { useTheme } from '../theme/ThemeContext';
 
 // Simple label mapping for ControlState
 const controlStateLabel = (state: ControlState | null): string => {
   switch (state) {
-    case ControlState.STANDBY:
-      return 'STANDBY';
-    case ControlState.RUN:
-      return 'RUN';
-    case ControlState.STOP:
-      return 'STOP';
-    case ControlState.OFF:
-      return 'OFF';
-    case ControlState.FIFO_RESET:
-      return 'FIFO_RESET';
+    case ControlState.RUNNING:
+      return 'RUNNING';
+    case ControlState.STOPPED:
+      return 'STOPPED';
+    case ControlState.UNKNOWN:
+      return 'UNKNOWN';
     default:
       return '—';
   }
@@ -30,6 +27,9 @@ export const ControlServicePanel: React.FC = () => {
   const defaultSelected = connectedDevices.length ? connectedDevices[0].id : '';
   const [deviceId, setDeviceId] = useState<string>(defaultSelected);
   const [currentState, setCurrentState] = useState<ControlState | null>(null);
+  const [statistics, setStatistics] = useState<FIFOStatistics | null>(null);
+  const [sensorLocation, setSensorLocation] = useState<SensorLocation | null>(null);
+  const [batteryLevel, setBatteryLevel] = useState<number | null>(null);
 
   // Recompute if connected set changes
   useEffect(() => {
@@ -43,62 +43,115 @@ export const ControlServicePanel: React.FC = () => {
     }
   }, [connected, deviceId]);
 
-  // Selected device label (if needed in the future)
-  // const selectedName = useMemo(() => {
-  //   const entry = connected[deviceId];
-  //   return entry?.name || (deviceId ? deviceId.slice(-6) : 'No device');
-  // }, [connected, deviceId]);
-
-  const { subscribe, unsubscribe, readState, setState, resetFifo } = useControl({
+  const { 
+    readStatistics,
+    readLocation,
+    sendCommand,
+    startRecording,
+    stopRecording,
+    resetFifo,
+    dumpToSerial,
+    setLocationRed,
+    setLocationGreen,
+    resetSteps,
+  } = useControl({
     deviceId,
     enabled: !!deviceId,
     onStateUpdate: (state) => setCurrentState(state),
+    onStatisticsUpdate: (stats) => setStatistics(stats),
+    onLocationUpdate: (location) => setSensorLocation(location),
   });
 
-  // Initial read of state when device selection changes
+  const { readBatteryLevel } = useBattery({
+    deviceId,
+    enabled: !!deviceId,
+    onBatteryUpdate: (level) => setBatteryLevel(level),
+  });
+
+  // Read initial statistics when device changes
   useEffect(() => {
+    if (!deviceId) {
+      setCurrentState(null);
+      setStatistics(null);
+      setSensorLocation(null);
+      setBatteryLevel(null);
+      return;
+    }
+
     let cancelled = false;
-    async function init() {
-      if (!deviceId) {
-        setCurrentState(null);
-        return;
+
+    const init = async () => {
+      const stats = await readStatistics();
+      if (!cancelled && stats) {
+        setStatistics(stats);
+        setCurrentState(stats.isRecording ? ControlState.RUNNING : ControlState.STOPPED);
       }
-      const s = await readState();
-      if (!cancelled) setCurrentState(s);
-    }
+      
+      const location = await readLocation();
+      if (!cancelled && location !== null) {
+        setSensorLocation(location);
+      }
+
+      const battery = await readBatteryLevel();
+      if (!cancelled && battery !== null) {
+        setBatteryLevel(battery);
+      }
+    };
+
     init();
-    return () => {
-      cancelled = true;
-    };
-  }, [deviceId, readState]);
+  }, [deviceId, readStatistics, readLocation, readBatteryLevel]);
 
-  // Auto-subscribe lifecycle is handled by the hook; nothing to manage here beyond deviceId
-  useEffect(() => {
+  const handleCommand = useCallback(async (commandFn: () => Promise<boolean>, commandName: string) => {
     if (!deviceId) return;
-    subscribe();
-    return () => {
-      unsubscribe();
-    };
-  }, [deviceId, subscribe, unsubscribe]);
-
-  const applyState = useCallback(async (state: ControlState) => {
-    if (!deviceId) return;
-    const ok = await setState(state);
+    const ok = await commandFn();
     if (!ok) {
-      Alert.alert('Control', 'Failed to write control state (may be rejected by firmware).');
+      Alert.alert('Command Failed', `Failed to send ${commandName} command.`);
     }
-  }, [deviceId, setState]);
+  }, [deviceId]);
 
-  const onResetFifo = useCallback(async () => {
-    if (!deviceId) return;
-    const ok = await resetFifo();
-    if (!ok) {
-      Alert.alert('FIFO Reset', 'Reset request failed (allowed only in STANDBY).');
-    }
-  }, [deviceId, resetFifo]);
+  const onStartRecording = useCallback(() => handleCommand(startRecording, 'START'), [handleCommand, startRecording]);
+  const onStopRecording = useCallback(() => handleCommand(stopRecording, 'STOP'), [handleCommand, stopRecording]);
+  const onResetFifo = useCallback(() => handleCommand(resetFifo, 'FIFO RESET'), [handleCommand, resetFifo]);
+  const onDumpToSerial = useCallback(() => handleCommand(dumpToSerial, 'DUMP'), [handleCommand, dumpToSerial]);
+  const onSetLocationRed = useCallback(() => handleCommand(setLocationRed, 'Location RED'), [handleCommand, setLocationRed]);
+  const onSetLocationGreen = useCallback(() => handleCommand(setLocationGreen, 'Location GREEN'), [handleCommand, setLocationGreen]);
+  const onResetSteps = useCallback(() => handleCommand(resetSteps, 'Reset Steps'), [handleCommand, resetSteps]);
 
   return (
     <View style={[theme.viewStyles.panelContainer, { backgroundColor: theme.colors.white }]}> 
+      {/* Floating Location Indicator */}
+      {sensorLocation !== null && sensorLocation !== SensorLocation.UNKNOWN && (
+        <View style={{
+          position: 'absolute',
+          top: 12,
+          right: 12,
+          zIndex: 1000,
+        }}>
+          <View style={{
+            width: 20,
+            height: 20,
+            borderRadius: 10,
+            backgroundColor: sensorLocation === SensorLocation.RED ? '#FF0000' : '#00FF00',
+            borderWidth: 2,
+            borderColor: theme.colors.white,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.3,
+            shadowRadius: 3,
+            elevation: 5,
+          }} />
+          <Text style={{
+            fontSize: 10,
+            color: theme.colors.muted,
+            marginTop: 4,
+            textAlign: 'center',
+            fontWeight: '600',
+          }}>
+            {sensorLocation === SensorLocation.RED ? 'L' : 'R'}
+          </Text>
+        </View>
+      )}
+      
       {/* Header */}
       <View style={theme.viewStyles.panelTitle}>
         <Text style={theme.textStyles.panelTitle}>Control Service (Test Panel)</Text>
@@ -137,56 +190,163 @@ export const ControlServicePanel: React.FC = () => {
         <Text style={[theme.textStyles.body, { fontWeight: '700' }]}>{controlStateLabel(currentState)}</Text>
       </View>
 
-      {/* State buttons */}
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
-        {[ControlState.STANDBY, ControlState.RUN, ControlState.STOP, ControlState.OFF].map((s) => {
-          const isOff = s === ControlState.OFF;
-          const canPress = !!deviceId && (!isOff || currentState === ControlState.STANDBY);
-          const bg = isOff
-            ? (canPress ? theme.colors.danger : theme.colors.primary)
-            : theme.colors.primary;
-          return (
-            <TouchableOpacity
-              key={s}
-              onPress={() => applyState(s)}
-              disabled={!canPress}
-              style={{
-                paddingVertical: 10,
-                paddingHorizontal: 12,
-                borderRadius: 6,
-                backgroundColor: bg,
-                opacity: canPress ? 1 : 0.5,
-              }}
-            >
-              <Text style={theme.textStyles.buttonLabel}>{controlStateLabel(s)}</Text>
-            </TouchableOpacity>
-          );
-        })}
+      {/* Battery Level */}
+      <View style={[theme.viewStyles.rowBetween, { marginBottom: 12 }]}>
+        <Text style={theme.textStyles.body}>Battery:</Text>
+        <Text style={[theme.textStyles.body, { fontWeight: '700' }]}>
+          {batteryLevel !== null ? `${batteryLevel}%` : '—'}
+        </Text>
+      </View>
 
-        {/* FIFO Reset: enabled only in STANDBY */}
-        {(() => {
-          const canResetFifo = !!deviceId && currentState === ControlState.STANDBY;
-          return (
-            <TouchableOpacity
-              onPress={onResetFifo}
-              disabled={!canResetFifo}
-              style={{
-                paddingVertical: 10,
-                paddingHorizontal: 12,
-                borderRadius: 6,
-                backgroundColor: canResetFifo ? theme.colors.warn : theme.colors.muted,
-                opacity: 1,
-              }}
-            >
-              <Text style={theme.textStyles.buttonLabel}>FIFO RESET</Text>
-            </TouchableOpacity>
-          );
-        })()}
+      {/* FIFO Statistics */}
+      {statistics && (
+        <View style={{ backgroundColor: theme.colors.dgrey, borderRadius: 8, padding: 12, marginBottom: 12 }}>
+          <Text style={[theme.textStyles.body, { fontWeight: '600', marginBottom: 8 }]}>FIFO Statistics</Text>
+          <View style={{ gap: 4 }}>
+            <View style={theme.viewStyles.rowBetween}>
+              <Text style={theme.textStyles.body2}>Samples:</Text>
+              <Text style={theme.textStyles.body2}>{statistics.samplesStored} / {statistics.bufferCapacity}</Text>
+            </View>
+            <View style={theme.viewStyles.rowBetween}>
+              <Text style={theme.textStyles.body2}>Fill:</Text>
+              <Text style={theme.textStyles.body2}>
+                {statistics.bufferCapacity > 0 
+                  ? `${((statistics.samplesStored / statistics.bufferCapacity) * 100).toFixed(1)}%`
+                  : '0%'}
+              </Text>
+            </View>
+            <View style={theme.viewStyles.rowBetween}>
+              <Text style={theme.textStyles.body2}>Duration:</Text>
+              <Text style={theme.textStyles.body2}>{statistics.durationSec}s</Text>
+            </View>
+            <View style={theme.viewStyles.rowBetween}>
+              <Text style={theme.textStyles.body2}>Rate:</Text>
+              <Text style={theme.textStyles.body2}>{statistics.actualRateHz} Hz</Text>
+            </View>
+            <View style={theme.viewStyles.rowBetween}>
+              <Text style={theme.textStyles.body2}>Dropped:</Text>
+              <Text style={[theme.textStyles.body2, statistics.samplesDropped > 0 && { color: theme.colors.danger }]}>
+                {statistics.samplesDropped}
+              </Text>
+            </View>
+          </View>
+        </View>
+      )}
+
+      {/* Recording Control */}
+      <Text style={[theme.textStyles.body, { fontWeight: '600', marginBottom: 8 }]}>Recording Control</Text>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 16 }}>
+        <TouchableOpacity
+          onPress={onStartRecording}
+          disabled={!deviceId || currentState === ControlState.RUNNING}
+          style={{
+            paddingVertical: 10,
+            paddingHorizontal: 12,
+            borderRadius: 6,
+            backgroundColor: theme.colors.good,
+            opacity: (!deviceId || currentState === ControlState.RUNNING) ? 0.5 : 1,
+          }}
+        >
+          <Text style={theme.textStyles.buttonLabel}>RUN</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={onStopRecording}
+          disabled={!deviceId || currentState === ControlState.STOPPED}
+          style={{
+            paddingVertical: 10,
+            paddingHorizontal: 12,
+            borderRadius: 6,
+            backgroundColor: theme.colors.danger,
+            opacity: (!deviceId || currentState === ControlState.STOPPED) ? 0.5 : 1,
+          }}
+        >
+          <Text style={theme.textStyles.buttonLabel}>STOP</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* FIFO & Data Commands (STOP mode only) */}
+      <Text style={[theme.textStyles.body, { fontWeight: '600', marginBottom: 8 }]}>FIFO & Data (STOP mode only)</Text>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 16 }}>
+        <TouchableOpacity
+          onPress={onResetFifo}
+          disabled={!deviceId || currentState !== ControlState.STOPPED}
+          style={{
+            paddingVertical: 10,
+            paddingHorizontal: 12,
+            borderRadius: 6,
+            backgroundColor: theme.colors.warn,
+            opacity: (!deviceId || currentState !== ControlState.STOPPED) ? 0.5 : 1,
+          }}
+        >
+          <Text style={theme.textStyles.buttonLabel}>RESET FIFO</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={onDumpToSerial}
+          disabled={!deviceId || currentState !== ControlState.STOPPED}
+          style={{
+            paddingVertical: 10,
+            paddingHorizontal: 12,
+            borderRadius: 6,
+            backgroundColor: theme.colors.primary,
+            opacity: (!deviceId || currentState !== ControlState.STOPPED) ? 0.5 : 1,
+          }}
+        >
+          <Text style={theme.textStyles.buttonLabel}>DUMP TO SERIAL</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Location Commands (STOP mode only) */}
+      <Text style={[theme.textStyles.body, { fontWeight: '600', marginBottom: 8 }]}>Location (STOP mode only)</Text>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 16 }}>
+        <TouchableOpacity
+          onPress={onSetLocationRed}
+          disabled={!deviceId || currentState !== ControlState.STOPPED}
+          style={{
+            paddingVertical: 10,
+            paddingHorizontal: 12,
+            borderRadius: 6,
+            backgroundColor: '#FF0000',
+            opacity: (!deviceId || currentState !== ControlState.STOPPED) ? 0.5 : 1,
+          }}
+        >
+          <Text style={theme.textStyles.buttonLabel}>RED</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={onSetLocationGreen}
+          disabled={!deviceId || currentState !== ControlState.STOPPED}
+          style={{
+            paddingVertical: 10,
+            paddingHorizontal: 12,
+            borderRadius: 6,
+            backgroundColor: '#00FF00',
+            opacity: (!deviceId || currentState !== ControlState.STOPPED) ? 0.5 : 1,
+          }}
+        >
+          <Text style={theme.textStyles.buttonLabel}>GREEN</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={onResetSteps}
+          disabled={!deviceId || currentState !== ControlState.STOPPED}
+          style={{
+            paddingVertical: 10,
+            paddingHorizontal: 12,
+            borderRadius: 6,
+            backgroundColor: theme.colors.muted,
+            opacity: (!deviceId || currentState !== ControlState.STOPPED) ? 0.5 : 1,
+          }}
+        >
+          <Text style={theme.textStyles.buttonLabel}>RESET STEPS</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Notes */}
       <Text style={[theme.textStyles.body2, { color: theme.colors.muted, marginTop: 12 }]}> 
-        Firmware enforces valid transitions. STANDBY is required before OFF and FIFO Reset.
+        Commands like RESET, DUMP, Location, and Reset Steps can only be sent when device is STOPPED.
+        Statistics update every 1 second while recording.
       </Text>
     </View>
   );

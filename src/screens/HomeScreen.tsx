@@ -4,7 +4,6 @@ import { View, ScrollView } from 'react-native';
 import { useTheme } from '../theme/ThemeContext';
 
 import { SessionControlPanel, ControlServicePanel } from '../components';
-//import { BleControlPanel DiagnosticsPanel } from '../components';
 
 
 export default function HomeScreen() {
@@ -24,25 +23,10 @@ export default function HomeScreen() {
 					<SessionControlPanel />
 				</View>
 
-				{/* Device Settings Panel 
-				<View style={{ marginBottom: 10 }}>
-					<DeviceSettingsPanel />
-				</View> */}
-
-				{/* Device Settings Panel */}
+				{/* Control Service Panel */}
 				<View style={{ marginBottom: 100 }}>
 					<ControlServicePanel />
-				</View> 
-
-				{/* Device Diagnostics 
-				<View style={{ marginBottom: 10 }}>
-					<DiagnosticsPanel />
-				</View> */}
-
-				{/* BLE Control Panel 
-				<View style={{ marginBottom: 100 }}>
-					<BleControlPanel />
-				</View> */}
+				</View>
 				
 			</ScrollView>
 

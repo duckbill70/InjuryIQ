@@ -36,6 +36,8 @@ export type BatteryIconProps = {
   color?: string;
   /** Placeholder color used when level is null/undefined. Default: theme.colors.muted */
   placeholderColor?: string;
+  /** Rotate the battery icon 90 degrees to make it vertical. Default: false */
+  vertical?: boolean;
   /** Optional style applied to the icon container (rarely needed). */
   style?: ViewStyle;
   /** Optional accessibility label override. */
@@ -50,6 +52,7 @@ const BatteryIconComponent: React.FC<BatteryIconProps> = ({
   size = 30,
   color,
   placeholderColor,
+  vertical = false,
   style,
   accessibilityLabel,
 }) => {
@@ -81,6 +84,7 @@ const BatteryIconComponent: React.FC<BatteryIconProps> = ({
       accessibilityLabel={a11yLabel}
       style={[
         { width: size, height: size, alignItems: 'center', justifyContent: 'center' },
+        vertical && { transform: [{ rotate: '-90deg' }] },
         style,
       ]}
     >

@@ -2,21 +2,20 @@ import React, { memo } from 'react';
 import { View, ViewStyle } from 'react-native';
 import { useTheme } from '../theme/ThemeContext';
 import { ControlState } from '../ble/useControl';
-import { Play, PauseCircle, CheckCircle, Power } from 'lucide-react-native';
+import { Play, Square, CircleHelp } from 'lucide-react-native';
 
 /**
  * ControlStateIcon – Icon-only indicator for device control state.
  *
  * States mapped to icons:
- * - RUN -> Play
- * - STANDBY -> PauseCircle
- * - STOP -> CheckCircle (represents "ready")
- * - OFF -> Power
- * - null/undefined -> Grey OFF (Power) placeholder
+ * - RUNNING -> Play (triangle)
+ * - STOPPED -> Square
+ * - UNKNOWN -> CircleHelp
+ * - null/undefined -> Grey CircleHelp placeholder
  *
  * Usage:
- * <ControlStateIcon state={ControlState.RUN} />
- * <ControlStateIcon state={ControlState.STOP} size={28} />
+ * <ControlStateIcon state={ControlState.RUNNING} />
+ * <ControlStateIcon state={ControlState.STOPPED} size={28} />
  * <ControlStateIcon state={null} />
  */
 export type ControlStateIconProps = {
@@ -48,17 +47,14 @@ const ControlStateIconComponent: React.FC<ControlStateIconProps> = ({
 
   const renderIcon = () => {
     switch (state) {
-      case ControlState.RUN:
-        return <Play size={size} color={iconColor} />;
-      case ControlState.STANDBY:
-        return <PauseCircle size={size} color={iconColor} />;
-      case ControlState.STOP:
-        return <CheckCircle size={size} color={iconColor} />;
-      case ControlState.OFF:
-        return <Power size={size} color={iconColor} />;
+      case ControlState.RUNNING:
+        return <Play size={size} color={iconColor} fill={iconColor} />;
+      case ControlState.STOPPED:
+        return <Square size={size} color={iconColor} fill={iconColor} />;
+      case ControlState.UNKNOWN:
       default:
-        // Unknown / placeholder: grey OFF
-        return <Power size={size} color={iconColor} />;
+        // Unknown / placeholder
+        return <CircleHelp size={size} color={iconColor} />;
     }
   };
 
@@ -66,15 +62,11 @@ const ControlStateIconComponent: React.FC<ControlStateIconProps> = ({
     accessibilityLabel ?? (
       isPlaceholder
         ? 'State unavailable'
-        : state === ControlState.RUN
+        : state === ControlState.RUNNING
           ? 'Running'
-          : state === ControlState.STANDBY
-            ? 'Standby'
-            : state === ControlState.STOP
-              ? 'Ready'
-              : state === ControlState.OFF
-                ? 'Off'
-                : 'Unknown state'
+          : state === ControlState.STOPPED
+            ? 'Stopped'
+            : 'Unknown state'
     );
 
   return (

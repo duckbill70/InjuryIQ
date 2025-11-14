@@ -1,16 +1,14 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { View, Pressable, Alert, AppState, AppStateStatus } from 'react-native';
+import { View, Pressable, Alert, AppState, AppStateStatus, Text } from 'react-native';
 
 import { useBle, DevicePosition } from '../ble/BleProvider';
-import { LEDControlMode } from '../ble/useLEDControl';
 import { useTheme } from '../theme/ThemeContext';
-import { useControl, ControlState } from '../ble/useControl';
+import { useControl, ControlState, SensorLocation } from '../ble/useControl';
 import { useBattery } from '../ble/useBattery';
-import { useStatistics } from '../ble/useStatistics';
-// import { PowerStateButton } from './PowerStateCycler';
+import { useFatigue } from '../ble/useFatigue';
+import { useStepCounter } from '../ble/useStepCounter';
 import { useSession } from '../session/SessionProvider';
 import BatteryIcon from './BatteryIcon';
-import FifoFillBadge from './FifoFillBadge';
 import ControlStateIcon from './ControlStateIcon';
 
 import { ArrowLeftRight, Bluetooth } from 'lucide-react-native';
@@ -26,18 +24,12 @@ const POSITION_LABELS = {
 	racket: 'Racket',
 };
 
-const POSITION_COLORS = {
-	leftFoot: '#007AFF', // Blue
-	rightFoot: '#007AFF', //'#FF9500',  // Orange
-	racket: '#007AFF', //'#34C759'      // Green
+// Sensor location colors from Control characteristic
+const SENSOR_LOCATION_COLORS = {
+	RED: '#FF0000', // Left foot
+	GREEN: '#00FF00', // Right foot
+	UNKNOWN: '#8E8E93', // Gray for unknown/unassigned
 };
-
-const LED_MODE_OPTIONS = [
-	{ value: LEDControlMode.AMBER, label: 'Standby', shortLabel: 'AMB', color: '#FFA500' },
-	{ value: LEDControlMode.SOLID_RED, label: 'Collecting', shortLabel: 'S-R', color: '#EF4444' },
-	{ value: LEDControlMode.SOLID_GREEN, label: 'Collecting', shortLabel: 'S-G', color: '#10B981' },
-	{ value: LEDControlMode.SOLID_BLUE, label: 'Collecting', shortLabel: 'S-B', color: '#3B82F6' },
-];
 
 // Shared button styles - matching PowerStateCycler component (not used now; kept for future controls)
 // const CONTROL_BUTTON_STYLES = {
@@ -63,50 +55,59 @@ const LAYOUT_CONSTANTS = {
 interface DeviceBoxProps {
 	position: DevicePosition;
 	device: { id: string; name?: string | null; position?: DevicePosition } | null;
-	ledMode: LEDControlMode;
 	enabled: boolean;
-	onLEDModeChange: (deviceId: string, mode: LEDControlMode) => void;
 	onRemoveDevice: (deviceId: string) => void;
 	onAssignDevice: (position: DevicePosition) => void;
 }
 
-const DeviceBox: React.FC<DeviceBoxProps> = ({ position, device, ledMode, enabled, onLEDModeChange, onRemoveDevice: _onRemoveDevice, onAssignDevice }) => {
+const DeviceBox: React.FC<DeviceBoxProps> = ({ position, device, enabled, onRemoveDevice: _onRemoveDevice, onAssignDevice }) => {
 	const { theme } = useTheme();
 	const deviceId = device?.id || '';
 	const longPressTriggeredRef = useRef(false);
 
-	// Device state/battery/FIFO fill
+	// Device state, battery, and sensor location
 	const [controlState, setControlState] = useState<ControlState | null>(null);
+	const [sensorLocation, setSensorLocation] = useState<SensorLocation | null>(null);
 	const [_batteryPct, setBatteryPct] = useState<number | null>(null);
-	const [_fillPct, setFillPct] = useState<number | null>(null);
+	// fatigue level comes directly from useFatigue hook per device
+	const [stepCount, setStepCount] = useState<number | null>(null);
 
-	// Hooks for control state
+	// Hooks for control state and sensor location
 	const {
 		subscribe: subCtl,
 		unsubscribe: unsubCtl,
-		readState,
+		readStatistics,
+		readLocation,
 	} = useControl({
 		deviceId,
 		enabled: !!deviceId,
 		onStateUpdate: (s) => setControlState(s),
+		onLocationUpdate: (loc) => setSensorLocation(loc),
 	});
 
 	useEffect(() => {
 		let cancelled = false;
 		if (!deviceId) {
 			setControlState(null);
+			setSensorLocation(null);
 			return;
 		}
 		(async () => {
-			const s = await readState();
-			if (!cancelled) setControlState(s);
+			const stats = await readStatistics();
+			if (!cancelled && stats) {
+				setControlState(stats.isRecording ? ControlState.RUNNING : ControlState.STOPPED);
+			}
+			const loc = await readLocation();
+			if (!cancelled && loc !== null) {
+				setSensorLocation(loc);
+			}
 		})();
 		subCtl();
 		return () => {
 			cancelled = true;
 			unsubCtl();
 		};
-	}, [deviceId, readState, subCtl, unsubCtl]);
+	}, [deviceId, readStatistics, readLocation, subCtl, unsubCtl]);
 
 	// Battery percent via Battery Service
 	const {
@@ -134,94 +135,51 @@ const DeviceBox: React.FC<DeviceBoxProps> = ({ position, device, ledMode, enable
 			cancelled = true;
 			unsubBatt();
 		};
-	}, [deviceId, readBatteryLevel, subBatt, unsubBatt]); // Hooks for statistics: FIFO fill percentage
-	const {
-		subscribe: subStats,
-		unsubscribe: unsubStats,
-		readStatistics: readStats,
-		calculateFillPercentage,
-	} = useStatistics({
+	}, [deviceId, readBatteryLevel, subBatt, unsubBatt]);
+
+	// Fatigue level via Fatigue Service (read value directly from hook)
+	const { level: fatigueLevel } = useFatigue({
 		deviceId,
 		enabled: !!deviceId,
-		onStatisticsUpdate: (stats) => setFillPct(calculateFillPercentage(stats)),
 	});
 
+	// Step counter via Step Service
+	useStepCounter({
+		deviceId,
+		enabled: !!deviceId,
+		onStepCountUpdate: (count) => setStepCount(count),
+	});
+
+	// Reset steps when device changes (fatigueLevel comes from hook)
 	useEffect(() => {
-		let cancelled = false;
 		if (!deviceId) {
-			setFillPct(null);
-			return;
+			setStepCount(null);
 		}
-		(async () => {
-			const stats = await readStats();
-			if (!cancelled && stats) setFillPct(calculateFillPercentage(stats));
-		})();
-		subStats();
-		return () => {
-			cancelled = true;
-			unsubStats();
-		};
-	}, [deviceId, readStats, subStats, unsubStats, calculateFillPercentage]);
-
-	// Get next LED mode for step-through
-	const getNextLEDMode = (currentMode: LEDControlMode): LEDControlMode => {
-		const currentIndex = LED_MODE_OPTIONS.findIndex((opt) => opt.value === currentMode);
-		const nextIndex = (currentIndex + 1) % LED_MODE_OPTIONS.length;
-		return LED_MODE_OPTIONS[nextIndex].value;
-	};
-
-	// Allow LED changes in STANDBY and STOP (disabled in RUN and OFF)
-	const canChangeLED = !!device && enabled && controlState === ControlState.STOP;
-
-	// Allow device position changes (assign/remove) only in STOP
-	// const canChangePosition = !!device && enabled && controlState === ControlState.STOP;
-
-	const handleLEDStep = () => {
-		if (device && canChangeLED) {
-			const nextMode = getNextLEDMode(ledMode);
-			onLEDModeChange(device.id, nextMode);
-		}
-	};
-
-	const currentLEDOption = LED_MODE_OPTIONS.find((opt) => opt.value === ledMode);
+	}, [deviceId]);
 
 	// Corner icon placement depending on foot side
 	const isLeftSide = position === 'leftFoot';
 	// Use a stacked overlay container to stabilize positions and prevent micro-jumps
 	// Position it outside the pressable to avoid being affected by FootIcon transforms
 	const overlayStackStyle = isLeftSide
-		? { position: 'absolute' as const, left: 0, bottom: 8, flexDirection: 'column' as const }
-		: { position: 'absolute' as const, right: 0, bottom: 8, flexDirection: 'column' as const, alignItems: 'flex-end' as const };
-
-	// Shared button base style (no longer used after removing separate control button)
-	// const controlButtonBaseStyle = {
-	// 	width: CONTROL_BUTTON_STYLES.size,
-	// 	height: CONTROL_BUTTON_STYLES.size,
-	// 	borderRadius: CONTROL_BUTTON_STYLES.borderRadius,
-	// 	alignItems: 'center' as const,
-	// 	justifyContent: 'center' as const,
-	// 	borderWidth: CONTROL_BUTTON_STYLES.borderWidth,
-	// 	borderColor: theme.colors.white,
-	// };
+		? { position: 'absolute' as const, left: 0, bottom: 8, flexDirection: 'column' as const, alignItems: 'center' as const }
+		: { position: 'absolute' as const, right: 0, bottom: 8, flexDirection: 'column' as const, alignItems: 'center' as const };
 
 	return (
-		<View style={{ flexDirection: 'column' }}>
-
+		<View style={{ flexDirection: 'column', alignItems: 'center' }}>
 			{/* Device */}
 			<View style={{ height: LAYOUT_CONSTANTS.deviceBoxHeight, width: '100%', position: 'relative', justifyContent: 'center', alignItems: 'center' }}>
 				{device ? (
 					<>
-						{/* Watermark (pressable to cycle color/LED mode) */}
-						<View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center' }} pointerEvents="box-none">
+						{/* Watermark (pressable to remove device on long press) */}
+						<View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center' }} pointerEvents='box-none'>
 							<Pressable
-								accessibilityRole="button"
-								accessibilityLabel={`Toggle ${position === 'leftFoot' ? 'left' : 'right'} device color`}
+								accessibilityRole='button'
+								accessibilityLabel={`Long press to remove ${position === 'leftFoot' ? 'left' : 'right'} device`}
 								onPress={() => {
 									if (longPressTriggeredRef.current) {
 										longPressTriggeredRef.current = false;
-										return;
 									}
-									handleLEDStep();
 								}}
 								onLongPress={() => {
 									if (!enabled || !deviceId) return;
@@ -235,48 +193,148 @@ const DeviceBox: React.FC<DeviceBoxProps> = ({ position, device, ledMode, enable
 								style={({ pressed }) => [
 									// No base opacity when a device is present; keep fully opaque
 									(!enabled || !device) && { opacity: 0.4 },
-									pressed && canChangeLED && enabled && device && { transform: [{ scale: 0.97 }] },
+									pressed && enabled && device && { transform: [{ scale: 0.97 }] },
 								]}
 							>
-								<FootIcon 
-									size={LAYOUT_CONSTANTS.watermarkSize} 
-									side={position === 'leftFoot' ? 'left' : 'right'} 
-									color={currentLEDOption?.color} 
+								<FootIcon
+									size={LAYOUT_CONSTANTS.watermarkSize}
+									side={position === 'leftFoot' ? 'left' : 'right'}
+									color={sensorLocation === SensorLocation.RED ? SENSOR_LOCATION_COLORS.RED : sensorLocation === SensorLocation.GREEN ? SENSOR_LOCATION_COLORS.GREEN : SENSOR_LOCATION_COLORS.UNKNOWN}
 								/>
 							</Pressable>
-						</View>
-						{/* Stacked overlay: state (top), battery (middle), FIFO (bottom) - positioned outside Pressable */}
-						<View style={overlayStackStyle} pointerEvents="none">
-							<ControlStateIcon state={controlState} style={{ marginBottom: 6 }} />
-							<BatteryIcon level={_batteryPct} style={{ marginBottom: 6 }} />
-							<FifoFillBadge value={_fillPct} fontSize={12} />
-						</View>
 
-						{/* Control Buttons removed – foot watermark is now the color toggle */}
+							{/* Stacked overlay: state (top), battery (bottom) - positioned outside Pressable */}
+							<View style={overlayStackStyle} pointerEvents='none'>
+								<ControlStateIcon state={controlState} style={{ marginBottom: 6 }} />
+								<BatteryIcon level={_batteryPct} vertical style={{ marginBottom: 6 }} />
+							</View>
+						</View>
 					</>
 				) : (
 					// Empty slot - show assign button
 					<>
-						<Pressable
-							style={({ pressed }) => [
-								{ borderRadius: 8 }, 
-								!enabled ? { opacity: 0.5 } : { opacity: pressed ? 0.85 : 1 }, 
-								{ transform: [{ scale: pressed ? 0.98 : 1 }] }
-							]}
-							onPress={() => enabled && onAssignDevice(position)}
-							disabled={!enabled}
-						>
-							<FootIcon size={LAYOUT_CONSTANTS.watermarkSize} side={position === 'leftFoot' ? 'left' : 'right'} color={theme.colors.white} />
-						</Pressable>
+						<View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center' }} pointerEvents='box-none'>
+							<Pressable
+								style={({ pressed }) => [{ borderRadius: 8 }, !enabled ? { opacity: 0.5 } : { opacity: pressed ? 0.85 : 1 }, { transform: [{ scale: pressed ? 0.98 : 1 }] }]}
+								onPress={() => enabled && onAssignDevice(position)}
+								disabled={!enabled}
+							>
+								<FootIcon size={LAYOUT_CONSTANTS.watermarkSize} side={position === 'leftFoot' ? 'left' : 'right'} color={theme.colors.white} />
+							</Pressable>
+						</View>
 						{/* Placeholder stacked overlay mirrors the device-present layout */}
-						<View style={overlayStackStyle} pointerEvents="none">
+						<View style={overlayStackStyle} pointerEvents='none'>
 							<ControlStateIcon state={null} style={{ marginBottom: 6 }} />
-							<BatteryIcon level={null} style={{ marginBottom: 6 }} />
-							<FifoFillBadge value={null} fontSize={12} />
+							<BatteryIcon level={null} vertical style={{ marginBottom: 6 }} />
 						</View>
 					</>
 				)}
 			</View>
+
+			{/* Fatigue Display - below device box */}
+			{device ? (
+				<View style={{ alignItems: 'center', marginTop: 30 }}>
+					<Text
+						style={{
+							color: fatigueLevel !== null && fatigueLevel >= 80 ? '#FF0000' : fatigueLevel !== null && fatigueLevel >= 60 ? '#FFBA00' : fatigueLevel !== null ? '#00FF00' : theme.colors.muted,
+							fontSize: 50,
+							fontWeight: '700',
+							textShadowColor: 'rgba(0, 0, 0, 0.75)',
+							textShadowOffset: { width: 0, height: 1 },
+							textShadowRadius: 3,
+						}}
+					>
+						{fatigueLevel !== null ? `${fatigueLevel}%` : ''}
+					</Text>
+					<Text
+						style={{
+							color: theme.colors.white,
+							fontSize: 10,
+							fontWeight: '600',
+							opacity: 0.7,
+							marginTop: 2,
+						}}
+					>
+						Fatigue
+					</Text>
+					{/* Steps Display */}
+					<Text
+						style={{
+							color: theme.colors.white,
+							fontSize: 40,
+							fontWeight: '700',
+							textShadowColor: 'rgba(0, 0, 0, 0.75)',
+							textShadowOffset: { width: 0, height: 1 },
+							textShadowRadius: 3,
+							marginTop: 8,
+						}}
+					>
+						{stepCount !== null ? stepCount.toLocaleString() : ''}
+					</Text>
+					<Text
+						style={{
+							color: theme.colors.white,
+							fontSize: 10,
+							fontWeight: '600',
+							opacity: 0.7,
+							marginTop: 2,
+						}}
+					>
+						Steps
+					</Text>
+				</View>
+			) : (
+				<View style={{ alignItems: 'center', marginTop: 30 }}>
+					<Text
+						style={{
+							color: theme.colors.muted,
+							fontSize: 50,
+							fontWeight: '700',
+							textShadowColor: 'rgba(0, 0, 0, 0.75)',
+							textShadowOffset: { width: 0, height: 1 },
+							textShadowRadius: 3,
+						}}
+					>
+						0
+					</Text>
+					<Text
+						style={{
+							color: theme.colors.white,
+							fontSize: 10,
+							fontWeight: '600',
+							opacity: 0.7,
+							marginTop: 2,
+						}}
+					>
+						Fatigue
+					</Text>
+					{/* Steps Placeholder */}
+					<Text
+						style={{
+							color: theme.colors.muted,
+							fontSize: 40,
+							fontWeight: '700',
+							textShadowColor: 'rgba(0, 0, 0, 0.75)',
+							textShadowOffset: { width: 0, height: 1 },
+							textShadowRadius: 3,
+							marginTop: 8,
+						}}
+					>
+						0
+					</Text>
+					<Text
+						style={{
+							color: theme.colors.white,
+							fontSize: 10,
+							fontWeight: '600',
+							opacity: 0.7,
+							marginTop: 2,
+						}}
+					>
+						Steps
+					</Text>
+				</View>
+			)}
 		</View>
 	);
 };
@@ -284,9 +342,6 @@ const DeviceBox: React.FC<DeviceBoxProps> = ({ position, device, ledMode, enable
 export const DeviceManager: React.FC<DeviceManagerProps> = () => {
 	const { connected, devicesByPosition, assignDevicePosition, unassignDevicePosition, scanning, startScan, stopScan, isPoweredOn } = useBle();
 	const { theme } = useTheme();
-
-	// LED control states for each device
-	const [ledModes, setLedModes] = useState<Record<string, LEDControlMode>>({});
 
 	const { isActive } = useSession();
 
@@ -300,7 +355,7 @@ export const DeviceManager: React.FC<DeviceManagerProps> = () => {
 
 	/**
 	 * Handle app state changes - re-check Bluetooth when returning to foreground during scan
-	 * 
+	 *
 	 * This is important for the workflow where:
 	 * 1. User tries to scan but Bluetooth is off
 	 * 2. Alert prompts them to enable Bluetooth in Settings
@@ -317,13 +372,7 @@ export const DeviceManager: React.FC<DeviceManagerProps> = () => {
 				if (!isPoweredOn) {
 					// Bluetooth is still off, stop scan and alert user
 					stopScan();
-					Alert.alert(
-						'Bluetooth Required',
-						'Please enable Bluetooth to scan for devices.',
-						[
-							{ text: 'OK', style: 'default' },
-						]
-					);
+					Alert.alert('Bluetooth Required', 'Please enable Bluetooth to scan for devices.', [{ text: 'OK', style: 'default' }]);
 				}
 				// If Bluetooth is now on, scanning will continue automatically
 			}
@@ -333,55 +382,6 @@ export const DeviceManager: React.FC<DeviceManagerProps> = () => {
 			subscription.remove();
 		};
 	}, [isPoweredOn, stopScan]);
-
-	// Available devices that can be assigned
-	//const availableDevices = Object.values(connected).filter(device => !device.position);
-
-	// Read actual LED modes from connected devices
-	const readDeviceLEDMode = useCallback(
-		async (deviceId: string): Promise<LEDControlMode> => {
-			try {
-				const deviceEntry = connected[deviceId];
-				if (!deviceEntry?.device) {
-					return LEDControlMode.AMBER; // Default fallback
-				}
-
-				const device = deviceEntry.device;
-				const isConnected = await device.isConnected();
-				if (!isConnected) {
-					return LEDControlMode.AMBER; // Default fallback
-				}
-
-				// Read the LED control characteristic
-				const characteristic = await device.readCharacteristicForService(
-					'19b10010-e8f2-537e-4f6c-d104768a1214', // LED_SERVICE_UUID
-					'19b10010-e8f2-537e-4f6c-d104768a1215', // LED_CONTROL_CHARACTERISTIC_UUID
-				);
-
-				if (characteristic?.value) {
-					// Parse LED mode from base64 (same logic as useLEDControl)
-					const base64chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
-					if (characteristic.value.length < 2) return LEDControlMode.AMBER;
-
-					const char1 = base64chars.indexOf(characteristic.value[0]);
-					const char2 = base64chars.indexOf(characteristic.value[1]);
-					if (char1 === -1 || char2 === -1) return LEDControlMode.AMBER;
-
-					// eslint-disable-next-line no-bitwise
-					const mode = (char1 << 2) | (char2 >> 4);
-
-					// Validate mode is within enum range
-					if (mode >= 0 && mode <= 10) {
-						return mode as LEDControlMode;
-					}
-				}
-		} catch (error) {
-			// Device might not support LED control - this is normal
-			if (__DEV__) console.log(`Device ${deviceId} does not support LED control or read failed:`, error);
-		}			return LEDControlMode.AMBER; // Default fallback
-		},
-		[connected],
-	);
 
 	// Swap state: prevent re-press until devices reach their new slots
 	const [isSwapping, setIsSwapping] = useState(false);
@@ -396,8 +396,8 @@ export const DeviceManager: React.FC<DeviceManagerProps> = () => {
 		try {
 			setIsSwapping(true);
 			setPendingSwap({ leftId: left.id, rightId: right.id });
-			await assignDevicePosition(left.id, 'rightFoot', left.color || POSITION_COLORS.rightFoot);
-			await assignDevicePosition(right.id, 'leftFoot', right.color || POSITION_COLORS.leftFoot);
+			await assignDevicePosition(left.id, 'rightFoot');
+			await assignDevicePosition(right.id, 'leftFoot');
 		} catch (e) {
 			setIsSwapping(false);
 			setPendingSwap(null);
@@ -420,13 +420,7 @@ export const DeviceManager: React.FC<DeviceManagerProps> = () => {
 
 		if (!isPoweredOn) {
 			// Bluetooth is off - prompt user to enable it
-			Alert.alert(
-				'Bluetooth Required',
-				'Bluetooth is currently disabled. Please enable Bluetooth in Settings to scan for devices.',
-				[
-					{ text: 'OK', style: 'default' },
-				]
-			);
+			Alert.alert('Bluetooth Required', 'Bluetooth is currently disabled. Please enable Bluetooth in Settings to scan for devices.', [{ text: 'OK', style: 'default' }]);
 			return;
 		}
 
@@ -448,76 +442,6 @@ export const DeviceManager: React.FC<DeviceManagerProps> = () => {
 			setPendingSwap(null);
 		}
 	}, [devicesByPosition.leftFoot, devicesByPosition.rightFoot, pendingSwap]);
-
-	// Initialize LED modes by reading from connected devices
-	useEffect(() => {
-		const initializeLEDModes = async () => {
-			const updates: Record<string, LEDControlMode> = {};
-
-			for (const deviceId of Object.keys(connected)) {
-				if (!(deviceId in ledModes)) {
-					// Read actual LED mode from device
-					const actualMode = await readDeviceLEDMode(deviceId);
-					updates[deviceId] = actualMode;
-				}
-			}
-
-			if (Object.keys(updates).length > 0) {
-				setLedModes((prev) => ({ ...prev, ...updates }));
-			}
-		};
-
-		initializeLEDModes();
-	}, [connected, ledModes, readDeviceLEDMode]);
-
-	// Handle LED mode change
-	const handleLEDModeChange = useCallback(
-		async (deviceId: string, mode: LEDControlMode) => {
-			try {
-				// Update local state immediately for responsive UI
-				setLedModes((prev) => ({ ...prev, [deviceId]: mode }));
-
-				// Get the connected device
-				const deviceEntry = connected[deviceId];
-				if (!deviceEntry?.device) {
-					throw new Error('Device not connected');
-				}
-
-				const device = deviceEntry.device;
-
-				// Check if device is still connected
-				const isConnected = await device.isConnected();
-				if (!isConnected) {
-					throw new Error('Device is no longer connected');
-				}
-
-				// Encode the LED mode (same as useLEDControl hook)
-				const base64chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
-				// eslint-disable-next-line no-bitwise
-				const modeValue = mode & 0xff; // Ensure single byte
-				// eslint-disable-next-line no-bitwise
-				const char1 = base64chars[(modeValue >> 2) & 0x3f];
-				// eslint-disable-next-line no-bitwise
-				const char2 = base64chars[(modeValue << 4) & 0x30];
-				const encodedMode = char1 + char2 + '==';
-
-				// Send the command directly to the device using the same UUIDs as useLEDControl
-			await device.writeCharacteristicWithResponseForService(
-				'19b10010-e8f2-537e-4f6c-d104768a1214', // LED_SERVICE_UUID
-				'19b10010-e8f2-537e-4f6c-d104768a1215', // LED_CONTROL_CHARACTERISTIC_UUID
-				encodedMode,
-			);
-
-			if (__DEV__) console.log(`Successfully set LED mode for device ${deviceId} to ${mode}`);
-		} catch (error) {
-			console.warn(`Failed to set LED mode for device ${deviceId}:`, error);
-				// Revert the local state on error - set back to previous value or default
-				setLedModes((prev) => ({ ...prev, [deviceId]: LEDControlMode.AMBER }));
-				Alert.alert('Error', `Failed to set LED mode: ${error}`);
-			}
-		},
-		[connected],
-	);
 
 	// Handle device removal from position
 	const handleRemoveDevice = useCallback(
@@ -571,19 +495,15 @@ export const DeviceManager: React.FC<DeviceManagerProps> = () => {
 				const option = allOptions[0];
 				if (!option.isUnassigned) {
 					// Moving from another position - confirm swap
-					Alert.alert(
-						'Move Device',
-						`Move ${option.device.name || 'this device'} from ${POSITION_LABELS[option.device.position!]} to ${POSITION_LABELS[position]}?`,
-						[
-							{ text: 'Cancel', style: 'cancel' },
-							{
-								text: 'Move',
-								onPress: () => assignDevicePosition(option.device.id, position, POSITION_COLORS[position]),
-							},
-						]
-					);
+					Alert.alert('Move Device', `Move ${option.device.name || 'this device'} from ${POSITION_LABELS[option.device.position!]} to ${POSITION_LABELS[position]}?`, [
+						{ text: 'Cancel', style: 'cancel' },
+						{
+							text: 'Move',
+							onPress: () => assignDevicePosition(option.device.id, position),
+						},
+					]);
 				} else {
-					assignDevicePosition(option.device.id, position, POSITION_COLORS[position]);
+					assignDevicePosition(option.device.id, position);
 				}
 			} else {
 				// Show selection for multiple devices
@@ -593,19 +513,15 @@ export const DeviceManager: React.FC<DeviceManagerProps> = () => {
 						onPress: () => {
 							if (!option.isUnassigned) {
 								// Confirm move from another position
-								Alert.alert(
-									'Move Device',
-									`Move this device from ${POSITION_LABELS[option.device.position!]} to ${POSITION_LABELS[position]}?`,
-									[
-										{ text: 'Cancel', style: 'cancel' },
-										{
-											text: 'Move',
-											onPress: () => assignDevicePosition(option.device.id, position, POSITION_COLORS[position]),
-										},
-									]
-								);
+								Alert.alert('Move Device', `Move this device from ${POSITION_LABELS[option.device.position!]} to ${POSITION_LABELS[position]}?`, [
+									{ text: 'Cancel', style: 'cancel' },
+									{
+										text: 'Move',
+										onPress: () => assignDevicePosition(option.device.id, position),
+									},
+								]);
 							} else {
-								assignDevicePosition(option.device.id, position, POSITION_COLORS[position]);
+								assignDevicePosition(option.device.id, position);
 							}
 						},
 					})),
@@ -613,7 +529,7 @@ export const DeviceManager: React.FC<DeviceManagerProps> = () => {
 				]);
 			}
 		},
-		[connected, assignDevicePosition]
+		[connected, assignDevicePosition],
 	);
 
 	return (
@@ -626,29 +542,16 @@ export const DeviceManager: React.FC<DeviceManagerProps> = () => {
 						{(() => {
 							const position: DevicePosition = 'leftFoot';
 							const device = devicesByPosition[position];
-							const ledMode = device ? (ledModes[device.id] || LEDControlMode.AMBER) : LEDControlMode.AMBER;
-							return (
-								<DeviceBox 
-									position={position}
-									device={device || null}
-									ledMode={ledMode}
-									enabled={!isActive}
-									onLEDModeChange={handleLEDModeChange}
-									onRemoveDevice={handleRemoveDevice}
-									onAssignDevice={handleAssignDevice}
-								/>
-							);
+							return <DeviceBox position={position} device={device || null} enabled={!isActive} onRemoveDevice={handleRemoveDevice} onAssignDevice={handleAssignDevice} />;
 						})()}
 					</View>
 
-					{/* Swap/Scan Button - Shows Scan when fewer than 2 devices, Swap when 2 devices present */}
-					<View style={{ width: 64, alignItems: 'center', justifyContent: 'center', marginHorizontal: 8 }}>
-						{(() => {
-							const left = devicesByPosition.leftFoot;
-							const right = devicesByPosition.rightFoot;
-							const hasLeftAndRight = !!left && !!right;
-							
-							if (hasLeftAndRight) {
+				{/* Swap/Scan Button - Shows Scan when fewer than 2 devices, Swap when 2 devices present */}
+				<View style={{ width: 64, alignItems: 'center', justifyContent: 'flex-start', marginHorizontal: 8, marginTop: -100 }}>
+					{(() => {
+						const left = devicesByPosition.leftFoot;
+						const right = devicesByPosition.rightFoot;
+						const hasLeftAndRight = !!left && !!right;							if (hasLeftAndRight) {
 								// Show swap button when both devices are present
 								const swapDisabled = isActive || isSwapping;
 								return (
@@ -703,7 +606,7 @@ export const DeviceManager: React.FC<DeviceManagerProps> = () => {
 											},
 											scanDisabled && { opacity: 0.4 },
 											pressed && !scanDisabled && { opacity: 0.7, transform: [{ scale: 0.95 }], shadowOpacity: 0.2 },
-											scanning && { 
+											scanning && {
 												shadowOpacity: 0.6,
 												transform: [{ scale: pressed ? 0.95 : 1 }],
 											},
@@ -721,18 +624,7 @@ export const DeviceManager: React.FC<DeviceManagerProps> = () => {
 						{(() => {
 							const position: DevicePosition = 'rightFoot';
 							const device = devicesByPosition[position];
-							const ledMode = device ? (ledModes[device.id] || LEDControlMode.AMBER) : LEDControlMode.AMBER;
-							return (
-								<DeviceBox 
-									position={position}
-									device={device || null}
-									ledMode={ledMode}
-									enabled={!isActive}
-									onLEDModeChange={handleLEDModeChange}
-									onRemoveDevice={handleRemoveDevice}
-									onAssignDevice={handleAssignDevice}
-								/>
-							);
+							return <DeviceBox position={position} device={device || null} enabled={!isActive} onRemoveDevice={handleRemoveDevice} onAssignDevice={handleAssignDevice} />;
 						})()}
 					</View>
 				</View>

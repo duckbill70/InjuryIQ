@@ -11,11 +11,11 @@
 // AUTOMATIC ENRICHMENT:
 // - Header.devices: Populated from connected BLE devices (id, name, position)
 // - Footer.stats: GPS distance/speed, step counts, fatigue events, pause tracking
-// - BLE Events: Automatically subscribes to step counter, fatigue, and FIFO statistics
+// - BLE Events: Automatically subscribes to step counter and fatigue monitoring
 //
 // SESSION FILE FORMAT (.jsonl):
 // Line 1: { type: 'header', startedAt, devices, sport }
-// Lines 2-N: { timestamp, type: 'gps'|'steps'|'fatigue'|'statistics'|'pause'|'resume', data, position? }
+// Lines 2-N: { timestamp, type: 'gps'|'steps'|'fatigue'|'pause'|'resume', data, position? }
 // Last line: { type: 'footer', stoppedAt, duration, stats }
 //
 import React, { createContext, useContext, useRef, useState, useCallback } from 'react';
@@ -25,7 +25,6 @@ import Geolocation from 'react-native-geolocation-service';
 import { useBle } from '../ble/BleProvider';
 import { useStepCounter } from '../ble/useStepCounter';
 import { useFatigue } from '../ble/useFatigue';
-import { useStatistics, type FIFOStatistics } from '../ble/useStatistics';
 import { ControlState } from '../ble/useControl';
 import { DeviceController } from './DeviceController';
 
@@ -64,7 +63,7 @@ export interface SessionFooter {
 
 export interface SessionEntry {
   timestamp: string;
-  type: 'gps' | 'steps' | 'fatigue' | 'statistics' | 'pause' | 'resume' | 'device_state_error' | 'device_disconnect' | 'device_reconnect';
+  type: 'gps' | 'steps' | 'fatigue' | 'pause' | 'resume' | 'device_state_error' | 'device_disconnect' | 'device_reconnect';
   data: unknown;
   position?: string;
   deviceId?: string;
@@ -79,7 +78,6 @@ interface SessionContextType {
   resumeSession: () => void;
   logStep: (stepData: unknown, position?: string) => void;
   logFatigue: (fatigueData: unknown, position?: string) => void;
-  logStatistics: (statisticsData: FIFOStatistics, deviceId: string, position?: string) => void;
   logDeviceStateError: (deviceId: string, expectedState: string, actualState: string, position?: string) => void;
   logDeviceDisconnect: (deviceId: string, position?: string) => void;
   logDeviceReconnect: (deviceId: string, position?: string) => void;
@@ -189,7 +187,7 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
     sessionStartTime.current = Date.now();
     setIsActive(true);
     setIsPaused(false);
-    setDeviceTargetState(ControlState.RUN); // Signal devices to go to RUN state
+    setDeviceTargetState(ControlState.RUNNING); // Signal devices to go to RUN state
 
     // Reset stats
     statsRef.current = {
@@ -252,7 +250,7 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   // Stop session
   const stopSession = useCallback((footerData?: SessionFooter) => {
-    setDeviceTargetState(ControlState.STOP); // Signal devices to go to STOP state
+    setDeviceTargetState(ControlState.STOPPED); // Signal devices to go to STOP state
     setIsActive(false);
     setIsPaused(false);
     if (gpsInterval.current) {
@@ -315,6 +313,7 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // Pause session
   const pauseSession = useCallback(() => {
     setIsPaused(true);
+    setDeviceTargetState(ControlState.STOPPED); // Stop devices when pausing
     if (pauseStartRef.current == null) pauseStartRef.current = Date.now();
     logEntry({ timestamp: new Date().toISOString(), type: 'pause', data: null });
   }, [logEntry]);
@@ -322,6 +321,7 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // Resume session
   const resumeSession = useCallback(() => {
     setIsPaused(false);
+    setDeviceTargetState(ControlState.RUNNING); // Start devices when resuming
     // Update ref immediately so logEntry will work
     isPausedRef.current = false;
     
@@ -353,17 +353,6 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
       type: 'fatigue',
       data: fatigueData,
       position,
-    });
-  }, [logEntry]);
-
-  // Log FIFO statistics
-  const logStatistics = useCallback((statisticsData: FIFOStatistics, deviceId: string, position?: string) => {
-    logEntry({
-      timestamp: new Date().toISOString(),
-      type: 'statistics',
-      data: statisticsData,
-      position,
-      deviceId,
     });
   }, [logEntry]);
 
@@ -432,7 +421,6 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
       resumeSession, 
       logStep, 
       logFatigue, 
-      logStatistics,
       logDeviceStateError,
       logDeviceDisconnect,
       logDeviceReconnect,
@@ -461,11 +449,6 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
 // Component to subscribe to BLE events for a single device
 const BleDeviceSubscriber: React.FC<{ deviceId: string; enabled: boolean }> = ({ deviceId, enabled }) => {
-  const { logStatistics } = useSession();
-  const { connected } = useBle();
-  const device = connected[deviceId];
-  const position = device?.position;
-
   // Subscribe to step counter (hook handles logging internally)
   useStepCounter({
     deviceId,
@@ -476,15 +459,6 @@ const BleDeviceSubscriber: React.FC<{ deviceId: string; enabled: boolean }> = ({
   useFatigue({
     deviceId,
     enabled,
-  });
-
-  // Subscribe to FIFO statistics
-  useStatistics({
-    deviceId,
-    enabled,
-    onStatisticsUpdate: (stats) => {
-      logStatistics(stats, deviceId, position);
-    },
   });
 
   return null;

@@ -50,7 +50,6 @@ export const useBattery = ({
 					}
 					// Suppress expected disconnect/cancellation errors - device is reconnecting
 					if (error.message?.includes('was disconnected') || error.message?.includes('was cancelled')) {
-						if (__DEV__) console.log('[Battery] Device disconnected, monitor will restart on reconnect');
 						return;
 					}
 					console.error('Battery monitoring error:', error);

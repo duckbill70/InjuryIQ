@@ -174,7 +174,7 @@ export const SessionControlPanel: React.FC = () => {
 	}, [isPoweredOn, notify, startScan]);
 
 	return (
-		<View style={[theme.viewStyles.panelContainer, { backgroundColor: theme.colors.black, padding: 20 }]}>
+		<View style={[theme.viewStyles.panelContainer, { backgroundColor: theme.colors.black, paddingHorizontal: 20, paddingVertical: 60 }]}>
 			{/* Sport Selector - disabled when session is active */}
 			<View style={{ marginBottom: 30 }}>
 				<View style={{ flexDirection: 'row', justifyContent: 'space-evenly', gap: 8, flexWrap: 'wrap' }}>
@@ -409,6 +409,7 @@ export const SessionControlPanel: React.FC = () => {
 
 			{/* Devices */}
 			<DeviceManager />
+
 
 			{/* BLE Warning overlay */}
 			<AlertOverlay

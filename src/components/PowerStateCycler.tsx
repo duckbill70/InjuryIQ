@@ -151,7 +151,7 @@ export function usePowerStateCycler(options: UsePowerStateCyclerOptions): UsePow
     }
 
     const startState = stateRef.current;
-    if (startState !== ControlState.OFF) {
+    if (startState !== ControlState.CONTROL_OFF) {
       return false; // Only works from OFF state
     }
 
@@ -163,16 +163,16 @@ export function usePowerStateCycler(options: UsePowerStateCyclerOptions): UsePow
 
     try {
       // OFF → STANDBY
-      await setState(ControlState.STANDBY);
-      const standbyOk = await waitForState(ControlState.STANDBY, timeoutMs);
+      await setState(ControlState.CONTROL_STANDBY);
+      const standbyOk = await waitForState(ControlState.CONTROL_STANDBY, timeoutMs);
       if (!standbyOk || abortToken.abort) {
         onError?.('Failed to reach STANDBY from OFF');
         return false;
       }
 
       // STANDBY → STOP
-      await setState(ControlState.STOP);
-      const stopOk = await waitForState(ControlState.STOP, timeoutMs);
+      await setState(ControlState.CONTROL_STOP);
+      const stopOk = await waitForState(ControlState.CONTROL_STOP, timeoutMs);
       if (!stopOk || abortToken.abort) {
         onError?.('Failed to reach STOP from STANDBY');
         return false;
@@ -196,7 +196,7 @@ export function usePowerStateCycler(options: UsePowerStateCyclerOptions): UsePow
     }
 
     const startState = stateRef.current;
-    if (startState !== ControlState.STOP) {
+    if (startState !== ControlState.CONTROL_STOP) {
       return false; // Only works from STOP state
     }
 
@@ -208,16 +208,16 @@ export function usePowerStateCycler(options: UsePowerStateCyclerOptions): UsePow
 
     try {
       // STOP → STANDBY
-      await setState(ControlState.STANDBY);
-      const standbyOk = await waitForState(ControlState.STANDBY, timeoutMs);
+      await setState(ControlState.CONTROL_STANDBY);
+      const standbyOk = await waitForState(ControlState.CONTROL_STANDBY, timeoutMs);
       if (!standbyOk || abortToken.abort) {
         onError?.('Failed to reach STANDBY from STOP');
         return false;
       }
 
       // STANDBY → OFF
-      await setState(ControlState.OFF);
-      const offOk = await waitForState(ControlState.OFF, timeoutMs);
+      await setState(ControlState.CONTROL_OFF);
+      const offOk = await waitForState(ControlState.CONTROL_OFF, timeoutMs);
       if (!offOk || abortToken.abort) {
         onError?.('Failed to reach OFF from STANDBY');
         return false;
@@ -265,8 +265,8 @@ export const PowerStateButton: React.FC<PowerStateButtonProps> = ({ deviceId, en
   }, [turnOff, isBusy]);
 
   // Buttons only enabled in OFF or STOP states
-  const isOffState = currentState === ControlState.OFF;
-  const isStopState = currentState === ControlState.STOP;
+  const isOffState = currentState === ControlState.CONTROL_OFF;
+  const isStopState = currentState === ControlState.CONTROL_STOP;
   const buttonsEnabled = isOffState || isStopState;
 
   // Shared button styles

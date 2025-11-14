@@ -174,7 +174,7 @@ export const SessionControlPanel: React.FC = () => {
 	}, [isPoweredOn, notify, startScan]);
 
 	return (
-		<View style={[theme.viewStyles.panelContainer, { backgroundColor: theme.colors.black, paddingHorizontal: 20, paddingVertical: 60 }]}>
+		<View style={[theme.viewStyles.panelContainer, { backgroundColor: theme.colors.black, paddingHorizontal: 20, paddingVertical: 30 }]}>
 			{/* Sport Selector - disabled when session is active */}
 			<View style={{ marginBottom: 30 }}>
 				<View style={{ flexDirection: 'row', justifyContent: 'space-evenly', gap: 8, flexWrap: 'wrap' }}>
@@ -321,7 +321,7 @@ export const SessionControlPanel: React.FC = () => {
 			</View>
 
 			{/* Session Status - Interactive Graphic */}
-			<View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 30 }}>
+			<View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 60, marginBottom: 40 }}>
 				<View style={{ alignItems: 'center' }}>
 					{/* Status Circle with Animation */}
 					<Animated.View

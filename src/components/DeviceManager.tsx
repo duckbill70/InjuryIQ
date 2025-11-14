@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { View, Pressable, Alert, AppState, AppStateStatus, Text } from 'react-native';
+import { View, Pressable, Alert, AppState, AppStateStatus, Text, Vibration } from 'react-native';
 
 import { useBle, DevicePosition } from '../ble/BleProvider';
 import { useTheme } from '../theme/ThemeContext';
@@ -69,6 +69,7 @@ const DeviceBox: React.FC<DeviceBoxProps> = ({ position, device, enabled, onRemo
 	const [controlState, setControlState] = useState<ControlState | null>(null);
 	const [sensorLocation, setSensorLocation] = useState<SensorLocation | null>(null);
 	const [_batteryPct, setBatteryPct] = useState<number | null>(null);
+	const [fifoFillPct, setFifoFillPct] = useState<number | null>(null);
 	// fatigue level comes directly from useFatigue hook per device
 	const [stepCount, setStepCount] = useState<number | null>(null);
 
@@ -78,11 +79,20 @@ const DeviceBox: React.FC<DeviceBoxProps> = ({ position, device, enabled, onRemo
 		unsubscribe: unsubCtl,
 		readStatistics,
 		readLocation,
+		setLocationRed,
+		setLocationGreen,
 	} = useControl({
 		deviceId,
 		enabled: !!deviceId,
 		onStateUpdate: (s) => setControlState(s),
 		onLocationUpdate: (loc) => setSensorLocation(loc),
+		onStatisticsUpdate: (stats) => {
+			if (stats.bufferCapacity > 0) {
+				setFifoFillPct((stats.samplesStored / stats.bufferCapacity) * 100);
+			} else {
+				setFifoFillPct(null);
+			}
+		},
 	});
 
 	useEffect(() => {
@@ -96,6 +106,9 @@ const DeviceBox: React.FC<DeviceBoxProps> = ({ position, device, enabled, onRemo
 			const stats = await readStatistics();
 			if (!cancelled && stats) {
 				setControlState(stats.isRecording ? ControlState.RUNNING : ControlState.STOPPED);
+				if (stats.bufferCapacity > 0) {
+					setFifoFillPct((stats.samplesStored / stats.bufferCapacity) * 100);
+				}
 			}
 			const loc = await readLocation();
 			if (!cancelled && loc !== null) {
@@ -176,11 +189,19 @@ const DeviceBox: React.FC<DeviceBoxProps> = ({ position, device, enabled, onRemo
 							<Pressable
 								accessibilityRole='button'
 								accessibilityLabel={`Long press to remove ${position === 'leftFoot' ? 'left' : 'right'} device`}
-								onPress={() => {
-									if (longPressTriggeredRef.current) {
-										longPressTriggeredRef.current = false;
-									}
-								}}
+										onPress={async () => {
+											if (longPressTriggeredRef.current) {
+												longPressTriggeredRef.current = false;
+												return;
+											}
+											if (!enabled || !deviceId) return;
+											const ok = position === 'leftFoot' ? await setLocationRed() : await setLocationGreen();
+											if (ok) {
+												Vibration.vibrate(10);
+											} else {
+												Alert.alert('Location Update Failed', 'Unable to set device color.');
+											}
+										}}
 								onLongPress={() => {
 									if (!enabled || !deviceId) return;
 									longPressTriggeredRef.current = true;
@@ -205,8 +226,18 @@ const DeviceBox: React.FC<DeviceBoxProps> = ({ position, device, enabled, onRemo
 
 							{/* Stacked overlay: state (top), battery (bottom) - positioned outside Pressable */}
 							<View style={overlayStackStyle} pointerEvents='none'>
-								<ControlStateIcon state={controlState} style={{ marginBottom: 6 }} />
-								<BatteryIcon level={_batteryPct} vertical style={{ marginBottom: 6 }} />
+								<ControlStateIcon state={controlState} style={{ marginBottom: 4 }} />
+								<BatteryIcon level={_batteryPct} vertical style={{ marginBottom: 2 }} />
+								{fifoFillPct !== null && (
+									<Text style={{
+										color: 'white',
+										fontSize: 10,
+										fontWeight: '600',
+										textShadowColor: 'rgba(0,0,0,0.6)',
+										textShadowOffset: { width: 0, height: 1 },
+										textShadowRadius: 2,
+									}}>{`${fifoFillPct.toFixed(0)}%`}</Text>
+								)}
 							</View>
 						</View>
 					</>
@@ -224,8 +255,9 @@ const DeviceBox: React.FC<DeviceBoxProps> = ({ position, device, enabled, onRemo
 						</View>
 						{/* Placeholder stacked overlay mirrors the device-present layout */}
 						<View style={overlayStackStyle} pointerEvents='none'>
-							<ControlStateIcon state={null} style={{ marginBottom: 6 }} />
-							<BatteryIcon level={null} vertical style={{ marginBottom: 6 }} />
+							<ControlStateIcon state={null} style={{ marginBottom: 4 }} />
+							<BatteryIcon level={null} vertical style={{ marginBottom: 2 }} />
+							<Text style={{ color: 'white', fontSize: 10, fontWeight: '600', opacity: 0.3 }}>-</Text>
 						</View>
 					</>
 				)}
@@ -244,7 +276,7 @@ const DeviceBox: React.FC<DeviceBoxProps> = ({ position, device, enabled, onRemo
 							textShadowRadius: 3,
 						}}
 					>
-						{fatigueLevel !== null ? `${fatigueLevel}%` : ''}
+						{fatigueLevel !== null ? `${fatigueLevel}` : ''}
 					</Text>
 					<Text
 						style={{

@@ -54,6 +54,8 @@ export const ControlServicePanel: React.FC = () => {
     setLocationRed,
     setLocationGreen,
     resetSteps,
+    testImu,
+    logFifoStats,
   } = useControl({
     deviceId,
     enabled: !!deviceId,
@@ -116,6 +118,8 @@ export const ControlServicePanel: React.FC = () => {
   const onSetLocationRed = useCallback(() => handleCommand(setLocationRed, 'Location RED'), [handleCommand, setLocationRed]);
   const onSetLocationGreen = useCallback(() => handleCommand(setLocationGreen, 'Location GREEN'), [handleCommand, setLocationGreen]);
   const onResetSteps = useCallback(() => handleCommand(resetSteps, 'Reset Steps'), [handleCommand, resetSteps]);
+  const onTestImu = useCallback(() => handleCommand(testImu, 'IMU Test'), [handleCommand, testImu]);
+  const onLogFifoStats = useCallback(() => handleCommand(logFifoStats, 'FIFO Stats'), [handleCommand, logFifoStats]);
 
   return (
     <View style={[theme.viewStyles.panelContainer, { backgroundColor: theme.colors.white }]}> 
@@ -340,6 +344,38 @@ export const ControlServicePanel: React.FC = () => {
           }}
         >
           <Text style={theme.textStyles.buttonLabel}>RESET STEPS</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Diagnostic Commands */}
+      <Text style={[theme.textStyles.body, { fontWeight: '600', marginBottom: 8 }]}>Diagnostics</Text>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 16 }}>
+        <TouchableOpacity
+          onPress={onTestImu}
+          disabled={!deviceId}
+          style={{
+            paddingVertical: 10,
+            paddingHorizontal: 12,
+            borderRadius: 6,
+            backgroundColor: theme.colors.primary,
+            opacity: !deviceId ? 0.5 : 1,
+          }}
+        >
+          <Text style={theme.textStyles.buttonLabel}>IMU TEST</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={onLogFifoStats}
+          disabled={!deviceId}
+          style={{
+            paddingVertical: 10,
+            paddingHorizontal: 12,
+            borderRadius: 6,
+            backgroundColor: theme.colors.primary,
+            opacity: !deviceId ? 0.5 : 1,
+          }}
+        >
+          <Text style={theme.textStyles.buttonLabel}>FIFO STATS</Text>
         </TouchableOpacity>
       </View>
 

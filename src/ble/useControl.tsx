@@ -20,18 +20,22 @@ const LOCATION_CHARACTERISTIC_UUID = '12345679-1234-5678-1234-56789abcdef3';
  * - RUN (1): Start recording  
  * - RESET (2): Clear FIFO buffer (STOP mode only)
  * - DUMP (3): Export data to serial (STOP mode only)
- * - LOC_RED (10): Set location to RED (STOP mode only)
- * - LOC_GREEN (11): Set location to GREEN (STOP mode only)
- * - RESET_STEPS (20): Reset step counter (STOP mode only)
+ * - LOC_RED (4): Set location to RED (STOP mode only)
+ * - LOC_GREEN (5): Set location to GREEN (STOP mode only)
+ * - RESET_STEPS (6): Reset step counter (STOP mode only)
+ * - IMU_TEST (7): Test IMU and log current data
+ * - FIFO_STATS (8): Log FIFO statistics to RTT
  */
 export enum ControlCommand {
   STOP = 0,
   RUN = 1,
   RESET = 2,           // FIFO reset
   DUMP = 3,            // Dump to serial
-  LOC_RED = 10,
-  LOC_GREEN = 11,
-  RESET_STEPS = 20,
+  LOC_RED = 4,
+  LOC_GREEN = 5,
+  RESET_STEPS = 6,
+  IMU_TEST = 7,
+  FIFO_STATS = 8,
 }
 
 /**
@@ -393,6 +397,8 @@ export const useControl = ({ deviceId, onStateUpdate, onStatisticsUpdate, onLoca
   const setLocationRed = useCallback(() => sendCommand(ControlCommand.LOC_RED), [sendCommand]);
   const setLocationGreen = useCallback(() => sendCommand(ControlCommand.LOC_GREEN), [sendCommand]);
   const resetSteps = useCallback(() => sendCommand(ControlCommand.RESET_STEPS), [sendCommand]);
+  const testImu = useCallback(() => sendCommand(ControlCommand.IMU_TEST), [sendCommand]);
+  const logFifoStats = useCallback(() => sendCommand(ControlCommand.FIFO_STATS), [sendCommand]);
 
   useEffect(() => {
     if (enabled && device) {
@@ -422,5 +428,7 @@ export const useControl = ({ deviceId, onStateUpdate, onStatisticsUpdate, onLoca
     setLocationRed,
     setLocationGreen,
     resetSteps,
+    testImu,
+    logFifoStats,
   };
 };

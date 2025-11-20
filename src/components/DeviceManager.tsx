@@ -64,6 +64,7 @@ const DeviceBox: React.FC<DeviceBoxProps> = ({ position, device, enabled, onRemo
 	const { theme } = useTheme();
 	const deviceId = device?.id || '';
 	const longPressTriggeredRef = useRef(false);
+	const attemptedAutoLocationRef = useRef<string | null>(null);
 
 	// Device state, battery, and sensor location
 	const [controlState, setControlState] = useState<ControlState | null>(null);
@@ -100,6 +101,7 @@ const DeviceBox: React.FC<DeviceBoxProps> = ({ position, device, enabled, onRemo
 		if (!deviceId) {
 			setControlState(null);
 			setSensorLocation(null);
+			attemptedAutoLocationRef.current = null;
 			return;
 		}
 		(async () => {
@@ -121,6 +123,24 @@ const DeviceBox: React.FC<DeviceBoxProps> = ({ position, device, enabled, onRemo
 			unsubCtl();
 		};
 	}, [deviceId, readStatistics, readLocation, subCtl, unsubCtl]);
+
+	// Auto-correct UNKNOWN location when assigned to a foot slot
+	useEffect(() => {
+		if (!deviceId || !enabled) return;
+		if (sensorLocation !== null && sensorLocation !== SensorLocation.UNKNOWN) return;
+		if (attemptedAutoLocationRef.current === deviceId) return;
+		attemptedAutoLocationRef.current = deviceId;
+		(async () => {
+			const ok = position === 'leftFoot' ? await setLocationRed() : await setLocationGreen();
+			if (ok) {
+				setSensorLocation(position === 'leftFoot' ? SensorLocation.RED : SensorLocation.GREEN);
+				// best-effort sync
+				readLocation().then((loc) => {
+					if (loc !== null) setSensorLocation(loc);
+				}).catch(() => {});
+			}
+		})();
+	}, [deviceId, enabled, position, sensorLocation, readLocation, setLocationRed, setLocationGreen]);
 
 	// Battery percent via Battery Service
 	const {
@@ -198,6 +218,12 @@ const DeviceBox: React.FC<DeviceBoxProps> = ({ position, device, enabled, onRemo
 											const ok = position === 'leftFoot' ? await setLocationRed() : await setLocationGreen();
 											if (ok) {
 												Vibration.vibrate(10);
+ 												// Optimistically update UI, then refresh from device
+ 												setSensorLocation(position === 'leftFoot' ? SensorLocation.RED : SensorLocation.GREEN);
+ 												// Fire and forget to sync from firmware characteristic
+ 												readLocation().then((loc) => {
+ 													if (loc !== null) setSensorLocation(loc);
+ 												}).catch(() => {});
 											} else {
 												Alert.alert('Location Update Failed', 'Unable to set device color.');
 											}

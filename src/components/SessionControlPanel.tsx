@@ -338,7 +338,7 @@ export const SessionControlPanel: React.FC = () => {
 							shadowRadius: 8,
 							elevation: 6,
 							transform: [
-								{ scale: isActive && !isPaused ? pulseAnim : 1 },
+								{ scale: (isActive && !isPaused ? pulseAnim : 1) as unknown as Animated.AnimatedNode },
 								{
 									rotate:
 										isActive && !isPaused

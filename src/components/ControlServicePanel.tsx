@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, Alert } from 'react-native';
 import { useBle } from '../ble/BleProvider';
-import { useControl, ControlState, SensorLocation, type FIFOStatistics } from '../ble/useControl';
+import { useControl, ControlState, SensorLocation, type FIFOStatistics, type SnapshotStatus } from '../ble/useControl';
 import { useBattery } from '../ble/useBattery';
 import { useTheme } from '../theme/ThemeContext';
 
@@ -30,6 +30,7 @@ export const ControlServicePanel: React.FC = () => {
   const [statistics, setStatistics] = useState<FIFOStatistics | null>(null);
   const [sensorLocation, setSensorLocation] = useState<SensorLocation | null>(null);
   const [batteryLevel, setBatteryLevel] = useState<number | null>(null);
+  const [snapshotStatus, setSnapshotStatus] = useState<SnapshotStatus | null>(null);
 
   // Recompute if connected set changes
   useEffect(() => {
@@ -46,6 +47,7 @@ export const ControlServicePanel: React.FC = () => {
   const { 
     readStatistics,
     readLocation,
+    readSnapshotStatus,
     sendCommand,
     startRecording,
     stopRecording,
@@ -56,12 +58,15 @@ export const ControlServicePanel: React.FC = () => {
     resetSteps,
     testImu,
     logFifoStats,
+    deleteSnapshot,
+    dumpSnapshot,
   } = useControl({
     deviceId,
     enabled: !!deviceId,
     onStateUpdate: (state) => setCurrentState(state),
     onStatisticsUpdate: (stats) => setStatistics(stats),
     onLocationUpdate: (location) => setSensorLocation(location),
+    onSnapshotStatusUpdate: (status) => setSnapshotStatus(status),
   });
 
   const { readBatteryLevel } = useBattery({
@@ -77,6 +82,7 @@ export const ControlServicePanel: React.FC = () => {
       setStatistics(null);
       setSensorLocation(null);
       setBatteryLevel(null);
+      setSnapshotStatus(null);
       return;
     }
 
@@ -98,10 +104,15 @@ export const ControlServicePanel: React.FC = () => {
       if (!cancelled && battery !== null) {
         setBatteryLevel(battery);
       }
+
+      const snapshots = await readSnapshotStatus();
+      if (!cancelled && snapshots) {
+        setSnapshotStatus(snapshots);
+      }
     };
 
     init();
-  }, [deviceId, readStatistics, readLocation, readBatteryLevel]);
+  }, [deviceId, readStatistics, readLocation, readBatteryLevel, readSnapshotStatus]);
 
   const handleCommand = useCallback(async (commandFn: () => Promise<boolean>, commandName: string) => {
     if (!deviceId) return;
@@ -120,6 +131,10 @@ export const ControlServicePanel: React.FC = () => {
   const onResetSteps = useCallback(() => handleCommand(resetSteps, 'Reset Steps'), [handleCommand, resetSteps]);
   const onTestImu = useCallback(() => handleCommand(testImu, 'IMU Test'), [handleCommand, testImu]);
   const onLogFifoStats = useCallback(() => handleCommand(logFifoStats, 'FIFO Stats'), [handleCommand, logFifoStats]);
+  const onDeleteAllSnapshots = useCallback(() => handleCommand(() => deleteSnapshot(0xFF), 'Delete All Snapshots'), [handleCommand, deleteSnapshot]);
+  const onDumpAllSnapshots = useCallback(() => handleCommand(() => dumpSnapshot(0xFF), 'Dump All Snapshots'), [handleCommand, dumpSnapshot]);
+  const onDeleteSnapshot = useCallback((id: number) => handleCommand(() => deleteSnapshot(id), `Delete Snapshot ${id}`), [handleCommand, deleteSnapshot]);
+  const onDumpSnapshot = useCallback((id: number) => handleCommand(() => dumpSnapshot(id), `Dump Snapshot ${id}`), [handleCommand, dumpSnapshot]);
 
   return (
     <View style={[theme.viewStyles.panelContainer, { backgroundColor: theme.colors.white }]}> 
@@ -235,6 +250,108 @@ export const ControlServicePanel: React.FC = () => {
             </View>
           </View>
         </View>
+      )}
+
+      {/* Snapshot Status */}
+      {snapshotStatus && (
+        <View style={{ backgroundColor: theme.colors.dgrey, borderRadius: 8, padding: 12, marginBottom: 12 }}>
+          <Text style={[theme.textStyles.body, { fontWeight: '600', marginBottom: 8 }]}>
+            Snapshot Status ({snapshotStatus.count} snapshot{snapshotStatus.count !== 1 ? 's' : ''})
+          </Text>
+          {snapshotStatus.snapshots.length > 0 ? (
+            <View style={{ gap: 6 }}>
+              {snapshotStatus.snapshots.map((snap) => (
+                <View key={snap.id} style={{ 
+                  backgroundColor: theme.colors.white, 
+                  borderRadius: 6, 
+                  padding: 8,
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}>
+                  <View>
+                    <Text style={[theme.textStyles.body2, { fontWeight: '600' }]}>Snapshot #{snap.id}</Text>
+                    <Text style={[theme.textStyles.body2, { fontSize: 10, color: theme.colors.muted }]}>
+                      Duration: {snap.duration}ms @ {snap.timestamp}ms
+                    </Text>
+                  </View>
+                  <View style={{ flexDirection: 'row', gap: 8 }}>
+                    <TouchableOpacity
+                      onPress={() => onDumpSnapshot(snap.id)}
+                      disabled={!deviceId || currentState !== ControlState.STOPPED}
+                      style={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: 16,
+                        backgroundColor: theme.colors.primary,
+                        opacity: (!deviceId || currentState !== ControlState.STOPPED) ? 0.5 : 1,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Text style={{ fontSize: 16, color: theme.colors.white }}>📥</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => onDeleteSnapshot(snap.id)}
+                      disabled={!deviceId || currentState !== ControlState.STOPPED}
+                      style={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: 16,
+                        backgroundColor: theme.colors.danger,
+                        opacity: (!deviceId || currentState !== ControlState.STOPPED) ? 0.5 : 1,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Text style={{ fontSize: 16, color: theme.colors.white }}>🗑️</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ))}
+            </View>
+          ) : (
+            <Text style={[theme.textStyles.body2, { color: theme.colors.muted, fontStyle: 'italic' }]}>
+              No snapshots captured
+            </Text>
+          )}
+        </View>
+      )}
+
+      {/* Snapshot Commands (STOP mode only) */}
+      {snapshotStatus && snapshotStatus.count > 0 && (
+        <>
+          <Text style={[theme.textStyles.body, { fontWeight: '600', marginBottom: 8 }]}>Snapshot Commands (STOP mode only)</Text>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 16 }}>
+            <TouchableOpacity
+              onPress={onDeleteAllSnapshots}
+              disabled={!deviceId || currentState !== ControlState.STOPPED}
+              style={{
+                paddingVertical: 10,
+                paddingHorizontal: 12,
+                borderRadius: 6,
+                backgroundColor: theme.colors.danger,
+                opacity: (!deviceId || currentState !== ControlState.STOPPED) ? 0.5 : 1,
+              }}
+            >
+              <Text style={theme.textStyles.buttonLabel}>DELETE ALL</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={onDumpAllSnapshots}
+              disabled={!deviceId || currentState !== ControlState.STOPPED}
+              style={{
+                paddingVertical: 10,
+                paddingHorizontal: 12,
+                borderRadius: 6,
+                backgroundColor: theme.colors.primary,
+                opacity: (!deviceId || currentState !== ControlState.STOPPED) ? 0.5 : 1,
+              }}
+            >
+              <Text style={theme.textStyles.buttonLabel}>DUMP ALL TO SERIAL</Text>
+            </TouchableOpacity>
+          </View>
+        </>
       )}
 
       {/* Recording Control */}

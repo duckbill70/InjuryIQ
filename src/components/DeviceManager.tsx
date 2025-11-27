@@ -11,7 +11,7 @@ import { useSession } from '../session/SessionProvider';
 import BatteryIcon from './BatteryIcon';
 import ControlStateIcon from './ControlStateIcon';
 
-import { ArrowLeftRight, Bluetooth } from 'lucide-react-native';
+import { ArrowLeftRight, Bluetooth, MapPin, RotateCcw, Camera } from 'lucide-react-native';
 import FootIcon from './FootIcon';
 
 interface DeviceManagerProps {
@@ -58,9 +58,18 @@ interface DeviceBoxProps {
 	enabled: boolean;
 	onRemoveDevice: (deviceId: string) => void;
 	onAssignDevice: (position: DevicePosition) => void;
+	showLocationRef?: React.MutableRefObject<(() => Promise<boolean>) | null>;
+	stateRef?: React.MutableRefObject<DeviceBoxState | null>;
+	onMetricsUpdate?: (metrics: DeviceBoxState) => void;
 }
 
-const DeviceBox: React.FC<DeviceBoxProps> = ({ position, device, enabled, onRemoveDevice: _onRemoveDevice, onAssignDevice }) => {
+interface DeviceBoxState {
+	controlState: ControlState | null;
+	fifoFillPct: number | null; // 0–100 integer
+	snapshot: () => Promise<boolean>;
+}
+
+const DeviceBox: React.FC<DeviceBoxProps> = ({ position, device, enabled, onRemoveDevice: _onRemoveDevice, onAssignDevice, showLocationRef, stateRef, onMetricsUpdate }) => {
 	const { theme } = useTheme();
 	const deviceId = device?.id || '';
 	const longPressTriggeredRef = useRef(false);
@@ -82,6 +91,8 @@ const DeviceBox: React.FC<DeviceBoxProps> = ({ position, device, enabled, onRemo
 		readLocation,
 		setLocationRed,
 		setLocationGreen,
+		showLocation,
+		snapshot,
 	} = useControl({
 		deviceId,
 		enabled: !!deviceId,
@@ -89,7 +100,8 @@ const DeviceBox: React.FC<DeviceBoxProps> = ({ position, device, enabled, onRemo
 		onLocationUpdate: (loc) => setSensorLocation(loc),
 		onStatisticsUpdate: (stats) => {
 			if (stats.bufferCapacity > 0) {
-				setFifoFillPct((stats.samplesStored / stats.bufferCapacity) * 100);
+				const pct = Math.round((stats.samplesStored / stats.bufferCapacity) * 100);
+				setFifoFillPct(pct);
 			} else {
 				setFifoFillPct(null);
 			}
@@ -109,7 +121,7 @@ const DeviceBox: React.FC<DeviceBoxProps> = ({ position, device, enabled, onRemo
 			if (!cancelled && stats) {
 				setControlState(stats.isRecording ? ControlState.RUNNING : ControlState.STOPPED);
 				if (stats.bufferCapacity > 0) {
-					setFifoFillPct((stats.samplesStored / stats.bufferCapacity) * 100);
+					setFifoFillPct(Math.round((stats.samplesStored / stats.bufferCapacity) * 100));
 				}
 			}
 			const loc = await readLocation();
@@ -124,6 +136,21 @@ const DeviceBox: React.FC<DeviceBoxProps> = ({ position, device, enabled, onRemo
 		};
 	}, [deviceId, readStatistics, readLocation, subCtl, unsubCtl]);
 
+	// Publish state to parent via stateRef (snapshot always present when hook enabled)
+	useEffect(() => {
+		const metrics: DeviceBoxState = {
+			controlState,
+			fifoFillPct,
+			snapshot,
+		};
+		if (stateRef) {
+			stateRef.current = metrics;
+		}
+		if (onMetricsUpdate) {
+			onMetricsUpdate(metrics);
+		}
+	}, [controlState, fifoFillPct, snapshot, stateRef, onMetricsUpdate]);
+
 	// Auto-correct UNKNOWN location when assigned to a foot slot
 	useEffect(() => {
 		if (!deviceId || !enabled) return;
@@ -135,12 +162,26 @@ const DeviceBox: React.FC<DeviceBoxProps> = ({ position, device, enabled, onRemo
 			if (ok) {
 				setSensorLocation(position === 'leftFoot' ? SensorLocation.RED : SensorLocation.GREEN);
 				// best-effort sync
-				readLocation().then((loc) => {
-					if (loc !== null) setSensorLocation(loc);
-				}).catch(() => {});
+				readLocation()
+					.then((loc) => {
+						if (loc !== null) setSensorLocation(loc);
+					})
+					.catch(() => {});
 			}
 		})();
 	}, [deviceId, enabled, position, sensorLocation, readLocation, setLocationRed, setLocationGreen]);
+
+	// Expose showLocation function to parent via ref
+	useEffect(() => {
+		if (showLocationRef && deviceId) {
+			showLocationRef.current = showLocation;
+		}
+		return () => {
+			if (showLocationRef) {
+				showLocationRef.current = null;
+			}
+		};
+	}, [showLocation, showLocationRef, deviceId]);
 
 	// Battery percent via Battery Service
 	const {
@@ -209,25 +250,27 @@ const DeviceBox: React.FC<DeviceBoxProps> = ({ position, device, enabled, onRemo
 							<Pressable
 								accessibilityRole='button'
 								accessibilityLabel={`Long press to remove ${position === 'leftFoot' ? 'left' : 'right'} device`}
-										onPress={async () => {
-											if (longPressTriggeredRef.current) {
-												longPressTriggeredRef.current = false;
-												return;
-											}
-											if (!enabled || !deviceId) return;
-											const ok = position === 'leftFoot' ? await setLocationRed() : await setLocationGreen();
-											if (ok) {
-												Vibration.vibrate(10);
- 												// Optimistically update UI, then refresh from device
- 												setSensorLocation(position === 'leftFoot' ? SensorLocation.RED : SensorLocation.GREEN);
- 												// Fire and forget to sync from firmware characteristic
- 												readLocation().then((loc) => {
- 													if (loc !== null) setSensorLocation(loc);
- 												}).catch(() => {});
-											} else {
-												Alert.alert('Location Update Failed', 'Unable to set device color.');
-											}
-										}}
+								onPress={async () => {
+									if (longPressTriggeredRef.current) {
+										longPressTriggeredRef.current = false;
+										return;
+									}
+									if (!enabled || !deviceId) return;
+									const ok = position === 'leftFoot' ? await setLocationRed() : await setLocationGreen();
+									if (ok) {
+										Vibration.vibrate(10);
+										// Optimistically update UI, then refresh from device
+										setSensorLocation(position === 'leftFoot' ? SensorLocation.RED : SensorLocation.GREEN);
+										// Fire and forget to sync from firmware characteristic
+										readLocation()
+											.then((loc) => {
+												if (loc !== null) setSensorLocation(loc);
+											})
+											.catch(() => {});
+									} else {
+										Alert.alert('Location Update Failed', 'Unable to set device color.');
+									}
+								}}
 								onLongPress={() => {
 									if (!enabled || !deviceId) return;
 									longPressTriggeredRef.current = true;
@@ -239,8 +282,8 @@ const DeviceBox: React.FC<DeviceBoxProps> = ({ position, device, enabled, onRemo
 								disabled={!enabled || !device}
 								style={({ pressed }) => [
 									// No base opacity when a device is present; keep fully opaque
-									(!enabled || !device) && { opacity: 0.4 },
-									pressed && enabled && device && { transform: [{ scale: 0.97 }] },
+									!enabled || !device ? { opacity: 0.4 } : undefined,
+									pressed && enabled && device ? { transform: [{ scale: 0.97 }] } : undefined,
 								]}
 							>
 								<FootIcon
@@ -254,16 +297,19 @@ const DeviceBox: React.FC<DeviceBoxProps> = ({ position, device, enabled, onRemo
 							<View style={overlayStackStyle} pointerEvents='none'>
 								<ControlStateIcon state={controlState} style={{ marginBottom: 4 }} />
 								<BatteryIcon level={_batteryPct} vertical style={{ marginBottom: 2 }} />
-								{fifoFillPct !== null && (
-									<Text style={{
-										color: 'white',
-										fontSize: 10,
-										fontWeight: '600',
-										textShadowColor: 'rgba(0,0,0,0.6)',
-										textShadowOffset: { width: 0, height: 1 },
-										textShadowRadius: 2,
-									}}>{`${fifoFillPct.toFixed(0)}%`}</Text>
-								)}
+								{fifoFillPct !== null ? (
+									<View
+										style={{
+											marginTop: 5,
+											width: 20,
+											height: 20,
+											borderRadius: 20,
+											borderWidth: 1,
+											borderColor: fifoFillPct === 0 ? 'white' : fifoFillPct >= 100 ? '#00FF00' : '#FFBA00',
+											backgroundColor: fifoFillPct === 0 ? 'transparent' : fifoFillPct >= 100 ? '#00FF00' : '#FFBA00',
+										}}
+									/>
+								) : null}
 							</View>
 						</View>
 					</>
@@ -272,7 +318,7 @@ const DeviceBox: React.FC<DeviceBoxProps> = ({ position, device, enabled, onRemo
 					<>
 						<View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center' }} pointerEvents='box-none'>
 							<Pressable
-								style={({ pressed }) => [{ borderRadius: 8 }, !enabled ? { opacity: 0.5 } : { opacity: pressed ? 0.85 : 1 }, { transform: [{ scale: pressed ? 0.98 : 1 }] }]}
+								style={({ pressed }) => [{ borderRadius: 8, opacity: !enabled ? 0.5 : pressed ? 0.85 : 1 }, { transform: [{ scale: pressed ? 0.98 : 1 }] }]}
 								onPress={() => enabled && onAssignDevice(position)}
 								disabled={!enabled}
 							>
@@ -302,7 +348,7 @@ const DeviceBox: React.FC<DeviceBoxProps> = ({ position, device, enabled, onRemo
 							textShadowRadius: 3,
 						}}
 					>
-						{fatigueLevel !== null ? `${fatigueLevel}` : ''}
+						{fatigueLevel !== null ? String(fatigueLevel) : ''}
 					</Text>
 					<Text
 						style={{
@@ -402,6 +448,17 @@ export const DeviceManager: React.FC<DeviceManagerProps> = () => {
 	const { theme } = useTheme();
 
 	const { isActive } = useSession();
+
+	// Refs to store showLocation functions from each DeviceBox
+	const leftShowLocationRef = useRef<(() => Promise<boolean>) | null>(null);
+	const rightShowLocationRef = useRef<(() => Promise<boolean>) | null>(null);
+	// Refs to store state from each DeviceBox
+	const leftStateRef = useRef<DeviceBoxState | null>(null);
+	const rightStateRef = useRef<DeviceBoxState | null>(null);
+	const [leftMetrics, setLeftMetrics] = useState<DeviceBoxState | null>(null);
+	const [rightMetrics, setRightMetrics] = useState<DeviceBoxState | null>(null);
+
+	const FIFO_FULL_THRESHOLD = 99; // allow slight rounding variance
 
 	// Track if we're currently scanning (for foreground re-check)
 	const isScanningRef = useRef(false);
@@ -600,16 +657,27 @@ export const DeviceManager: React.FC<DeviceManagerProps> = () => {
 						{(() => {
 							const position: DevicePosition = 'leftFoot';
 							const device = devicesByPosition[position];
-							return <DeviceBox position={position} device={device || null} enabled={!isActive} onRemoveDevice={handleRemoveDevice} onAssignDevice={handleAssignDevice} />;
+							return (
+								<DeviceBox
+									position={position}
+									device={device || null}
+									enabled={!isActive}
+									onRemoveDevice={handleRemoveDevice}
+									onAssignDevice={handleAssignDevice}
+									showLocationRef={leftShowLocationRef}
+									stateRef={leftStateRef}
+									onMetricsUpdate={setLeftMetrics}
+								/>
+							);
 						})()}
 					</View>
-
-				{/* Swap/Scan Button - Shows Scan when fewer than 2 devices, Swap when 2 devices present */}
-				<View style={{ width: 64, alignItems: 'center', justifyContent: 'flex-start', marginHorizontal: 8, marginTop: -100 }}>
-					{(() => {
-						const left = devicesByPosition.leftFoot;
-						const right = devicesByPosition.rightFoot;
-						const hasLeftAndRight = !!left && !!right;							if (hasLeftAndRight) {
+					{/* Swap/Scan Button - Shows Scan when fewer than 2 devices, Swap when 2 devices present */}
+					<View style={{ width: 64, alignItems: 'center', justifyContent: 'flex-start', marginHorizontal: 8, marginTop: 0, gap: 12 }}>
+						{(() => {
+							const left = devicesByPosition.leftFoot;
+							const right = devicesByPosition.rightFoot;
+							const hasLeftAndRight = !!left && !!right;
+							if (hasLeftAndRight) {
 								// Show swap button when both devices are present
 								const swapDisabled = isActive || isSwapping;
 								return (
@@ -632,8 +700,8 @@ export const DeviceManager: React.FC<DeviceManagerProps> = () => {
 												shadowRadius: 4,
 												elevation: 4,
 											},
-											swapDisabled && { opacity: 0.4 },
-											pressed && !swapDisabled && { opacity: 0.7, transform: [{ scale: 0.95 }], shadowOpacity: 0.2 },
+											swapDisabled ? { opacity: 0.4 } : undefined,
+											pressed && !swapDisabled ? { opacity: 0.7, transform: [{ scale: 0.95 }], shadowOpacity: 0.2 } : undefined,
 										]}
 									>
 										<ArrowLeftRight color={theme.colors.white} size={32} />
@@ -662,8 +730,8 @@ export const DeviceManager: React.FC<DeviceManagerProps> = () => {
 												shadowRadius: 4,
 												elevation: 4,
 											},
-											scanDisabled && { opacity: 0.4 },
-											pressed && !scanDisabled && { opacity: 0.7, transform: [{ scale: 0.95 }], shadowOpacity: 0.2 },
+											scanDisabled ? { opacity: 0.4 } : undefined,
+											pressed && !scanDisabled ? { opacity: 0.7, transform: [{ scale: 0.95 }], shadowOpacity: 0.2 } : undefined,
 											scanning && {
 												shadowOpacity: 0.6,
 												transform: [{ scale: pressed ? 0.95 : 1 }],
@@ -675,14 +743,178 @@ export const DeviceManager: React.FC<DeviceManagerProps> = () => {
 								);
 							}
 						})()}
-					</View>
 
+						{/* Show Location Button - always visible, triggers location color display on devices */}
+						{(() => {
+							const left = devicesByPosition.leftFoot;
+							const right = devicesByPosition.rightFoot;
+							const hasDevices = !!left || !!right;
+							const locationDisabled = !hasDevices || isActive;
+
+							const handleShowLocation = async () => {
+								if (locationDisabled) return;
+								// Send location command to both devices
+								const promises: Promise<boolean>[] = [];
+								if (left && leftShowLocationRef.current) {
+									promises.push(leftShowLocationRef.current());
+								}
+								if (right && rightShowLocationRef.current) {
+									promises.push(rightShowLocationRef.current());
+								}
+								if (promises.length > 0) {
+									await Promise.all(promises);
+								}
+							};
+
+							return (
+								<Pressable
+									onPress={handleShowLocation}
+									disabled={locationDisabled}
+									style={({ pressed }) => [
+										{
+											width: 60,
+											height: 60,
+											borderRadius: 30,
+											alignItems: 'center',
+											justifyContent: 'center',
+											borderWidth: 2,
+											borderColor: theme.colors.white,
+											backgroundColor: theme.colors.deepGreen,
+											shadowColor: theme.colors.deepGreen,
+											shadowOffset: { width: 0, height: 2 },
+											shadowOpacity: 0.3,
+											shadowRadius: 3,
+											elevation: 3,
+											marginTop: 10,
+										},
+										locationDisabled ? { opacity: 0.4 } : undefined,
+										pressed && !locationDisabled ? { opacity: 0.7, transform: [{ scale: 0.95 }], shadowOpacity: 0.2 } : undefined,
+									]}
+								>
+									<MapPin color={theme.colors.white} size={24} />
+								</Pressable>
+							);
+						})()}
+
+						{/* Reset Position Button - clears device position assignments */}
+						{(() => {
+							const left = devicesByPosition.leftFoot;
+							const right = devicesByPosition.rightFoot;
+							const hasDevices = !!left || !!right;
+							const resetDisabled = !hasDevices || isActive;
+
+							const handleResetPositions = () => {
+								if (resetDisabled) return;
+                    
+								Alert.alert(
+									'Reset Device Positions',
+									'This will unassign all devices from their positions. Continue?',
+									[
+										{ text: 'Cancel', style: 'cancel' },
+										{
+											text: 'Reset',
+											style: 'destructive',
+											onPress: () => {
+												if (left) unassignDevicePosition(left.id);
+												if (right) unassignDevicePosition(right.id);
+											},
+										},
+									]
+								);
+							};
+
+							return (
+								<Pressable
+									onPress={handleResetPositions}
+									disabled={resetDisabled}
+									style={({ pressed }) => [
+										{
+											width: 60,
+											height: 60,
+											borderRadius: 30,
+											alignItems: 'center',
+											justifyContent: 'center',
+											borderWidth: 2,
+											borderColor: theme.colors.white,
+											backgroundColor: theme.colors.warn,
+											shadowColor: theme.colors.warn,
+											shadowOffset: { width: 0, height: 2 },
+											shadowOpacity: 0.3,
+											shadowRadius: 3,
+											elevation: 3,
+											marginTop: 10,
+										},
+										resetDisabled ? { opacity: 0.4 } : undefined,
+										pressed && !resetDisabled ? { opacity: 0.7, transform: [{ scale: 0.95 }], shadowOpacity: 0.2 } : undefined,
+									]}
+								>
+									<RotateCcw color={theme.colors.white} size={24} />
+								</Pressable>
+							);
+						})()}
+
+						{/* Snapshot Button - triggers CMD_SNAPSHOT (10) on all RUNNING + 100% devices 
+						{(() => {
+							const candidates: (() => Promise<boolean>)[] = [];
+							if (leftMetrics && leftMetrics.controlState === ControlState.RUNNING && leftMetrics.fifoFillPct !== null && leftMetrics.fifoFillPct >= FIFO_FULL_THRESHOLD) {
+								candidates.push(leftMetrics.snapshot);
+							}
+							if (rightMetrics && rightMetrics.controlState === ControlState.RUNNING && rightMetrics.fifoFillPct !== null && rightMetrics.fifoFillPct >= FIFO_FULL_THRESHOLD) {
+								candidates.push(rightMetrics.snapshot);
+							}
+							const snapshotEnabled = candidates.length > 0;
+							const handleSnapshot = async () => {
+								if (!snapshotEnabled) return;
+								await Promise.all(candidates.map((fn) => fn()));
+							};
+
+							return (
+								<Pressable
+									onPress={handleSnapshot}
+									disabled={!snapshotEnabled}
+									style={({ pressed }) => [
+										{
+											width: 60,
+											height: 60,
+											borderRadius: 30,
+											alignItems: 'center',
+											justifyContent: 'center',
+											borderWidth: 2,
+											borderColor: theme.colors.white,
+											backgroundColor: '#00BFFF',
+											shadowColor: '#00BFFF',
+											shadowOffset: { width: 0, height: 2 },
+											shadowOpacity: 0.3,
+											shadowRadius: 3,
+											elevation: 3,
+											marginTop: 10,
+										},
+										!snapshotEnabled ? { opacity: 0.4 } : undefined,
+										pressed && snapshotEnabled ? { opacity: 0.7, transform: [{ scale: 0.95 }], shadowOpacity: 0.2 } : undefined,
+									]}
+								>
+									<Camera color={theme.colors.white} size={24} />
+								</Pressable>
+							);
+						})()} */}
+					</View>
 					{/* Right */}
 					<View style={{ flex: 1 }}>
 						{(() => {
 							const position: DevicePosition = 'rightFoot';
 							const device = devicesByPosition[position];
-							return <DeviceBox position={position} device={device || null} enabled={!isActive} onRemoveDevice={handleRemoveDevice} onAssignDevice={handleAssignDevice} />;
+							return (
+								<DeviceBox
+									position={position}
+									device={device || null}
+									enabled={!isActive}
+									onRemoveDevice={handleRemoveDevice}
+									onAssignDevice={handleAssignDevice}
+									showLocationRef={rightShowLocationRef}
+									stateRef={rightStateRef}
+									onMetricsUpdate={setRightMetrics}
+								/>
+							);
 						})()}
 					</View>
 				</View>

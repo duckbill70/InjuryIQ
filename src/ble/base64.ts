@@ -78,3 +78,9 @@ export const encodeSingleByte = (value: number): string => {
   const clamped = Math.max(0, Math.min(255, value));
   return encodeBytesToBase64([clamped]);
 };
+
+export const encodeTwoBytes = (byte1: number, byte2: number): string => {
+  const clamped1 = Math.max(0, Math.min(255, byte1));
+  const clamped2 = Math.max(0, Math.min(255, byte2));
+  return encodeBytesToBase64([clamped1, clamped2]);
+};

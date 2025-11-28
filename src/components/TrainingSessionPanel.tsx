@@ -132,10 +132,18 @@ const TrainingSessionPanelComponent: React.FC = () => {
   const leftControl = useControl(leftControlConfig);
   const rightControl = useControl(rightControlConfig);
 
-  // Controls array for logic (memoized based on device IDs, not hook instances)
-  const controls = useMemo(() => {
-    return [leftDevice ? leftControl : null, rightDevice ? rightControl : null].filter(Boolean);
-  }, [leftDevice, rightDevice, leftControl, rightControl]);
+  // Stable ref for controls to avoid depending on hook instances in effects
+  const controlsRef = useRef<Array<{
+    deleteSnapshot?: (slot: number) => Promise<void>;
+    dumpSnapshot?: (slot: number) => Promise<void>;
+    stopAndSnapshot?: () => Promise<boolean> | void;
+    startRecording?: () => Promise<boolean> | void;
+    readStatistics?: () => Promise<FIFOStatistics | null>;
+  } | null>>([null, null]);
+
+  // Update the ref each render without triggering effect deps
+  controlsRef.current[0] = leftDevice ? (leftControl as unknown as typeof controlsRef.current[number]) : null;
+  controlsRef.current[1] = rightDevice ? (rightControl as unknown as typeof controlsRef.current[number]) : null;
 
   // Read initial statistics to derive STOP/RUN state on first load
   useEffect(() => {
@@ -173,16 +181,16 @@ const TrainingSessionPanelComponent: React.FC = () => {
     // Session just transitioned from stopped -> started
     if (!wasActive && sessionActive) {
       if (active) {
-        // Send delete-all (0xFF) to all available controls once
-        controls.forEach((ctl: any) => {
+        const controlsList = controlsRef.current;
+        for (const ctl of controlsList) {
           if (ctl && typeof ctl.deleteSnapshot === 'function') {
             ctl.deleteSnapshot(0xFF).catch(() => {});
           }
-        });
+        }
       }
     }
     prevSessionActiveRef.current = sessionActive;
-  }, [sessionActive, active, controls]);
+  }, [sessionActive, active]);
   // Plan logic
 
   // Phase ensure we enter 'interval' when needed
@@ -228,7 +236,7 @@ const TrainingSessionPanelComponent: React.FC = () => {
       if (!device) return;
       if (!waitingForFifo[device.id]) { allFilled = false; return; }
       const pct = fifoPct[device.id];
-      const ctl = controls[i];
+      const ctl = controlsRef.current[i];
       if (!ctl) { allFilled = false; return; }
       if (pct !== 100) allFilled = false;
     });
@@ -237,14 +245,16 @@ const TrainingSessionPanelComponent: React.FC = () => {
     [leftDevice, rightDevice].forEach((device, i) => {
       if (!device) return;
       if (!waitingForFifo[device.id]) return;
-      const ctl = controls[i];
+      const ctl = controlsRef.current[i];
       if (!ctl) return;
       setWaitingForFifo((prev) => ({ ...prev, [device.id]: false }));
       setWaitingForEmpty((prev) => ({ ...prev, [device.id]: true }));
-      ctl.stopAndSnapshot();
+      if (typeof ctl.stopAndSnapshot === 'function') {
+        ctl.stopAndSnapshot();
+      }
     });
     setPhase('waiting-empty');
-  }, [phase, fifoPct, waitingForFifo, active, connectedDevices.length, leftDevice, rightDevice, controls]);
+  }, [phase, fifoPct, waitingForFifo, active, connectedDevices.length, leftDevice, rightDevice]);
 
   // After STOP, wait for FIFO to empty, then RUN, per device (waiting-empty phase)
   useEffect(() => {
@@ -255,7 +265,7 @@ const TrainingSessionPanelComponent: React.FC = () => {
       if (!device) return;
       if (!waitingForEmpty[device.id]) return; // Not required to empty
       const pct = fifoPct[device.id];
-      const ctl = controls[i];
+      const ctl = controlsRef.current[i];
       if (!ctl) { allEmptied = false; return; }
       if (pct === 0) {
         setWaitingForEmpty((prev) => {
@@ -263,7 +273,9 @@ const TrainingSessionPanelComponent: React.FC = () => {
           delete next[device.id];
           return next;
         });
-        ctl.startRecording();
+        if (typeof ctl.startRecording === 'function') {
+          ctl.startRecording();
+        }
       } else {
         allEmptied = false;
       }
@@ -274,7 +286,7 @@ const TrainingSessionPanelComponent: React.FC = () => {
     setTimer(0);
     accumulatedTimeRef.current = 0;
     setPhase('idle');
-  }, [phase, fifoPct, waitingForEmpty, active, connectedDevices.length, leftDevice, rightDevice, controls]);
+  }, [phase, fifoPct, waitingForEmpty, active, connectedDevices.length, leftDevice, rightDevice]);
 
   // Reset plan if device list changes
   // Reset plan if device list changes
@@ -286,7 +298,7 @@ const TrainingSessionPanelComponent: React.FC = () => {
     if (intervalRef.current) clearInterval(intervalRef.current);
     accumulatedTimeRef.current = 0;
     setPhase(active && sessionActive && connectedDevices.length > 0 ? 'interval' : 'idle');
-  }, [connectedDevices.length]);
+  }, [connectedDevices.length, active, sessionActive]);
 
   // Timer increment when active (pause/resume support)
   useEffect(() => {

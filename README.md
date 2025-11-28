@@ -138,3 +138,5 @@ cd ios
 
 # Run on Physical Device
     ./run-ios-device.sh
+
+    Perf issues

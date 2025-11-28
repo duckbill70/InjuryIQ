@@ -8,6 +8,15 @@ import { useSession } from '../session/SessionProvider';
 
 // Helper: minutes to ms
 const minToMs = (min: number) => min * 60 * 1000;
+  // Helper: format ms to mm:ss
+  const formatMsToMmSs = (ms: number) => {
+    const totalSeconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    const mm = String(minutes).padStart(2, '0');
+    const ss = String(seconds).padStart(2, '0');
+    return `${mm}:${ss}`;
+  };
 
 const BUTTON_STYLES = {
   size: 60,
@@ -42,6 +51,8 @@ const TrainingSessionPanelComponent: React.FC = () => {
   const [active, setActive] = useState(false); // Plan switch
   const [currentIntervalIdx, setCurrentIntervalIdx] = useState(0);
   const [timer, setTimer] = useState(0); // ms elapsed in current interval
+  // Explicit phase gating the plan lifecycle
+  const [phase, setPhase] = useState<'idle' | 'interval' | 'waiting-fifo' | 'waiting-empty'>('idle');
   // Per-device state
   // (declarations moved below, only declare once)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -97,70 +108,98 @@ const TrainingSessionPanelComponent: React.FC = () => {
   const controls = React.useMemo(() => {
     return [leftDevice ? leftControl : null, rightDevice ? rightControl : null].filter(Boolean);
   }, [leftDevice, rightDevice, leftControl, rightControl]);
+  // One-off snapshot delete at session start when training is enabled
+  const prevSessionActiveRef = useRef<boolean>(sessionActive);
+  useEffect(() => {
+    const wasActive = prevSessionActiveRef.current;
+    // Session just transitioned from stopped -> started
+    if (!wasActive && sessionActive) {
+      if (active) {
+        // Send delete-all (0xFF) to all available controls once
+        controls.forEach((ctl: any) => {
+          if (ctl && typeof ctl.deleteSnapshot === 'function') {
+            ctl.deleteSnapshot(0xFF).catch(() => {});
+          }
+        });
+      }
+    }
+    prevSessionActiveRef.current = sessionActive;
+  }, [sessionActive, active, controls]);
   // Plan logic
 
-  // Interval trigger logic
-  // At each interval, for each device, check FIFO and act
+  // Phase ensure we enter 'interval' when needed
   useEffect(() => {
-    if (!active || connectedDevices.length === 0) return;
+    if (!active || !sessionActive || connectedDevices.length === 0) return;
     if (currentIntervalIdx >= intervals.length) return;
-    const intervalMs = minToMs(intervals[currentIntervalIdx]);
-    if (timer < intervalMs) return;
+    if (phase === 'idle') setPhase('interval');
+  }, [active, sessionActive, phase, currentIntervalIdx, intervals.length, connectedDevices.length]);
+
+  // Interval timing gate
+  useEffect(() => {
+    if (phase !== 'interval') return;
+    if (!active || !sessionActive || connectedDevices.length === 0) return;
+    if (currentIntervalIdx >= intervals.length) return;
+
+    const enabled = intervalEnabled[currentIntervalIdx];
+    const minutes = intervals[currentIntervalIdx];
+    if (!enabled || minutes <= 0) {
+      // Skip disabled interval
+      setCurrentIntervalIdx((idx) => idx + 1);
+      setTimer(0);
+      accumulatedTimeRef.current = 0;
+      setPhase('idle');
+      return;
+    }
+    const intervalMs = minToMs(minutes);
+    if (timer < intervalMs) return; // Not elapsed yet
+
+    // Interval elapsed: set wait-for-fifo flags for all connected devices
+    [leftDevice, rightDevice].forEach((device) => {
+      if (!device) return;
+      setWaitingForFifo((prev) => ({ ...prev, [device.id]: true }));
+    });
+    setPhase('waiting-fifo');
+  }, [phase, timer, active, sessionActive, currentIntervalIdx, intervals, intervalEnabled, connectedDevices.length, leftDevice, rightDevice]);
+
+  // Waiting for FIFO fill phase
+  useEffect(() => {
+    if (phase !== 'waiting-fifo') return;
+    if (!active || connectedDevices.length === 0) return;
+    let allFilled = true;
     [leftDevice, rightDevice].forEach((device, i) => {
       if (!device) return;
+      if (!waitingForFifo[device.id]) { allFilled = false; return; }
       const pct = fifoPct[device.id];
       const ctl = controls[i];
-      if (!ctl) return;
-      if (pct === 100) {
-        setWaitingForFifo((prev) => ({ ...prev, [device.id]: false }));
-        setWaitingForEmpty((prev) => ({ ...prev, [device.id]: true }));
-        ctl.stopAndSnapshot();
-      } else {
-        setWaitingForFifo((prev) => ({ ...prev, [device.id]: true }));
-      }
+      if (!ctl) { allFilled = false; return; }
+      if (pct !== 100) allFilled = false;
     });
-    // Intentionally keeping dependencies minimal to prevent render loops
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [timer, fifoPct, active, connectedDevices.length, currentIntervalIdx, intervals]);
-
-  // Wait for FIFO to fill to 100% if not already
-  // Wait for FIFO to fill to 100% if not already, per device
-  useEffect(() => {
-    if (!active || connectedDevices.length === 0) return;
+    if (!allFilled) return;
+    // Snapshot each ready device exactly once
     [leftDevice, rightDevice].forEach((device, i) => {
       if (!device) return;
       if (!waitingForFifo[device.id]) return;
-      const pct = fifoPct[device.id];
       const ctl = controls[i];
       if (!ctl) return;
-      if (pct === 100) {
-        setWaitingForFifo((prev) => ({ ...prev, [device.id]: false }));
-        setWaitingForEmpty((prev) => ({ ...prev, [device.id]: true }));
-        ctl.stopAndSnapshot();
-      }
+      setWaitingForFifo((prev) => ({ ...prev, [device.id]: false }));
+      setWaitingForEmpty((prev) => ({ ...prev, [device.id]: true }));
+      ctl.stopAndSnapshot();
     });
-    // Intentionally keeping dependencies minimal to prevent render loops
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fifoPct, waitingForFifo, active, connectedDevices.length]);
+    setPhase('waiting-empty');
+  }, [phase, fifoPct, waitingForFifo, active, connectedDevices.length, leftDevice, rightDevice, controls]);
 
-  // After STOP, wait for FIFO to empty, then RUN, per device
+  // After STOP, wait for FIFO to empty, then RUN, per device (waiting-empty phase)
   useEffect(() => {
+    if (phase !== 'waiting-empty') return;
     if (!active || connectedDevices.length === 0) return;
-    
-    let allDevicesRestarted = true;
-    
+    let allEmptied = true;
     [leftDevice, rightDevice].forEach((device, i) => {
       if (!device) return;
-      
-      // Skip if not waiting for this device to empty
-      if (!waitingForEmpty[device.id]) return;
-      
+      if (!waitingForEmpty[device.id]) return; // Not required to empty
       const pct = fifoPct[device.id];
       const ctl = controls[i];
-      if (!ctl) return;
-      
+      if (!ctl) { allEmptied = false; return; }
       if (pct === 0) {
-        // FIFO is empty, restart recording and clear the waiting flag
         setWaitingForEmpty((prev) => {
           const next = { ...prev };
           delete next[device.id];
@@ -168,21 +207,16 @@ const TrainingSessionPanelComponent: React.FC = () => {
         });
         ctl.startRecording();
       } else {
-        // Still waiting for this device
-        allDevicesRestarted = false;
+        allEmptied = false;
       }
     });
-    
-    // Only advance interval if all devices that were waiting have restarted
-    const anyStillWaiting = Object.values(waitingForEmpty).some(Boolean);
-    if (!anyStillWaiting && allDevicesRestarted && Object.keys(waitingForEmpty).length > 0) {
-      setCurrentIntervalIdx((idx) => idx + 1);
-      setTimer(0);
-      accumulatedTimeRef.current = 0;
-    }
-    // Intentionally keeping dependencies minimal to prevent render loops
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fifoPct, waitingForEmpty, active, connectedDevices.length]);
+    if (!allEmptied) return;
+    // Advance to next interval
+    setCurrentIntervalIdx((idx) => idx + 1);
+    setTimer(0);
+    accumulatedTimeRef.current = 0;
+    setPhase('idle');
+  }, [phase, fifoPct, waitingForEmpty, active, connectedDevices.length, leftDevice, rightDevice, controls]);
 
   // Reset plan if device list changes
   // Reset plan if device list changes
@@ -193,6 +227,7 @@ const TrainingSessionPanelComponent: React.FC = () => {
     setWaitingForEmpty({});
     if (intervalRef.current) clearInterval(intervalRef.current);
     accumulatedTimeRef.current = 0;
+    setPhase(active && sessionActive && connectedDevices.length > 0 ? 'interval' : 'idle');
   }, [connectedDevices.length]);
 
   // Timer increment when active (pause/resume support)
@@ -249,6 +284,7 @@ const TrainingSessionPanelComponent: React.FC = () => {
       setWaitingForEmpty({});
       accumulatedTimeRef.current = 0;
       startTimeRef.current = 0;
+      setPhase('idle');
     }
   }, [sessionActive]);
 
@@ -327,7 +363,8 @@ const TrainingSessionPanelComponent: React.FC = () => {
       </View>
       <View style={{ marginBottom: 12 }}>
         <Text style={[theme.textStyles.body2, {color: theme.colors.white}]}>Current Interval: {currentIntervalIdx + 1} / {intervals.length}</Text>
-        <Text style={[theme.textStyles.body2, {color: theme.colors.white}]}>Timer: {(timer / 1000).toFixed(0)}s</Text>
+        <Text style={[theme.textStyles.body2, {color: theme.colors.white}]}>Phase: {phase}</Text>
+        <Text style={[theme.textStyles.body2, {color: theme.colors.white}]}>Timer: {formatMsToMmSs(timer)}</Text>
         {connectedDevices.map((d) => (
           <View key={d.id} style={{ marginBottom: 2 }}>
             <Text style={[theme.textStyles.body2, {color: theme.colors.white}]}>

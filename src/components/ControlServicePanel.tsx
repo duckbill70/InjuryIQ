@@ -48,7 +48,6 @@ export const ControlServicePanel: React.FC = () => {
     readStatistics,
     readLocation,
     readSnapshotStatus,
-    sendCommand,
     startRecording,
     stopRecording,
     resetFifo,
@@ -86,7 +85,7 @@ export const ControlServicePanel: React.FC = () => {
       return;
     }
 
-    let cancelled = false;
+    const cancelled = false;
 
     const init = async () => {
       const stats = await readStatistics();
@@ -252,69 +251,61 @@ export const ControlServicePanel: React.FC = () => {
         </View>
       )}
 
-      {/* Snapshot Status */}
+      {/* Snapshot Status (slots 0-2 via bitflags) */}
       {snapshotStatus && (
         <View style={{ backgroundColor: theme.colors.dgrey, borderRadius: 8, padding: 12, marginBottom: 12 }}>
-          <Text style={[theme.textStyles.body, { fontWeight: '600', marginBottom: 8 }]}>
-            Snapshot Status ({snapshotStatus.count} snapshot{snapshotStatus.count !== 1 ? 's' : ''})
-          </Text>
-          {snapshotStatus.snapshots.length > 0 ? (
-            <View style={{ gap: 6 }}>
-              {snapshotStatus.snapshots.map((snap) => (
-                <View key={snap.id} style={{ 
-                  backgroundColor: theme.colors.white, 
-                  borderRadius: 6, 
-                  padding: 8,
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                }}>
-                  <View>
-                    <Text style={[theme.textStyles.body2, { fontWeight: '600' }]}>Snapshot #{snap.id}</Text>
-                    <Text style={[theme.textStyles.body2, { fontSize: 10, color: theme.colors.muted }]}>
-                      Duration: {snap.duration}ms @ {snap.timestamp}ms
-                    </Text>
-                  </View>
-                  <View style={{ flexDirection: 'row', gap: 8 }}>
-                    <TouchableOpacity
-                      onPress={() => onDumpSnapshot(snap.id)}
-                      disabled={!deviceId || currentState !== ControlState.STOPPED}
-                      style={{
-                        width: 32,
-                        height: 32,
-                        borderRadius: 16,
-                        backgroundColor: theme.colors.primary,
-                        opacity: (!deviceId || currentState !== ControlState.STOPPED) ? 0.5 : 1,
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      <Text style={{ fontSize: 16, color: theme.colors.white }}>📥</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={() => onDeleteSnapshot(snap.id)}
-                      disabled={!deviceId || currentState !== ControlState.STOPPED}
-                      style={{
-                        width: 32,
-                        height: 32,
-                        borderRadius: 16,
-                        backgroundColor: theme.colors.danger,
-                        opacity: (!deviceId || currentState !== ControlState.STOPPED) ? 0.5 : 1,
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      <Text style={{ fontSize: 16, color: theme.colors.white }}>🗑️</Text>
-                    </TouchableOpacity>
-                  </View>
+          <Text style={[theme.textStyles.body, { fontWeight: '600', marginBottom: 8 }]}>Snapshot Status ({snapshotStatus.count} snapshot{snapshotStatus.count !== 1 ? 's' : ''})</Text>
+          <View style={{ gap: 6 }}>
+            {(snapshotStatus.slots || [false, false, false]).map((occupied, idx) => (
+              <View key={idx} style={{
+                backgroundColor: occupied ? theme.colors.white : theme.colors.dgrey,
+                borderRadius: 6,
+                padding: 8,
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                opacity: occupied ? 1 : 0.5,
+                borderWidth: 1,
+                borderColor: theme.colors.muted,
+              }}>
+                <View>
+                  <Text style={[theme.textStyles.body2, { fontWeight: '600' }]}>Snapshot #{idx}</Text>
                 </View>
-              ))}
-            </View>
-          ) : (
-            <Text style={[theme.textStyles.body2, { color: theme.colors.muted, fontStyle: 'italic' }]}>
-              No snapshots captured
-            </Text>
-          )}
+                <View style={{ flexDirection: 'row', gap: 8 }}>
+                  <TouchableOpacity
+                    onPress={() => onDumpSnapshot(idx)}
+                    disabled={!deviceId || currentState !== ControlState.STOPPED || !occupied}
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: 16,
+                      backgroundColor: theme.colors.primary,
+                      opacity: (!deviceId || currentState !== ControlState.STOPPED || !occupied) ? 0.5 : 1,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Text style={{ fontSize: 16, color: theme.colors.white }}>📥</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => onDeleteSnapshot(idx)}
+                    disabled={!deviceId || currentState !== ControlState.STOPPED || !occupied}
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: 16,
+                      backgroundColor: theme.colors.danger,
+                      opacity: (!deviceId || currentState !== ControlState.STOPPED || !occupied) ? 0.5 : 1,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Text style={{ fontSize: 16, color: theme.colors.white }}>🗑️</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ))}
+          </View>
         </View>
       )}
 

@@ -87,15 +87,9 @@ export interface FIFOStatistics {
   isFull: boolean;
 }
 
-export interface SnapshotEntry {
-  id: number;
-  timestamp: number; // milliseconds
-  duration: number;  // milliseconds
-}
-
 export interface SnapshotStatus {
   count: number;
-  snapshots: SnapshotEntry[];
+  slots: boolean[]; // index 0..2 indicate occupied slots
 }
 
 export const useControl = ({ deviceId, onStateUpdate, onStatisticsUpdate, onLocationUpdate, onSnapshotStatusUpdate, enabled = true }: UseControlProps) => {
@@ -127,34 +121,20 @@ export const useControl = ({ deviceId, onStateUpdate, onStatisticsUpdate, onLoca
     onSnapshotStatusUpdateRef.current = onSnapshotStatusUpdate;
   }, [onStateUpdate, onStatisticsUpdate, onLocationUpdate, onSnapshotStatusUpdate]);
 
-  // Parse Snapshot Status characteristic (ASCII string)
-  // Format: "3|0:3000:45000|1:3000:90000|2:3000:135000"
-  // Count | id:timestamp:duration | id:timestamp:duration | ...
+  // Parse Snapshot Status characteristic (1 byte bitflags)
+  // Bit 0 = slot 0, Bit 1 = slot 1, Bit 2 = slot 2
   const parseSnapshotStatus = (base64Data: string): SnapshotStatus | null => {
     try {
       const bytes = decodeBase64ToBytes(base64Data);
-      const text = String.fromCharCode(...bytes);
-      
-      const parts = text.split('|');
-      if (parts.length < 1) return null;
-      
-      const count = parseInt(parts[0], 10);
-      if (isNaN(count)) return null;
-      
-      const snapshots: SnapshotEntry[] = [];
-      for (let i = 1; i < parts.length; i++) {
-        const entry = parts[i].split(':');
-        if (entry.length === 3) {
-          const id = parseInt(entry[0], 10);
-          const timestamp = parseInt(entry[1], 10);
-          const duration = parseInt(entry[2], 10);
-          if (!isNaN(id) && !isNaN(timestamp) && !isNaN(duration)) {
-            snapshots.push({ id, timestamp, duration });
-          }
-        }
-      }
-      
-      return { count, snapshots };
+      if (bytes.length < 1) return null;
+      const flags = bytes[0];
+      const slots = [
+        ((flags >> 0) % 2) === 1,
+        ((flags >> 1) % 2) === 1,
+        ((flags >> 2) % 2) === 1,
+      ];
+      const count = slots.reduce((acc, v) => acc + (v ? 1 : 0), 0);
+      return { count, slots };
     } catch (error) {
       console.error('Failed to parse snapshot status:', error);
       return null;
@@ -229,8 +209,8 @@ export const useControl = ({ deviceId, onStateUpdate, onStatisticsUpdate, onLoca
                 if (__DEV__) console.log('[Control] Command echo, state:', state === ControlState.RUNNING ? 'RUNNING' : 'STOPPED');
                 onStateUpdateRef.current?.(state);
               }
-            } catch (error) {
-              console.error('Failed to parse command notification:', error);
+            } catch (err) {
+              console.error('Failed to parse command notification:', err);
             }
           }
         }

@@ -11,7 +11,7 @@ import { useSession } from '../session/SessionProvider';
 import BatteryIcon from './BatteryIcon';
 import ControlStateIcon from './ControlStateIcon';
 
-import { ArrowLeftRight, Bluetooth, MapPin, RotateCcw, Camera } from 'lucide-react-native';
+import { ArrowLeftRight, Bluetooth, MapPin, RotateCcw } from 'lucide-react-native';
 import FootIcon from './FootIcon';
 
 interface DeviceManagerProps {
@@ -69,7 +69,7 @@ interface DeviceBoxState {
 	snapshot: () => Promise<boolean>;
 }
 
-const DeviceBox: React.FC<DeviceBoxProps> = ({ position, device, enabled, onRemoveDevice: _onRemoveDevice, onAssignDevice, showLocationRef, stateRef, onMetricsUpdate }) => {
+const DeviceBoxComponent: React.FC<DeviceBoxProps> = ({ position, device, enabled, onRemoveDevice: _onRemoveDevice, onAssignDevice, showLocationRef, stateRef, onMetricsUpdate }) => {
 	const { theme } = useTheme();
 	const deviceId = device?.id || '';
 	const longPressTriggeredRef = useRef(false);
@@ -443,7 +443,22 @@ const DeviceBox: React.FC<DeviceBoxProps> = ({ position, device, enabled, onRemo
 	);
 };
 
-export const DeviceManager: React.FC<DeviceManagerProps> = () => {
+// Memoize DeviceBox to prevent re-renders when props haven't changed
+const DeviceBox = React.memo(DeviceBoxComponent, (prevProps, nextProps) => {
+	// Re-render only if these key props change
+	return (
+		prevProps.position === nextProps.position &&
+		prevProps.device?.id === nextProps.device?.id &&
+		prevProps.enabled === nextProps.enabled &&
+		prevProps.device?.name === nextProps.device?.name &&
+		prevProps.device?.position === nextProps.device?.position
+		// Refs and callbacks are stable, no need to compare
+	);
+});
+
+DeviceBox.displayName = 'DeviceBox';
+
+const DeviceManagerComponent: React.FC<DeviceManagerProps> = () => {
 	const { connected, devicesByPosition, assignDevicePosition, unassignDevicePosition, scanning, startScan, stopScan, isPoweredOn } = useBle();
 	const { theme } = useTheme();
 
@@ -455,10 +470,8 @@ export const DeviceManager: React.FC<DeviceManagerProps> = () => {
 	// Refs to store state from each DeviceBox
 	const leftStateRef = useRef<DeviceBoxState | null>(null);
 	const rightStateRef = useRef<DeviceBoxState | null>(null);
-	const [leftMetrics, setLeftMetrics] = useState<DeviceBoxState | null>(null);
-	const [rightMetrics, setRightMetrics] = useState<DeviceBoxState | null>(null);
-
-	const FIFO_FULL_THRESHOLD = 99; // allow slight rounding variance
+	const [_leftMetrics, setLeftMetrics] = useState<DeviceBoxState | null>(null);
+	const [_rightMetrics, setRightMetrics] = useState<DeviceBoxState | null>(null);
 
 	// Track if we're currently scanning (for foreground re-check)
 	const isScanningRef = useRef(false);
@@ -922,3 +935,8 @@ export const DeviceManager: React.FC<DeviceManagerProps> = () => {
 		</View>
 	);
 };
+
+// Memoize DeviceManager to prevent re-renders from parent
+export const DeviceManager = React.memo(DeviceManagerComponent);
+
+DeviceManager.displayName = 'DeviceManager';

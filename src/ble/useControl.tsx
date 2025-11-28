@@ -106,6 +106,14 @@ export const useControl = ({ deviceId, onStateUpdate, onStatisticsUpdate, onLoca
   const locationSubscriptionRef = useRef<any>(null);
   const snapshotStatusSubscriptionRef = useRef<any>(null);
   
+  // Command queue system to prevent overwhelming BLE stack
+  const commandQueueRef = useRef<Array<{ command: ControlCommand; param?: number; resolve: (success: boolean) => void }>>([]);
+  const isProcessingQueueRef = useRef(false);
+  const lastCommandTimeRef = useRef<number>(0);
+  
+  // Minimum delay between commands (ms) to prevent BLE stack overflow
+  const MIN_COMMAND_DELAY = 50;
+  
   // Use refs to keep callbacks stable and prevent subscription recreation
   const onStateUpdateRef = useRef(onStateUpdate);
   const onStatisticsUpdateRef = useRef(onStatisticsUpdate);
@@ -501,68 +509,81 @@ export const useControl = ({ deviceId, onStateUpdate, onStatisticsUpdate, onLoca
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [device]);
 
-  // Send command to device
-  const sendCommand = useCallback(async (command: ControlCommand): Promise<boolean> => {
-    if (!device) return false;
-    
-    try {
-      const isConnected = await device.isConnected();
-      if (!isConnected) {
-        if (__DEV__) console.warn('Device not connected for command write');
-        return false;
-      }
-      
-      const encoded = encodeSingleByte(command);
-      
-      // Log the byte being sent
-      if (__DEV__) {
-        console.log(`[Control] Sending single-byte command: 0x${command.toString(16).padStart(2, '0').toUpperCase()}`);
-      }
-      
-      // Use write with response (per BLE Services Guide - Command characteristic requires .withResponse)
-      await device.writeCharacteristicWithResponseForService(
-        CONTROL_SERVICE_UUID,
-        COMMAND_CHARACTERISTIC_UUID,
-        encoded
-      );
-      return true;
-    } catch (error) {
-      console.error('Failed to send command:', error);
-      return false;
+  // Process command queue sequentially with delay
+  const processCommandQueue = useCallback(async () => {
+    if (isProcessingQueueRef.current || commandQueueRef.current.length === 0) {
+      return;
     }
+
+    isProcessingQueueRef.current = true;
+
+    while (commandQueueRef.current.length > 0) {
+      const item = commandQueueRef.current.shift();
+      if (!item || !device) {
+        item?.resolve(false);
+        continue;
+      }
+
+      // Enforce minimum delay between commands
+      const now = Date.now();
+      const timeSinceLastCommand = now - lastCommandTimeRef.current;
+      if (timeSinceLastCommand < MIN_COMMAND_DELAY) {
+        await new Promise<void>(resolve => setTimeout(resolve, MIN_COMMAND_DELAY - timeSinceLastCommand));
+      }
+
+      try {
+        const isConnected = await device.isConnected();
+        if (!isConnected) {
+          if (__DEV__) console.warn('[Control] Device not connected for command write');
+          item.resolve(false);
+          continue;
+        }
+
+        const encoded = item.param !== undefined 
+          ? encodeTwoBytes(item.command, item.param)
+          : encodeSingleByte(item.command);
+
+        if (__DEV__) {
+          if (item.param !== undefined) {
+            const bytes = decodeBase64ToBytes(encoded);
+            console.log(`[Control] Sending two-byte command: 0x${item.command.toString(16).padStart(2, '0').toUpperCase()} 0x${item.param.toString(16).padStart(2, '0').toUpperCase()} (${bytes.map(b => '0x' + b.toString(16).padStart(2, '0').toUpperCase()).join(' ')})`);
+          } else {
+            console.log(`[Control] Sending single-byte command: 0x${item.command.toString(16).padStart(2, '0').toUpperCase()}`);
+          }
+        }
+
+        await device.writeCharacteristicWithResponseForService(
+          CONTROL_SERVICE_UUID,
+          COMMAND_CHARACTERISTIC_UUID,
+          encoded
+        );
+
+        lastCommandTimeRef.current = Date.now();
+        item.resolve(true);
+      } catch (error) {
+        console.error('[Control] Failed to send command:', error);
+        item.resolve(false);
+      }
+    }
+
+    isProcessingQueueRef.current = false;
   }, [device]);
 
-  // Send two-byte command to device (for snapshot operations)
+  // Send command to device (queued)
+  const sendCommand = useCallback(async (command: ControlCommand): Promise<boolean> => {
+    return new Promise((resolve) => {
+      commandQueueRef.current.push({ command, resolve });
+      processCommandQueue();
+    });
+  }, [processCommandQueue]);
+
+  // Send two-byte command to device (queued)
   const sendTwoByteCommand = useCallback(async (command: ControlCommand, param: number): Promise<boolean> => {
-    if (!device) return false;
-    
-    try {
-      const isConnected = await device.isConnected();
-      if (!isConnected) {
-        if (__DEV__) console.warn('Device not connected for command write');
-        return false;
-      }
-      
-      const encoded = encodeTwoBytes(command, param);
-      
-      // Log the bytes being sent
-      if (__DEV__) {
-        const bytes = decodeBase64ToBytes(encoded);
-        console.log(`[Control] Sending two-byte command: 0x${command.toString(16).padStart(2, '0').toUpperCase()} 0x${param.toString(16).padStart(2, '0').toUpperCase()} (${bytes.map(b => '0x' + b.toString(16).padStart(2, '0').toUpperCase()).join(' ')})`);
-      }
-      
-      // Use write with response (per BLE Services Guide - Command characteristic requires .withResponse)
-      await device.writeCharacteristicWithResponseForService(
-        CONTROL_SERVICE_UUID,
-        COMMAND_CHARACTERISTIC_UUID,
-        encoded
-      );
-      return true;
-    } catch (error) {
-      console.error('Failed to send two-byte command:', error);
-      return false;
-    }
-  }, [device]);
+    return new Promise((resolve) => {
+      commandQueueRef.current.push({ command, param, resolve });
+      processCommandQueue();
+    });
+  }, [processCommandQueue]);
 
   // Convenience command methods
   const startRecording = useCallback(() => sendCommand(ControlCommand.RUN), [sendCommand]);

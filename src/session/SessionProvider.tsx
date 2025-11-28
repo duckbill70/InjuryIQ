@@ -91,12 +91,22 @@ export const useSession = () => {
   return ctx;
 };
 
-const SESSION_LOG_INTERVAL = 1000; // ms
+// GPS polling intervals by sport type (ms)
+const GPS_INTERVALS = {
+  running: 2000,    // 2 seconds - higher frequency for running
+  tennis: 3000,     // 3 seconds - moderate frequency for tennis
+  padel: 3000,      // 3 seconds - moderate frequency for padel
+  hiking: 5000,     // 5 seconds - lower frequency for hiking
+} as const;
+
+// Minimum distance in meters to log GPS point (helps reduce redundant points when stationary)
+const MIN_DISTANCE_METERS = 2;
 
 export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isActive, setIsActive] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [deviceTargetState, setDeviceTargetState] = useState<ControlState | null>(null);
+  const [currentSport, setCurrentSport] = useState<Sport>('hiking');
   const isActiveRef = useRef(isActive);
   const isPausedRef = useRef(isPaused);
   const sessionFile = useRef<string | null>(null);
@@ -104,6 +114,7 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // Use number for setInterval in React Native
   const gpsInterval = useRef<number | null>(null);
   const pauseStartRef = useRef<number | null>(null);
+  const lastGpsPositionRef = useRef<{ lat: number; lon: number } | null>(null);
 
   // BLE context for devices
   const { connected, setConnectionCallbacks } = useBle();
@@ -187,6 +198,7 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
     sessionStartTime.current = Date.now();
     setIsActive(true);
     setIsPaused(false);
+    setCurrentSport(headerData.sport || 'hiking');
     setDeviceTargetState(ControlState.RUNNING); // Signal devices to go to RUN state
 
     // Reset stats
@@ -206,6 +218,7 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
       pausedTotalSec: 0,
     };
     pauseStartRef.current = null;
+    lastGpsPositionRef.current = null;
 
     // Build devices from BLE (unless provided in headerData)
     const devices = headerData.devices ?? Object.values(connected).map(d => ({
@@ -227,26 +240,55 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
       await RNFS.writeFile(filename, JSON.stringify({ type: 'header', ...header }) + '\n', 'utf8');
 
       // Start GPS logging after header is written
+      // Use sport-specific interval for optimal battery/accuracy tradeoff
+      const gpsUpdateInterval = GPS_INTERVALS[headerData.sport || 'hiking'];
+      
       gpsInterval.current = setInterval(() => {
         if (!isPausedRef.current) {
           Geolocation.getCurrentPosition(
             pos => {
-              logEntry({
-                timestamp: new Date().toISOString(),
-                type: 'gps',
-                data: (pos as unknown as { coords: Partial<{ latitude: number; longitude: number; altitude: number; accuracy: number; speed: number }> }).coords,
-              });
+              const coords = (pos as unknown as { coords: Partial<{ latitude: number; longitude: number; altitude: number; accuracy: number; speed: number }> }).coords;
+              const lat = coords.latitude;
+              const lon = coords.longitude;
+              
+              // Distance-based filtering: only log if moved significantly or first point
+              let shouldLog = true;
+              if (lat !== undefined && lon !== undefined && lastGpsPositionRef.current) {
+                const distance = haversineMeters(
+                  lastGpsPositionRef.current.lat,
+                  lastGpsPositionRef.current.lon,
+                  lat,
+                  lon
+                );
+                shouldLog = distance >= MIN_DISTANCE_METERS;
+              }
+              
+              if (shouldLog) {
+                if (lat !== undefined && lon !== undefined) {
+                  lastGpsPositionRef.current = { lat, lon };
+                }
+                logEntry({
+                  timestamp: new Date().toISOString(),
+                  type: 'gps',
+                  data: coords,
+                });
+              }
             },
             error => {
               // Handle error (log or ignore)
               console.warn('GPS error:', error);
             },
-            { enableHighAccuracy: true, timeout: 10000, maximumAge: 1000 }
+            { 
+              enableHighAccuracy: true, 
+              timeout: 5000,        // Reduced from 10s to 5s
+              maximumAge: 2000,     // Increased from 1s to 2s for better caching
+              distanceFilter: 1     // Native distance filter (meters) for additional efficiency
+            }
           );
         }
-      }, SESSION_LOG_INTERVAL) as unknown as number;
+      }, gpsUpdateInterval) as unknown as number;
     })();
-  }, [connected, logEntry]);
+  }, [connected, logEntry, haversineMeters]);
 
   // Stop session
   const stopSession = useCallback((footerData?: SessionFooter) => {

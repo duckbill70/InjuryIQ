@@ -411,6 +411,9 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
     });
   }, [logDeviceDisconnect, logDeviceReconnect, setConnectionCallbacks]);
 
+  // Memoize device IDs to prevent unnecessary re-subscriptions
+  const connectedDeviceIds = React.useMemo(() => Object.keys(connected), [connected]);
+
   return (
     <SessionContext.Provider value={{ 
       isActive, 
@@ -427,7 +430,7 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }}>
       {children}
       {/* Device controllers to manage device states */}
-      {Object.keys(connected).map(deviceId => (
+      {connectedDeviceIds.map(deviceId => (
         <DeviceController
           key={deviceId}
           deviceId={deviceId}
@@ -436,7 +439,7 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
         />
       ))}
       {/* Subscribe to BLE events for each connected device when session is active */}
-      {isActive && Object.keys(connected).map(deviceId => (
+      {isActive && connectedDeviceIds.map(deviceId => (
         <BleDeviceSubscriber
           key={deviceId}
           deviceId={deviceId}
@@ -448,7 +451,8 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
 };
 
 // Component to subscribe to BLE events for a single device
-const BleDeviceSubscriber: React.FC<{ deviceId: string; enabled: boolean }> = ({ deviceId, enabled }) => {
+// Memoized to prevent unnecessary re-subscriptions when parent re-renders
+const BleDeviceSubscriber: React.FC<{ deviceId: string; enabled: boolean }> = React.memo(({ deviceId, enabled }) => {
   // Subscribe to step counter (hook handles logging internally)
   useStepCounter({
     deviceId,
@@ -462,4 +466,9 @@ const BleDeviceSubscriber: React.FC<{ deviceId: string; enabled: boolean }> = ({
   });
 
   return null;
-};
+}, (prevProps, nextProps) => {
+  // Only re-render if deviceId or enabled state changes
+  return prevProps.deviceId === nextProps.deviceId && prevProps.enabled === nextProps.enabled;
+});
+
+BleDeviceSubscriber.displayName = 'BleDeviceSubscriber';

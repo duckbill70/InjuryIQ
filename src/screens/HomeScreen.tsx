@@ -3,7 +3,9 @@ import { View, ScrollView } from 'react-native';
 
 import { useTheme } from '../theme/ThemeContext';
 
+
 import { SessionControlPanel, ControlServicePanel } from '../components';
+import TrainingSessionPanel from '../components/TrainingSessionPanel';
 
 
 export default function HomeScreen() {
@@ -19,8 +21,13 @@ export default function HomeScreen() {
 			<ScrollView style={{ flex: 1, paddingVertical: 60, paddingHorizontal: 10, backgroundColor: theme?.colors?.teal }}>
 
 				{/* Session Control Panel */}
-				<View style={{ marginBottom: 100 }}>
+				<View style={{ marginBottom: 20 }}>
 					<SessionControlPanel />
+				</View>
+
+				{/* Training Session Panel */}
+				<View style={{ marginBottom: 20 }}>
+					<TrainingSessionPanel />
 				</View>
 
 				{/* Control Service Panel */}

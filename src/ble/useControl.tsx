@@ -19,32 +19,34 @@ const SNAPSHOT_STATUS_CHARACTERISTIC_UUID = '12345679-1234-5678-1234-56789abcdef
  * Commands:
  * - STOP (0): Stop recording
  * - RUN (1): Start recording  
- * - RESET (2): Clear FIFO buffer (STOP mode only)
- * - DUMP (3): Export data to serial (STOP mode only)
- * - LOC_RED (4): Set location to RED (STOP mode only)
- * - LOC_GREEN (5): Set location to GREEN (STOP mode only)
- * - RESET_STEPS (6): Reset step counter (STOP mode only)
- * - IMU_TEST (7): Test IMU and log current data
- * - FIFO_STATS (8): Log FIFO statistics to RTT
- * - LOCATION (9): Show location color for 5s then restore (STOP mode only)
- * - SNAPSHOT (10): Capture snapshot (STOP mode only)
- * - SNAP_DELETE (11): Delete snapshot(s) - param: 0-2 or 0xFF for all (STOP mode only)
- * - SNAP_DUMP (12): Dump snapshot(s) to serial - param: 0-2 or 0xFF for all (STOP mode only)
+ * - STOP_SNAP (2): Stop recording, capture snapshot, then clear
+ * - RESET (3): Clear FIFO buffer
+ * - DUMP (4): Export data to serial
+ * - LOC_RED (5): Set location to RED
+ * - LOC_GREEN (6): Set location to GREEN
+ * - RESET_STEPS (7): Reset step counter
+ * - IMU_TEST (8): Test IMU and log current data
+ * - FIFO_STATS (9): Log FIFO statistics to RTT
+ * - LOCATION (10): Show location color for 5s then restore (STOP mode only)
+ * - SNAPSHOT (11): Capture FIFO snapshot to flash (requires FIFO data, can run while recording)
+ * - SNAP_DELETE (12): Delete snapshot(s) - param: 0-2 or 0xFF for all
+ * - SNAP_DUMP (13): Dump snapshot(s) to serial - param: 0-2 or 0xFF for all
  */
 export enum ControlCommand {
   STOP = 0,
   RUN = 1,
-  RESET = 2,           // FIFO reset
-  DUMP = 3,            // Dump to serial
-  LOC_RED = 4,
-  LOC_GREEN = 5,
-  RESET_STEPS = 6,
-  IMU_TEST = 7,
-  FIFO_STATS = 8,
-  LOCATION = 9,
-  SNAPSHOT = 10,
-  SNAP_DELETE = 11,
-  SNAP_DUMP = 12,
+  STOP_SNAP = 2,       // Stop recording, capture snapshot, then clear
+  RESET = 3,           // FIFO reset
+  DUMP = 4,            // Dump to serial
+  LOC_RED = 5,
+  LOC_GREEN = 6,
+  RESET_STEPS = 7,
+  IMU_TEST = 8,
+  FIFO_STATS = 9,
+  LOCATION = 10,
+  SNAPSHOT = 11,
+  SNAP_DELETE = 12,
+  SNAP_DUMP = 13,
 }
 
 /**
@@ -565,6 +567,7 @@ export const useControl = ({ deviceId, onStateUpdate, onStatisticsUpdate, onLoca
   // Convenience command methods
   const startRecording = useCallback(() => sendCommand(ControlCommand.RUN), [sendCommand]);
   const stopRecording = useCallback(() => sendCommand(ControlCommand.STOP), [sendCommand]);
+  const stopAndSnapshot = useCallback(() => sendCommand(ControlCommand.STOP_SNAP), [sendCommand]);
   const resetFifo = useCallback(() => sendCommand(ControlCommand.RESET), [sendCommand]);
   const dumpToSerial = useCallback(() => sendCommand(ControlCommand.DUMP), [sendCommand]);
   const setLocationRed = useCallback(() => sendCommand(ControlCommand.LOC_RED), [sendCommand]);
@@ -602,6 +605,7 @@ export const useControl = ({ deviceId, onStateUpdate, onStatisticsUpdate, onLoca
     sendCommand,
     startRecording,
     stopRecording,
+    stopAndSnapshot,
     resetFifo,
     dumpToSerial,
     setLocationRed,

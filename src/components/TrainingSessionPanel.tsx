@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, Pressable, TextInput, Switch } from 'react-native';
+import { View, Text, Pressable, TextInput, Switch, StyleSheet } from 'react-native';
 import { Power, ArrowDown } from 'lucide-react-native';
 import { useTheme } from '../theme/ThemeContext';
 import { useControl, ControlState, type FIFOStatistics } from '../ble/useControl';
@@ -20,13 +20,33 @@ const minToMs = (min: number) => min * 60 * 1000;
 
 const BUTTON_STYLES = {
   size: 60,
-  iconSize: 32,
+  iconSize: 28,
   borderRadius: 6,
   borderWidth: 2,
   disabledOpacity: 0.4,
   pressedOpacity: 0.7,
   pressedScale: 0.95,
 };
+
+const styles = StyleSheet.create({
+  squareButton: {
+    height: BUTTON_STYLES.size,
+    width: BUTTON_STYLES.size,
+    borderRadius: BUTTON_STYLES.borderRadius,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: BUTTON_STYLES.borderWidth,
+    position: 'relative',
+  },
+  dot: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+  },
+});
 
 const DEFAULT_INTERVALS = [1, 5, 10];
 
@@ -358,6 +378,12 @@ const TrainingSessionPanelComponent: React.FC = () => {
     }
   }, [sessionActive]);
 
+  // Child to isolate timer re-renders
+  const TimerText = useMemo(() => React.memo(({ value }: { value: number }) => {
+    const { theme } = useTheme();
+    return <Text style={[theme.textStyles.body2, {color: theme.colors.white}]}>Timer: {formatMsToMmSs(value)}</Text>;
+  }), []);
+
   return (
     <View style={[theme.viewStyles.panelContainer, { backgroundColor: theme.colors.black, borderWidth: 1, borderColor: theme.colors.white, marginBottom: 24, padding: 20 }]}> 
       <Text style={[theme.textStyles.panelTitle, {color: theme.colors.white}]}>ML Training Plan</Text>
@@ -400,33 +426,16 @@ const TrainingSessionPanelComponent: React.FC = () => {
             {
               marginLeft: 12,
               paddingHorizontal: 12,
-              height: BUTTON_STYLES.size,
-              width: BUTTON_STYLES.size,
-              borderRadius: BUTTON_STYLES.borderRadius,
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderWidth: BUTTON_STYLES.borderWidth,
               borderColor: theme.colors.primary,
               backgroundColor: theme.colors.primary,
               opacity: (sessionActive || !leftDevice || deviceState[leftDevice.id] !== ControlState.STOPPED) ? BUTTON_STYLES.disabledOpacity : 1,
-              position: 'relative',
             },
+            styles.squareButton,
             pressed && !sessionActive && leftDevice && { opacity: BUTTON_STYLES.pressedOpacity, transform: [{ scale: BUTTON_STYLES.pressedScale }] },
           ]}
         >
           <ArrowDown size={BUTTON_STYLES.iconSize} color={theme.colors.white} />
-          <View
-            style={{
-              position: 'absolute',
-              top: 4,
-              right: 4,
-              width: 14,
-              height: 14,
-              borderRadius: 7,
-              backgroundColor: leftDevice?.color || theme.colors.teal,
-              opacity: leftDevice ? 1 : BUTTON_STYLES.disabledOpacity,
-            }}
-          />
+          <View style={[styles.dot, { backgroundColor: leftDevice?.color || theme.colors.teal, opacity: leftDevice ? 1 : BUTTON_STYLES.disabledOpacity }]} />
         </Pressable>
         <Pressable
           onPress={() => {
@@ -442,33 +451,16 @@ const TrainingSessionPanelComponent: React.FC = () => {
             {
               marginLeft: 12,
               paddingHorizontal: 12,
-              height: BUTTON_STYLES.size,
-              width: BUTTON_STYLES.size,
-              borderRadius: BUTTON_STYLES.borderRadius,
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderWidth: BUTTON_STYLES.borderWidth,
               borderColor: theme.colors.primary,
               backgroundColor: theme.colors.primary,
               opacity: (sessionActive || !rightDevice || deviceState[rightDevice.id] !== ControlState.STOPPED) ? BUTTON_STYLES.disabledOpacity : 1,
-              position: 'relative',
             },
+            styles.squareButton,
             pressed && !sessionActive && rightDevice && { opacity: BUTTON_STYLES.pressedOpacity, transform: [{ scale: BUTTON_STYLES.pressedScale }] },
           ]}
         >
           <ArrowDown size={BUTTON_STYLES.iconSize} color={theme.colors.white} />
-          <View
-            style={{
-              position: 'absolute',
-              top: 4,
-              right: 4,
-              width: 14,
-              height: 14,
-              borderRadius: 7,
-              backgroundColor: rightDevice?.color || theme.colors.mid,
-              opacity: rightDevice ? 1 : BUTTON_STYLES.disabledOpacity,
-            }}
-          />
+          <View style={[styles.dot, { backgroundColor: rightDevice?.color || theme.colors.mid, opacity: rightDevice ? 1 : BUTTON_STYLES.disabledOpacity }]} />
         </Pressable>
       </View>
       <Text style={[theme.textStyles.body, { fontWeight: '600', marginBottom: 8, color: theme.colors.white }]}>Intervals (minutes):</Text>
@@ -518,7 +510,7 @@ const TrainingSessionPanelComponent: React.FC = () => {
       <View style={{ marginBottom: 12 }}>
         <Text style={[theme.textStyles.body2, {color: theme.colors.white}]}>Current Interval: {currentIntervalIdx + 1} / {intervals.length}</Text>
         <Text style={[theme.textStyles.body2, {color: theme.colors.white}]}>Phase: {phase}</Text>
-        <Text style={[theme.textStyles.body2, {color: theme.colors.white}]}>Timer: {formatMsToMmSs(timer)}</Text>
+        <TimerText value={timer} />
         {connectedDevices.map((d) => (
           <View key={d.id} style={{ marginBottom: 2 }}>
             <Text style={[theme.textStyles.body2, {color: theme.colors.white}]}>

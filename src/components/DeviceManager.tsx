@@ -24,12 +24,12 @@ const POSITION_LABELS = {
 	racket: 'Racket',
 };
 
-// Sensor location colors from Control characteristic
+// Sensor location colors from Control characteristic (stable object)
 const SENSOR_LOCATION_COLORS = {
 	RED: '#FF0000', // Left foot
 	GREEN: '#00FF00', // Right foot
 	UNKNOWN: '#8E8E93', // Gray for unknown/unassigned
-};
+} as const;
 
 // Shared button styles - matching PowerStateCycler component (not used now; kept for future controls)
 // const CONTROL_BUTTON_STYLES = {

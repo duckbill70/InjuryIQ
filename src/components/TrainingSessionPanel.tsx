@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, Pressable, TextInput, Switch } from 'react-native';
 import { Power, PowerOff } from 'lucide-react-native';
 import { useTheme } from '../theme/ThemeContext';
@@ -62,50 +62,78 @@ const TrainingSessionPanelComponent: React.FC = () => {
 
   // BLE control
 
-  // Top-level useControl hooks for up to two devices
-  // Always call both hooks in the same order for React rules
-  const leftControl = useControl(
-    leftDevice
+  // Memoized callbacks for left device to prevent useControl recreation
+  const onLeftStateUpdate = useCallback((state: ControlState) => {
+    if (leftDevice) {
+      setDeviceState((prev) => ({ ...prev, [leftDevice.id]: state }));
+    }
+  }, [leftDevice]);
+
+  const onLeftStatisticsUpdate = useCallback((stats: FIFOStatistics) => {
+    if (leftDevice) {
+      setFifoPct((prev) => ({
+        ...prev,
+        [leftDevice.id]: stats.bufferCapacity > 0 ? Math.round((stats.samplesStored / stats.bufferCapacity) * 100) : null,
+      }));
+    }
+  }, [leftDevice]);
+
+  // Memoized callbacks for right device to prevent useControl recreation
+  const onRightStateUpdate = useCallback((state: ControlState) => {
+    if (rightDevice) {
+      setDeviceState((prev) => ({ ...prev, [rightDevice.id]: state }));
+    }
+  }, [rightDevice]);
+
+  const onRightStatisticsUpdate = useCallback((stats: FIFOStatistics) => {
+    if (rightDevice) {
+      setFifoPct((prev) => ({
+        ...prev,
+        [rightDevice.id]: stats.bufferCapacity > 0 ? Math.round((stats.samplesStored / stats.bufferCapacity) * 100) : null,
+      }));
+    }
+  }, [rightDevice]);
+
+  // Memoized config objects for useControl hooks
+  const leftControlConfig = useMemo(() => {
+    return leftDevice
       ? {
           deviceId: leftDevice.id,
           enabled: true,
-          onStateUpdate: (state) => setDeviceState((prev) => ({ ...prev, [leftDevice.id]: state })),
-          onStatisticsUpdate: (stats: FIFOStatistics) => {
-            setFifoPct((prev) => ({
-              ...prev,
-              [leftDevice.id]: stats.bufferCapacity > 0 ? Math.round((stats.samplesStored / stats.bufferCapacity) * 100) : null,
-            }));
-          },
+          onStateUpdate: onLeftStateUpdate,
+          onStatisticsUpdate: onLeftStatisticsUpdate,
         }
       : {
           deviceId: '',
           enabled: false,
           onStateUpdate: () => {},
           onStatisticsUpdate: () => {},
-        }
-  );
-  const rightControl = useControl(
-    rightDevice
+        };
+  }, [leftDevice, onLeftStateUpdate, onLeftStatisticsUpdate]);
+
+  const rightControlConfig = useMemo(() => {
+    return rightDevice
       ? {
           deviceId: rightDevice.id,
           enabled: true,
-          onStateUpdate: (state) => setDeviceState((prev) => ({ ...prev, [rightDevice.id]: state })),
-          onStatisticsUpdate: (stats: FIFOStatistics) => {
-            setFifoPct((prev) => ({
-              ...prev,
-              [rightDevice.id]: stats.bufferCapacity > 0 ? Math.round((stats.samplesStored / stats.bufferCapacity) * 100) : null,
-            }));
-          },
+          onStateUpdate: onRightStateUpdate,
+          onStatisticsUpdate: onRightStatisticsUpdate,
         }
       : {
           deviceId: '',
           enabled: false,
           onStateUpdate: () => {},
           onStatisticsUpdate: () => {},
-        }
-  );
-  // Controls array for logic (memoized to avoid changing identity every render)
-  const controls = React.useMemo(() => {
+        };
+  }, [rightDevice, onRightStateUpdate, onRightStatisticsUpdate]);
+
+  // Top-level useControl hooks for up to two devices
+  // Always call both hooks in the same order for React rules
+  const leftControl = useControl(leftControlConfig);
+  const rightControl = useControl(rightControlConfig);
+
+  // Controls array for logic (memoized based on device IDs, not hook instances)
+  const controls = useMemo(() => {
     return [leftDevice ? leftControl : null, rightDevice ? rightControl : null].filter(Boolean);
   }, [leftDevice, rightDevice, leftControl, rightControl]);
   // One-off snapshot delete at session start when training is enabled

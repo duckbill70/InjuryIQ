@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, Pressable, TextInput, Switch } from 'react-native';
-import { Power, PowerOff } from 'lucide-react-native';
+import { Power, ArrowDown } from 'lucide-react-native';
 import { useTheme } from '../theme/ThemeContext';
 import { useControl, ControlState, type FIFOStatistics } from '../ble/useControl';
 import { useBle } from '../ble/BleProvider';
@@ -32,12 +32,12 @@ const DEFAULT_INTERVALS = [1, 5, 10];
 
 const TrainingSessionPanelComponent: React.FC = () => {
   const { theme } = useTheme();
-  const { connected } = useBle();
+  const { connected, devicesByPosition } = useBle();
   const { isActive: sessionActive } = useSession();
   const connectedDevices = Object.values(connected);
-  // Support up to two devices (left/right)
-  const leftDevice = connectedDevices[0] || null;
-  const rightDevice = connectedDevices[1] || null;
+  // Use explicit device positions from BLE context
+  const leftDevice = devicesByPosition.leftFoot || null;
+  const rightDevice = devicesByPosition.rightFoot || null;
 
   // Per-device state
   const [fifoPct, setFifoPct] = useState<Record<string, number | null>>({});
@@ -135,6 +135,36 @@ const TrainingSessionPanelComponent: React.FC = () => {
   // Controls array for logic (memoized based on device IDs, not hook instances)
   const controls = useMemo(() => {
     return [leftDevice ? leftControl : null, rightDevice ? rightControl : null].filter(Boolean);
+  }, [leftDevice, rightDevice, leftControl, rightControl]);
+
+  // Read initial statistics to derive STOP/RUN state on first load
+  useEffect(() => {
+    const readInitialLeft = async () => {
+      if (!leftDevice) return;
+      try {
+        const stats = await leftControl.readStatistics();
+        if (stats) {
+          setDeviceState((prev) => ({
+            ...prev,
+            [leftDevice.id]: stats.isRecording ? ControlState.RUNNING : ControlState.STOPPED,
+          }));
+        }
+      } catch {}
+    };
+    const readInitialRight = async () => {
+      if (!rightDevice) return;
+      try {
+        const stats = await rightControl.readStatistics();
+        if (stats) {
+          setDeviceState((prev) => ({
+            ...prev,
+            [rightDevice.id]: stats.isRecording ? ControlState.RUNNING : ControlState.STOPPED,
+          }));
+        }
+      } catch {}
+    };
+    readInitialLeft();
+    readInitialRight();
   }, [leftDevice, rightDevice, leftControl, rightControl]);
   // One-off snapshot delete at session start when training is enabled
   const prevSessionActiveRef = useRef<boolean>(sessionActive);
@@ -317,7 +347,7 @@ const TrainingSessionPanelComponent: React.FC = () => {
   }, [sessionActive]);
 
   return (
-    <View style={[theme.viewStyles.panelContainer, { backgroundColor: theme.colors.black, borderWidth: 2, borderColor: theme.colors.white, marginBottom: 24, padding: 20 }]}> 
+    <View style={[theme.viewStyles.panelContainer, { backgroundColor: theme.colors.black, borderWidth: 1, borderColor: theme.colors.white, marginBottom: 24, padding: 20 }]}> 
       <Text style={[theme.textStyles.panelTitle, {color: theme.colors.white}]}>ML Training Plan</Text>
       <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 18 }}>
         <Pressable
@@ -338,11 +368,95 @@ const TrainingSessionPanelComponent: React.FC = () => {
             pressed && connectedDevices.length > 0 && { opacity: BUTTON_STYLES.pressedOpacity, transform: [{ scale: BUTTON_STYLES.pressedScale }] },
           ]}
         >
-          {active ? (
+
             <Power size={BUTTON_STYLES.iconSize} color={theme.colors.white} />
-          ) : (
-            <PowerOff size={BUTTON_STYLES.iconSize} color={theme.colors.white} />
-          )}
+
+        </Pressable>
+        {/* Dump All Snapshots buttons per device (available only when session is NOT running) */}
+        {/* Always render per-device buttons; show disabled style when device missing or session active */}
+        <Pressable
+          onPress={() => {
+            const ctl = leftControl as unknown as { dumpSnapshot?: (slot: number) => Promise<void> };
+            if (ctl && typeof ctl.dumpSnapshot === 'function') {
+              ctl.dumpSnapshot(0xFF).catch(() => {});
+            }
+          }}
+          disabled={
+            sessionActive || !leftDevice || deviceState[leftDevice.id] !== ControlState.STOPPED
+          }
+          style={({ pressed }) => [
+            {
+              marginLeft: 12,
+              paddingHorizontal: 12,
+              height: BUTTON_STYLES.size,
+              width: BUTTON_STYLES.size,
+              borderRadius: BUTTON_STYLES.borderRadius,
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderWidth: BUTTON_STYLES.borderWidth,
+              borderColor: theme.colors.primary,
+              backgroundColor: theme.colors.primary,
+              opacity: (sessionActive || !leftDevice || deviceState[leftDevice.id] !== ControlState.STOPPED) ? BUTTON_STYLES.disabledOpacity : 1,
+              position: 'relative',
+            },
+            pressed && !sessionActive && leftDevice && { opacity: BUTTON_STYLES.pressedOpacity, transform: [{ scale: BUTTON_STYLES.pressedScale }] },
+          ]}
+        >
+          <ArrowDown size={BUTTON_STYLES.iconSize} color={theme.colors.white} />
+          <View
+            style={{
+              position: 'absolute',
+              top: 4,
+              right: 4,
+              width: 14,
+              height: 14,
+              borderRadius: 7,
+              backgroundColor: leftDevice?.color || theme.colors.teal,
+              opacity: leftDevice ? 1 : BUTTON_STYLES.disabledOpacity,
+            }}
+          />
+        </Pressable>
+        <Pressable
+          onPress={() => {
+            const ctl = rightControl as unknown as { dumpSnapshot?: (slot: number) => Promise<void> };
+            if (ctl && typeof ctl.dumpSnapshot === 'function') {
+              ctl.dumpSnapshot(0xFF).catch(() => {});
+            }
+          }}
+          disabled={
+            sessionActive || !rightDevice || deviceState[rightDevice.id] !== ControlState.STOPPED
+          }
+          style={({ pressed }) => [
+            {
+              marginLeft: 12,
+              paddingHorizontal: 12,
+              height: BUTTON_STYLES.size,
+              width: BUTTON_STYLES.size,
+              borderRadius: BUTTON_STYLES.borderRadius,
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderWidth: BUTTON_STYLES.borderWidth,
+              borderColor: theme.colors.primary,
+              backgroundColor: theme.colors.primary,
+              opacity: (sessionActive || !rightDevice || deviceState[rightDevice.id] !== ControlState.STOPPED) ? BUTTON_STYLES.disabledOpacity : 1,
+              position: 'relative',
+            },
+            pressed && !sessionActive && rightDevice && { opacity: BUTTON_STYLES.pressedOpacity, transform: [{ scale: BUTTON_STYLES.pressedScale }] },
+          ]}
+        >
+          <ArrowDown size={BUTTON_STYLES.iconSize} color={theme.colors.white} />
+          <View
+            style={{
+              position: 'absolute',
+              top: 4,
+              right: 4,
+              width: 14,
+              height: 14,
+              borderRadius: 7,
+              backgroundColor: rightDevice?.color || theme.colors.mid,
+              opacity: rightDevice ? 1 : BUTTON_STYLES.disabledOpacity,
+            }}
+          />
         </Pressable>
       </View>
       <Text style={[theme.textStyles.body, { fontWeight: '600', marginBottom: 8, color: theme.colors.white }]}>Intervals (minutes):</Text>

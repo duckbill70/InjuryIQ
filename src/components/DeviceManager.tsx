@@ -3,7 +3,7 @@ import { View, Pressable, Alert, AppState, AppStateStatus, Text, Vibration } fro
 
 import { useBle, DevicePosition } from '../ble/BleProvider';
 import { useTheme } from '../theme/ThemeContext';
-import { useControl, ControlState, SensorLocation } from '../ble/useControl';
+import { useControl, ControlState, SensorLocation, type SnapshotStatus } from '../ble/useControl';
 import { useBattery } from '../ble/useBattery';
 import { useFatigue } from '../ble/useFatigue';
 import { useStepCounter } from '../ble/useStepCounter';
@@ -82,6 +82,7 @@ const DeviceBoxComponent: React.FC<DeviceBoxProps> = ({ position, device, enable
 	const [fifoFillPct, setFifoFillPct] = useState<number | null>(null);
 	// fatigue level comes directly from useFatigue hook per device
 	const [stepCount, setStepCount] = useState<number | null>(null);
+	const [snapshotStatus, setSnapshotStatus] = useState<SnapshotStatus | null>(null);
 
 	// Hooks for control state and sensor location
 	const {
@@ -89,6 +90,7 @@ const DeviceBoxComponent: React.FC<DeviceBoxProps> = ({ position, device, enable
 		unsubscribe: unsubCtl,
 		readStatistics,
 		readLocation,
+		readSnapshotStatus,
 		setLocationRed,
 		setLocationGreen,
 		showLocation,
@@ -106,6 +108,7 @@ const DeviceBoxComponent: React.FC<DeviceBoxProps> = ({ position, device, enable
 				setFifoFillPct(null);
 			}
 		},
+		onSnapshotStatusUpdate: (status) => setSnapshotStatus(status),
 	});
 
 	useEffect(() => {
@@ -113,6 +116,7 @@ const DeviceBoxComponent: React.FC<DeviceBoxProps> = ({ position, device, enable
 		if (!deviceId) {
 			setControlState(null);
 			setSensorLocation(null);
+			setSnapshotStatus(null);
 			attemptedAutoLocationRef.current = null;
 			return;
 		}
@@ -128,13 +132,17 @@ const DeviceBoxComponent: React.FC<DeviceBoxProps> = ({ position, device, enable
 			if (!cancelled && loc !== null) {
 				setSensorLocation(loc);
 			}
+			const snapStatus = await readSnapshotStatus();
+			if (!cancelled && snapStatus) {
+				setSnapshotStatus(snapStatus);
+			}
 		})();
 		subCtl();
 		return () => {
 			cancelled = true;
 			unsubCtl();
 		};
-	}, [deviceId, readStatistics, readLocation, subCtl, unsubCtl]);
+	}, [deviceId, readStatistics, readLocation, readSnapshotStatus, subCtl, unsubCtl]);
 
 	// Publish state to parent via stateRef (snapshot always present when hook enabled)
 	useEffect(() => {
@@ -297,19 +305,32 @@ const DeviceBoxComponent: React.FC<DeviceBoxProps> = ({ position, device, enable
 							<View style={overlayStackStyle} pointerEvents='none'>
 								<ControlStateIcon state={controlState} style={{ marginBottom: 4 }} />
 								<BatteryIcon level={_batteryPct} vertical style={{ marginBottom: 2 }} />
-								{fifoFillPct !== null ? (
+							{fifoFillPct !== null ? (
+								<View
+									style={{
+										marginTop: 5,
+										width: 20,
+										height: 20,
+										borderRadius: 20,
+										borderWidth: 1,
+										borderColor: fifoFillPct === 0 ? 'white' : fifoFillPct >= 100 ? '#00FF00' : '#FFBA00',
+										backgroundColor: fifoFillPct === 0 ? 'transparent' : fifoFillPct >= 100 ? '#00FF00' : '#FFBA00',
+									}}
+								/>
+							) : null}
+							{/* Snapshot status - three vertical lines */}
+							<View style={{ flexDirection: 'row', gap: 4, marginTop: 8 }}>
+								{[0, 1, 2].map((idx) => (
 									<View
+										key={idx}
 										style={{
-											marginTop: 5,
-											width: 20,
-											height: 20,
-											borderRadius: 20,
-											borderWidth: 1,
-											borderColor: fifoFillPct === 0 ? 'white' : fifoFillPct >= 100 ? '#00FF00' : '#FFBA00',
-											backgroundColor: fifoFillPct === 0 ? 'transparent' : fifoFillPct >= 100 ? '#00FF00' : '#FFBA00',
+											width: 3,
+											height: 10,
+											backgroundColor: snapshotStatus?.slots[idx] ? '#00FF00' : theme.colors.muted,
 										}}
 									/>
-								) : null}
+								))}
+							</View>
 							</View>
 						</View>
 					</>
@@ -329,7 +350,20 @@ const DeviceBoxComponent: React.FC<DeviceBoxProps> = ({ position, device, enable
 						<View style={overlayStackStyle} pointerEvents='none'>
 							<ControlStateIcon state={null} style={{ marginBottom: 4 }} />
 							<BatteryIcon level={null} vertical style={{ marginBottom: 2 }} />
-							<Text style={{ color: 'white', fontSize: 10, fontWeight: '600', opacity: 0.3 }}>-</Text>
+							<View style={{ marginTop: 5, width: 20, height: 20, borderRadius: 20, borderWidth: 1, borderColor: theme.colors.muted, backgroundColor: theme.colors.black, }} />
+							{/* Snapshot status placeholder */}
+							<View style={{ flexDirection: 'row', gap: 4, marginTop: 8 }}>
+								{[0, 1, 2].map((idx) => (
+									<View
+										key={idx}
+										style={{
+											width: 3,
+											height: 10,
+											backgroundColor: theme.colors.muted,
+										}}
+									/>
+								))}
+							</View>
 						</View>
 					</>
 				)}

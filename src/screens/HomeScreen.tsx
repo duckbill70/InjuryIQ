@@ -26,14 +26,14 @@ export default function HomeScreen() {
 				</View>
 
 				{/* Training Session Panel */}
-				<View style={{ marginBottom: 20 }}>
+				<View style={{ marginBottom: 1000 }}>
 					<TrainingSessionPanel />
 				</View>
 
-				{/* Control Service Panel */}
+				{/* Control Service Panel 
 				<View style={{ marginBottom: 100 }}>
 					<ControlServicePanel />
-				</View>
+				</View> */}
 				
 			</ScrollView>
 

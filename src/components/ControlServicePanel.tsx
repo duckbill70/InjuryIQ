@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, Alert } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { View, Text, TouchableOpacity, Alert, StyleSheet } from 'react-native';
 import { useBle } from '../ble/BleProvider';
 import { useControl, ControlState, SensorLocation, type FIFOStatistics, type SnapshotStatus } from '../ble/useControl';
 import { useBattery } from '../ble/useBattery';
@@ -135,6 +135,40 @@ export const ControlServicePanel: React.FC = () => {
   const onDeleteSnapshot = useCallback((id: number) => handleCommand(() => deleteSnapshot(id), `Delete Snapshot ${id}`), [handleCommand, deleteSnapshot]);
   const onDumpSnapshot = useCallback((id: number) => handleCommand(() => dumpSnapshot(id), `Dump Snapshot ${id}`), [handleCommand, dumpSnapshot]);
 
+  // Shared styles extracted for stability
+  const styles = useMemo(() => StyleSheet.create({
+    pill: {
+      paddingVertical: 6,
+      paddingHorizontal: 10,
+      borderRadius: 6,
+      borderStyle: 'solid',
+      borderWidth: 0.5,
+    },
+    actionBtn: {
+      paddingVertical: 10,
+      paddingHorizontal: 12,
+      borderRadius: 6,
+    },
+    slotRow: {
+      borderRadius: 6,
+      padding: 8,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      borderWidth: 1,
+    },
+    circleBtn: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+  }), []);
+
+  // Memoize snapshot slots list to avoid re-creating elements each render
+  const snapshotSlots = useMemo(() => (snapshotStatus?.slots || [false, false, false]).map((occupied, idx) => ({ idx, occupied })), [snapshotStatus]);
+
   return (
     <View style={[theme.viewStyles.panelContainer, { backgroundColor: theme.colors.white }]}> 
       {/* Floating Location Indicator */}
@@ -184,15 +218,13 @@ export const ControlServicePanel: React.FC = () => {
             <TouchableOpacity
               key={d.id}
               onPress={() => setDeviceId(d.id)}
-              style={{
-                paddingVertical: 6,
-                paddingHorizontal: 10,
-                borderRadius: 6,
-                borderStyle: 'solid',
-                borderWidth: 0.5,
-                borderColor: deviceId === d.id ? theme.colors.primary : theme.colors.black,
-                backgroundColor: deviceId === d.id ? theme.colors.primary : theme.colors.dgrey,
-              }}
+              style={[
+                styles.pill,
+                {
+                  borderColor: deviceId === d.id ? theme.colors.primary : theme.colors.black,
+                  backgroundColor: deviceId === d.id ? theme.colors.primary : theme.colors.dgrey,
+                },
+              ]}
             >
               <Text style={{ color: deviceId === d.id ? theme.colors.white : theme.colors.black, fontWeight: '600' }}>
                 {d.name || d.id.slice(-6)}
@@ -256,18 +288,15 @@ export const ControlServicePanel: React.FC = () => {
         <View style={{ backgroundColor: theme.colors.dgrey, borderRadius: 8, padding: 12, marginBottom: 12 }}>
           <Text style={[theme.textStyles.body, { fontWeight: '600', marginBottom: 8 }]}>Snapshot Status ({snapshotStatus.count} snapshot{snapshotStatus.count !== 1 ? 's' : ''})</Text>
           <View style={{ gap: 6 }}>
-            {(snapshotStatus.slots || [false, false, false]).map((occupied, idx) => (
-              <View key={idx} style={{
-                backgroundColor: occupied ? theme.colors.white : theme.colors.dgrey,
-                borderRadius: 6,
-                padding: 8,
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                opacity: occupied ? 1 : 0.5,
-                borderWidth: 1,
-                borderColor: theme.colors.muted,
-              }}>
+            {snapshotSlots.map(({ occupied, idx }) => (
+              <View key={idx} style={[
+                styles.slotRow,
+                {
+                  backgroundColor: occupied ? theme.colors.white : theme.colors.dgrey,
+                  opacity: occupied ? 1 : 0.5,
+                  borderColor: theme.colors.muted,
+                },
+              ]}>
                 <View>
                   <Text style={[theme.textStyles.body2, { fontWeight: '600' }]}>Snapshot #{idx}</Text>
                 </View>
@@ -275,30 +304,26 @@ export const ControlServicePanel: React.FC = () => {
                   <TouchableOpacity
                     onPress={() => onDumpSnapshot(idx)}
                     disabled={!deviceId || currentState !== ControlState.STOPPED || !occupied}
-                    style={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: 16,
-                      backgroundColor: theme.colors.primary,
-                      opacity: (!deviceId || currentState !== ControlState.STOPPED || !occupied) ? 0.5 : 1,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
+                    style={[
+                      styles.circleBtn,
+                      {
+                        backgroundColor: theme.colors.primary,
+                        opacity: (!deviceId || currentState !== ControlState.STOPPED || !occupied) ? 0.5 : 1,
+                      },
+                    ]}
                   >
                     <Text style={{ fontSize: 16, color: theme.colors.white }}>📥</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     onPress={() => onDeleteSnapshot(idx)}
                     disabled={!deviceId || currentState !== ControlState.STOPPED || !occupied}
-                    style={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: 16,
-                      backgroundColor: theme.colors.danger,
-                      opacity: (!deviceId || currentState !== ControlState.STOPPED || !occupied) ? 0.5 : 1,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
+                    style={[
+                      styles.circleBtn,
+                      {
+                        backgroundColor: theme.colors.danger,
+                        opacity: (!deviceId || currentState !== ControlState.STOPPED || !occupied) ? 0.5 : 1,
+                      },
+                    ]}
                   >
                     <Text style={{ fontSize: 16, color: theme.colors.white }}>🗑️</Text>
                   </TouchableOpacity>
@@ -317,13 +342,13 @@ export const ControlServicePanel: React.FC = () => {
             <TouchableOpacity
               onPress={onDeleteAllSnapshots}
               disabled={!deviceId || currentState !== ControlState.STOPPED}
-              style={{
-                paddingVertical: 10,
-                paddingHorizontal: 12,
-                borderRadius: 6,
-                backgroundColor: theme.colors.danger,
-                opacity: (!deviceId || currentState !== ControlState.STOPPED) ? 0.5 : 1,
-              }}
+              style={[
+                styles.actionBtn,
+                {
+                  backgroundColor: theme.colors.danger,
+                  opacity: (!deviceId || currentState !== ControlState.STOPPED) ? 0.5 : 1,
+                },
+              ]}
             >
               <Text style={theme.textStyles.buttonLabel}>DELETE ALL</Text>
             </TouchableOpacity>
@@ -331,13 +356,13 @@ export const ControlServicePanel: React.FC = () => {
             <TouchableOpacity
               onPress={onDumpAllSnapshots}
               disabled={!deviceId || currentState !== ControlState.STOPPED}
-              style={{
-                paddingVertical: 10,
-                paddingHorizontal: 12,
-                borderRadius: 6,
-                backgroundColor: theme.colors.primary,
-                opacity: (!deviceId || currentState !== ControlState.STOPPED) ? 0.5 : 1,
-              }}
+              style={[
+                styles.actionBtn,
+                {
+                  backgroundColor: theme.colors.primary,
+                  opacity: (!deviceId || currentState !== ControlState.STOPPED) ? 0.5 : 1,
+                },
+              ]}
             >
               <Text style={theme.textStyles.buttonLabel}>DUMP ALL TO SERIAL</Text>
             </TouchableOpacity>
@@ -351,13 +376,13 @@ export const ControlServicePanel: React.FC = () => {
         <TouchableOpacity
           onPress={onStartRecording}
           disabled={!deviceId || currentState === ControlState.RUNNING}
-          style={{
-            paddingVertical: 10,
-            paddingHorizontal: 12,
-            borderRadius: 6,
-            backgroundColor: theme.colors.good,
-            opacity: (!deviceId || currentState === ControlState.RUNNING) ? 0.5 : 1,
-          }}
+          style={[
+            styles.actionBtn,
+            {
+              backgroundColor: theme.colors.good,
+              opacity: (!deviceId || currentState === ControlState.RUNNING) ? 0.5 : 1,
+            },
+          ]}
         >
           <Text style={theme.textStyles.buttonLabel}>RUN</Text>
         </TouchableOpacity>
@@ -365,13 +390,13 @@ export const ControlServicePanel: React.FC = () => {
         <TouchableOpacity
           onPress={onStopRecording}
           disabled={!deviceId || currentState === ControlState.STOPPED}
-          style={{
-            paddingVertical: 10,
-            paddingHorizontal: 12,
-            borderRadius: 6,
-            backgroundColor: theme.colors.danger,
-            opacity: (!deviceId || currentState === ControlState.STOPPED) ? 0.5 : 1,
-          }}
+          style={[
+            styles.actionBtn,
+            {
+              backgroundColor: theme.colors.danger,
+              opacity: (!deviceId || currentState === ControlState.STOPPED) ? 0.5 : 1,
+            },
+          ]}
         >
           <Text style={theme.textStyles.buttonLabel}>STOP</Text>
         </TouchableOpacity>
@@ -383,13 +408,13 @@ export const ControlServicePanel: React.FC = () => {
         <TouchableOpacity
           onPress={onResetFifo}
           disabled={!deviceId || currentState !== ControlState.STOPPED}
-          style={{
-            paddingVertical: 10,
-            paddingHorizontal: 12,
-            borderRadius: 6,
-            backgroundColor: theme.colors.warn,
-            opacity: (!deviceId || currentState !== ControlState.STOPPED) ? 0.5 : 1,
-          }}
+          style={[
+            styles.actionBtn,
+            {
+              backgroundColor: theme.colors.warn,
+              opacity: (!deviceId || currentState !== ControlState.STOPPED) ? 0.5 : 1,
+            },
+          ]}
         >
           <Text style={theme.textStyles.buttonLabel}>RESET FIFO</Text>
         </TouchableOpacity>
@@ -397,13 +422,13 @@ export const ControlServicePanel: React.FC = () => {
         <TouchableOpacity
           onPress={onDumpToSerial}
           disabled={!deviceId || currentState !== ControlState.STOPPED}
-          style={{
-            paddingVertical: 10,
-            paddingHorizontal: 12,
-            borderRadius: 6,
-            backgroundColor: theme.colors.primary,
-            opacity: (!deviceId || currentState !== ControlState.STOPPED) ? 0.5 : 1,
-          }}
+          style={[
+            styles.actionBtn,
+            {
+              backgroundColor: theme.colors.primary,
+              opacity: (!deviceId || currentState !== ControlState.STOPPED) ? 0.5 : 1,
+            },
+          ]}
         >
           <Text style={theme.textStyles.buttonLabel}>DUMP TO SERIAL</Text>
         </TouchableOpacity>
@@ -415,13 +440,13 @@ export const ControlServicePanel: React.FC = () => {
         <TouchableOpacity
           onPress={onSetLocationRed}
           disabled={!deviceId || currentState !== ControlState.STOPPED}
-          style={{
-            paddingVertical: 10,
-            paddingHorizontal: 12,
-            borderRadius: 6,
-            backgroundColor: '#FF0000',
-            opacity: (!deviceId || currentState !== ControlState.STOPPED) ? 0.5 : 1,
-          }}
+          style={[
+            styles.actionBtn,
+            {
+              backgroundColor: '#FF0000',
+              opacity: (!deviceId || currentState !== ControlState.STOPPED) ? 0.5 : 1,
+            },
+          ]}
         >
           <Text style={theme.textStyles.buttonLabel}>RED</Text>
         </TouchableOpacity>
@@ -429,13 +454,13 @@ export const ControlServicePanel: React.FC = () => {
         <TouchableOpacity
           onPress={onSetLocationGreen}
           disabled={!deviceId || currentState !== ControlState.STOPPED}
-          style={{
-            paddingVertical: 10,
-            paddingHorizontal: 12,
-            borderRadius: 6,
-            backgroundColor: '#00FF00',
-            opacity: (!deviceId || currentState !== ControlState.STOPPED) ? 0.5 : 1,
-          }}
+          style={[
+            styles.actionBtn,
+            {
+              backgroundColor: '#00FF00',
+              opacity: (!deviceId || currentState !== ControlState.STOPPED) ? 0.5 : 1,
+            },
+          ]}
         >
           <Text style={theme.textStyles.buttonLabel}>GREEN</Text>
         </TouchableOpacity>
@@ -443,13 +468,13 @@ export const ControlServicePanel: React.FC = () => {
         <TouchableOpacity
           onPress={onResetSteps}
           disabled={!deviceId || currentState !== ControlState.STOPPED}
-          style={{
-            paddingVertical: 10,
-            paddingHorizontal: 12,
-            borderRadius: 6,
-            backgroundColor: theme.colors.muted,
-            opacity: (!deviceId || currentState !== ControlState.STOPPED) ? 0.5 : 1,
-          }}
+          style={[
+            styles.actionBtn,
+            {
+              backgroundColor: theme.colors.muted,
+              opacity: (!deviceId || currentState !== ControlState.STOPPED) ? 0.5 : 1,
+            },
+          ]}
         >
           <Text style={theme.textStyles.buttonLabel}>RESET STEPS</Text>
         </TouchableOpacity>
@@ -461,13 +486,13 @@ export const ControlServicePanel: React.FC = () => {
         <TouchableOpacity
           onPress={onTestImu}
           disabled={!deviceId}
-          style={{
-            paddingVertical: 10,
-            paddingHorizontal: 12,
-            borderRadius: 6,
-            backgroundColor: theme.colors.primary,
-            opacity: !deviceId ? 0.5 : 1,
-          }}
+          style={[
+            styles.actionBtn,
+            {
+              backgroundColor: theme.colors.primary,
+              opacity: !deviceId ? 0.5 : 1,
+            },
+          ]}
         >
           <Text style={theme.textStyles.buttonLabel}>IMU TEST</Text>
         </TouchableOpacity>
@@ -475,13 +500,13 @@ export const ControlServicePanel: React.FC = () => {
         <TouchableOpacity
           onPress={onLogFifoStats}
           disabled={!deviceId}
-          style={{
-            paddingVertical: 10,
-            paddingHorizontal: 12,
-            borderRadius: 6,
-            backgroundColor: theme.colors.primary,
-            opacity: !deviceId ? 0.5 : 1,
-          }}
+          style={[
+            styles.actionBtn,
+            {
+              backgroundColor: theme.colors.primary,
+              opacity: !deviceId ? 0.5 : 1,
+            },
+          ]}
         >
           <Text style={theme.textStyles.buttonLabel}>FIFO STATS</Text>
         </TouchableOpacity>

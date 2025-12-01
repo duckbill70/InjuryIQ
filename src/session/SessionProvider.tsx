@@ -187,7 +187,7 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }
 
       RNFS.appendFile(sessionFile.current, JSON.stringify(entry) + '\n', 'utf8');
-      if (__DEV__) console.log (`[logEntry] : type [${entry.type}] & position [${entry.position}]  -`, entry.data)
+      //if (__DEV__) console.log (`[logEntry] : type [${entry.type}] & position [${entry.position}]  -`, entry.data)
     }
   }, []);
 

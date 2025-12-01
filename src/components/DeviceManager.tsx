@@ -258,27 +258,22 @@ const DeviceBoxComponent: React.FC<DeviceBoxProps> = ({ position, device, enable
 							<Pressable
 								accessibilityRole='button'
 								accessibilityLabel={`Long press to remove ${position === 'leftFoot' ? 'left' : 'right'} device`}
-								onPress={async () => {
-									if (longPressTriggeredRef.current) {
-										longPressTriggeredRef.current = false;
-										return;
-									}
-									if (!enabled || !deviceId) return;
-									const ok = position === 'leftFoot' ? await setLocationRed() : await setLocationGreen();
-									if (ok) {
-										Vibration.vibrate(10);
-										// Optimistically update UI, then refresh from device
-										setSensorLocation(position === 'leftFoot' ? SensorLocation.RED : SensorLocation.GREEN);
-										// Fire and forget to sync from firmware characteristic
-										readLocation()
-											.then((loc) => {
-												if (loc !== null) setSensorLocation(loc);
-											})
-											.catch(() => {});
-									} else {
-										Alert.alert('Location Update Failed', 'Unable to set device color.');
-									}
-								}}
+							onPress={async () => {
+								if (longPressTriggeredRef.current) {
+									longPressTriggeredRef.current = false;
+									return;
+								}
+								if (!enabled || !deviceId) return;
+								console.log('[DeviceBox] Tap on device', deviceId.slice(-6), 'at position', position);
+								// Trigger visual location indicator (flash LEDs)
+								const ok = await showLocation();
+								console.log('[DeviceBox] showLocation result:', ok);
+								if (ok) {
+									Vibration.vibrate(10);
+								} else {
+									Alert.alert('Location Display Failed', 'Unable to show device location.');
+								}
+							}}
 								onLongPress={() => {
 									if (!enabled || !deviceId) return;
 									longPressTriggeredRef.current = true;
@@ -340,7 +335,12 @@ const DeviceBoxComponent: React.FC<DeviceBoxProps> = ({ position, device, enable
 						<View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center' }} pointerEvents='box-none'>
 							<Pressable
 								style={({ pressed }) => [{ borderRadius: 8, opacity: !enabled ? 0.5 : pressed ? 0.85 : 1 }, { transform: [{ scale: pressed ? 0.98 : 1 }] }]}
-								onPress={() => enabled && onAssignDevice(position)}
+							onPress={() => {
+								console.log('[DeviceBox] Empty slot pressed for position:', position, 'enabled:', enabled);
+								if (enabled) {
+									onAssignDevice(position);
+								}
+							}}
 								disabled={!enabled}
 							>
 								<FootIcon size={LAYOUT_CONSTANTS.watermarkSize} side={position === 'leftFoot' ? 'left' : 'right'} color={theme.colors.white} />
@@ -493,7 +493,7 @@ const DeviceBox = React.memo(DeviceBoxComponent, (prevProps, nextProps) => {
 DeviceBox.displayName = 'DeviceBox';
 
 const DeviceManagerComponent: React.FC<DeviceManagerProps> = () => {
-	const { connected, devicesByPosition, assignDevicePosition, unassignDevicePosition, scanning, startScan, stopScan, isPoweredOn } = useBle();
+	const { devicesByPosition, assignDevicePosition, unassignDevicePosition, scanning, startScan, stopScan, isPoweredOn, getConnectedDevices } = useBle();
 	const { theme } = useTheme();
 
 	const { isActive } = useSession();
@@ -623,16 +623,23 @@ const DeviceManagerComponent: React.FC<DeviceManagerProps> = () => {
 	// Handle device assignment to position
 	const handleAssignDevice = useCallback(
 		(position: DevicePosition) => {
-			const allDevices = Object.values(connected);
+			// Use getConnectedDevices() to bypass React state batching and get immediate values
+			const allDevices = Object.values(getConnectedDevices());
+
+			console.log('[DeviceManager] handleAssignDevice called for position:', position);
+			console.log('[DeviceManager] All devices:', allDevices.map(d => ({ id: d.id.slice(-6), name: d.name, position: d.position })));
 
 			if (allDevices.length === 0) {
 				Alert.alert('No Devices', 'No devices are connected.');
 				return;
 			}
 
-			// Get available devices (not assigned to any position) and devices assigned to other positions
+			// Get available devices (not assigned to any position or assigned to a different position)
 			const unassignedDevices = allDevices.filter((device) => !device.position);
 			const assignedDevices = allDevices.filter((device) => device.position && device.position !== position);
+
+			console.log('[DeviceManager] Unassigned devices:', unassignedDevices.map(d => d.id.slice(-6)));
+			console.log('[DeviceManager] Assigned to other positions:', assignedDevices.map(d => ({ id: d.id.slice(-6), pos: d.position })));
 
 			const allOptions = [
 				...unassignedDevices.map((device) => ({
@@ -686,15 +693,13 @@ const DeviceManagerComponent: React.FC<DeviceManagerProps> = () => {
 								assignDevicePosition(option.device.id, position);
 							}
 						},
-					})),
-					{ text: 'Cancel', style: 'cancel' },
-				]);
-			}
-		},
-		[connected, assignDevicePosition],
-	);
-
-	return (
+				})),
+				{ text: 'Cancel', style: 'cancel' },
+			]);
+		}
+	},
+	[getConnectedDevices, assignDevicePosition],
+);	return (
 		<View>
 			<View style={{ marginBottom: 12 }}>
 				{/* Top Row - Left/Swap/Right */}

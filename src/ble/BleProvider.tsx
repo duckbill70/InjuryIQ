@@ -43,6 +43,9 @@ export type BleContextValue = {
 		racket?: ConnectedDevice;
 	};
 	
+	// Immediate access to connected devices (bypasses React state)
+	getConnectedDevices: () => Record<string, ConnectedDevice>;
+	
 	// Device management
 	startScan: (opts?: StartScanOpts) => Promise<void>;
 	stopScan: () => void;
@@ -209,6 +212,9 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 				assignedAt: new Date(),
 			};
 
+			// Update ref immediately to avoid timing issues
+			connectedRef.current = updates;
+
 			return updates;
 		});
 
@@ -225,11 +231,13 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 	}, [connected]);
 
 	const unassignDevicePosition = useCallback((deviceId: string) => {
+		console.log('[BLE] unassignDevicePosition called for device:', deviceId.slice(-6));
+		console.trace('[BLE] unassignDevicePosition stack trace');
 		setConnected((prev) => {
 			const device = prev[deviceId];
 			if (!device) return prev;
 
-			return {
+			const updated = {
 				...prev,
 				[deviceId]: {
 					...device,
@@ -238,7 +246,17 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 					assignedAt: undefined,
 				},
 			};
+			
+			// Update ref immediately to avoid timing issues
+			connectedRef.current = updated;
+			
+			return updated;
 		});
+	}, []);
+
+	// Provide immediate access to connected devices (bypasses React state batching)
+	const getConnectedDevices = useCallback(() => {
+		return connectedRef.current;
 	}, []);
 
 	const updateDeviceColor = useCallback((deviceId: string, color: string) => {
@@ -391,6 +409,7 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 			const friendlyName = connectedRef.current[id]?.name || id;
 			const position = connectedRef.current[id]?.position;
 			
+			console.log('[BLE] onDeviceDisconnected triggered for', friendlyName, 'error:', error?.message);
 			if (__DEV__) console.warn(`[BLE] onDeviceDisconnected ${friendlyName}`, error?.message ?? '');
 			notify({
 				title: 'InjuryIQ',
@@ -618,6 +637,7 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 			foundDeviceIds,
 			connected,
 			devicesByPosition,
+			getConnectedDevices,
 			startScan,
 			stopScan,
 			disconnectDevice,
@@ -635,6 +655,7 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 			foundDeviceIds,
 			connected,
 			devicesByPosition,
+			getConnectedDevices,
 			startScan,
 			stopScan,
 			disconnectDevice,

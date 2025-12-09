@@ -13,7 +13,7 @@ import {
 	generateDeviceSummary 
 } from './deviceAutoAssignment';
 
-export type DevicePosition = 'leftFoot' | 'rightFoot' | 'racket';
+export type DevicePosition = 'leftFoot' | 'rightFoot';
 
 export type ConnectedDevice = {
 	id: string;
@@ -96,7 +96,6 @@ type RetryState = {
 const DEFAULT_DEVICE_COLORS = {
 	leftFoot: '#FF6B6B',    // Red
 	rightFoot: '#4ECDC4',   // Teal
-	racket: '#45B7D1',      // Blue
 } as const;
 
 export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
@@ -276,12 +275,11 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 
 	// Derive devices by position
 	const devicesByPosition = useMemo(() => {
-		const devices = Object.values(connected);
-		return {
-			leftFoot: devices.find(d => d.position === 'leftFoot'),
-			rightFoot: devices.find(d => d.position === 'rightFoot'),
-			racket: devices.find(d => d.position === 'racket'),
-		};
+	       const devices = Object.values(connected);
+	       return {
+		       leftFoot: devices.find(d => d.position === 'leftFoot'),
+		       rightFoot: devices.find(d => d.position === 'rightFoot'),
+	       };
 	}, [connected]);
 
 	const clearRetryTimer = useCallback((id: string) => {

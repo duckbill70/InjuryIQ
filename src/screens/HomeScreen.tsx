@@ -25,10 +25,10 @@ export default function HomeScreen() {
 					<SessionControlPanel />
 				</View>
 
-				{/* Training Session Panel */}
+				{/* Training Session Panel 
 				<View style={{ marginBottom: 1000 }}>
 					<TrainingSessionPanel />
-				</View>
+				</View> */}
 
 				{/* Control Service Panel 
 				<View style={{ marginBottom: 100 }}>

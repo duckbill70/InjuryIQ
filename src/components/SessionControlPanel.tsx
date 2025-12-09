@@ -4,7 +4,8 @@ import { Play, Pause, SkipForward, Square, Mountain, Footprints, Circle, CircleD
 
 import { useTheme } from '../theme/ThemeContext';
 import { useSession, type Sport } from '../session/SessionProvider';
-import { useBle } from '../ble/BleProvider';
+// import { useBle } from '../ble/BleProvider';
+import { useBleStore } from '../ble/bleStore';
 import { useNotify } from '../notify/useNotify';
 import { DeviceManager } from './DeviceManager';
 import { AlertOverlay } from './AlertOverlay';
@@ -22,12 +23,15 @@ const BUTTON_STYLES = {
 
 export const SessionControlPanel: React.FC = () => {
 	const { isActive, isPaused, startSession, stopSession, pauseSession, resumeSession } = useSession();
-
 	const { theme } = useTheme();
-	const { startScan, isPoweredOn, scanning } = useBle();
+	// BLE state from Zustand
+	const scanning = useBleStore((s) => s.scanning);
+	const setScanning = useBleStore((s) => s.setScanning);
+	const getDeviceByPosition = useBleStore((s) => s.getDeviceByPosition);
 	const { notify } = useNotify();
 	const [selectedSport, setSelectedSport] = useState<Sport>('hiking');
 	const [bleWarning, setBleWarning] = useState<string | null>(null);
+	const [startError, setStartError] = useState<string | null>(null);
 	const didInitScanRef = useRef(false);
 
 	// Animation for active state
@@ -63,6 +67,13 @@ export const SessionControlPanel: React.FC = () => {
 
 	// Minimal session header - devices and locations are auto-populated by SessionProvider
 	const handleStart = () => {
+		const left = getDeviceByPosition('leftFoot');
+		const right = getDeviceByPosition('rightFoot');
+		if (!left || !right) {
+			setStartError('Both left and right devices must be assigned before starting a session.');
+			return;
+		}
+		setStartError(null);
 		startSession({
 			startedAt: new Date().toISOString(),
 			sport: selectedSport,
@@ -112,66 +123,8 @@ export const SessionControlPanel: React.FC = () => {
 
 	// Run a single BLE scan when this panel first loads.
 	// On iOS, if Bluetooth is not available, retry a few times before warning.
-	useEffect(() => {
-		if (didInitScanRef.current) return;
-		didInitScanRef.current = true;
-
-		let isCancelled = false;
-
-		const delay = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
-
-		const attemptInitialScan = async () => {
-			const maxAttempts = 4; // total attempts (initial + 3 retries)
-			for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-				if (isCancelled) return;
-				try {
-					// If iOS and not powered on, wait and retry rather than throwing immediately
-					if (Platform.OS === 'ios' && !isPoweredOn) {
-						if (attempt < maxAttempts) {
-							// Linear backoff: 1s, 2s, 3s
-							await delay(1000 * attempt);
-							continue;
-						} else {
-							throw new Error('Bluetooth is not powered on.');
-						}
-					}
-
-					// Run a short auto-connecting scan once; do not clear found list to avoid UI flicker
-					await startScan({ timeoutMs: 5000, maxDevices: 3, clearFoundDevices: false });
-					setBleWarning(null);
-					return; // success
-				} catch (e) {
-					const msg = (e as Error)?.message ?? String(e);
-					const isPowerErr = msg.includes('not powered on') || msg.includes('powered on');
-
-					if (attempt < maxAttempts) {
-						// Exponential-ish backoff: 1s, 2s, 4s between attempts
-						const backoffMs = 1000 * Math.pow(2, attempt - 1);
-						await delay(backoffMs);
-						continue;
-					}
-
-					// Final failure: show a user-visible warning
-					const warning = isPowerErr ? 'Bluetooth appears to be turned off. Please enable Bluetooth to connect your devices.' : 'Unable to scan for BLE devices right now.';
-					setBleWarning(warning);
-
-					// Post a foreground notification as well (deduped)
-					notify({
-						title: 'InjuryIQ',
-						body: 'BLE unavailable — please enable Bluetooth in Settings and try again.',
-						dedupeKey: 'ble:unavailable',
-						foreground: true,
-					}).catch(() => {});
-				}
-			}
-		};
-
-		attemptInitialScan();
-
-		return () => {
-			isCancelled = true;
-		};
-	}, [isPoweredOn, notify, startScan]);
+	// BLE scan logic can be implemented here if needed, using Zustand actions
+	// For now, scanning state is toggled via setScanning
 
 	return (
 		<View style={[theme.viewStyles.panelContainer, { backgroundColor: theme.colors.black, paddingHorizontal: 20, paddingVertical: 30 }]}>
@@ -211,12 +164,12 @@ export const SessionControlPanel: React.FC = () => {
 				</View>
 			</View>
 
-			{/* Session Control Buttons */}
-			<View style={{ flexDirection: 'row', justifyContent: 'space-evenly', gap: 8, flexWrap: 'wrap' }}>
+			{/* Session Control Buttons - fixed prominent location, Start only enabled if both devices assigned */}
+			<View style={{ flexDirection: 'row', justifyContent: 'space-evenly', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
 				{/* Start Button */}
 				<Pressable
 					onPress={handleStart}
-					disabled={isActive}
+					disabled={isActive || !getDeviceByPosition('leftFoot') || !getDeviceByPosition('rightFoot')}
 					style={({ pressed }) => [
 						buttonBaseStyle,
 						{
@@ -227,9 +180,9 @@ export const SessionControlPanel: React.FC = () => {
 							shadowRadius: 4,
 							elevation: 4,
 						},
-						isActive && { opacity: BUTTON_STYLES.disabledOpacity },
+						(isActive || !getDeviceByPosition('leftFoot') || !getDeviceByPosition('rightFoot')) && { opacity: BUTTON_STYLES.disabledOpacity },
 						pressed &&
-							!isActive && {
+							!isActive && getDeviceByPosition('leftFoot') && getDeviceByPosition('rightFoot') && {
 								opacity: BUTTON_STYLES.pressedOpacity,
 								transform: [{ scale: BUTTON_STYLES.pressedScale }],
 								shadowOpacity: 0.2,
@@ -319,6 +272,10 @@ export const SessionControlPanel: React.FC = () => {
 					<Square size={BUTTON_STYLES.iconSize} color={theme.colors.white} fill={theme.colors.white} />
 				</Pressable>
 			</View>
+			{/* Show error if trying to start without both devices */}
+			{startError && (
+				<Text style={{ color: theme.colors.danger, textAlign: 'center', marginBottom: 8, fontWeight: '600' }}>{startError}</Text>
+			)}
 
 			{/* Session Status - Interactive Graphic */}
 			<View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 60, marginBottom: 40 }}>

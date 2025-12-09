@@ -61,6 +61,9 @@ const TrainingSessionPanelComponent: React.FC = () => {
 
 	// Per-device state
 	const [fifoPct, setFifoPct] = useState<Record<string, number | null>>({});
+	const fifoPctRef = useRef(setFifoPct);
+	useEffect(() => { fifoPctRef.current = setFifoPct; }, [setFifoPct]);
+
 	const [deviceState, setDeviceState] = useState<Record<string, ControlState | null>>({});
 	const [waitingForFifo, setWaitingForFifo] = useState<Record<string, boolean>>({});
 	const [waitingForEmpty, setWaitingForEmpty] = useState<Record<string, boolean>>({});
@@ -79,128 +82,34 @@ const TrainingSessionPanelComponent: React.FC = () => {
 	const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 	const startTimeRef = useRef<number>(0);
 	const accumulatedTimeRef = useRef<number>(0);
-	// const planActiveRef = useRef(false);
+	// Execution guards to prevent redundant BLE commands
+	const snapshotCommandedRef = useRef<Set<string>>(new Set());
+	const startCommandedRef = useRef<Set<string>>(new Set());
 
-	// BLE control
+	// BLE control: useControl for each device, direct state (unconditional to preserve hook order)
+	const leftControl = useControl({ deviceId: leftDevice?.id ?? '' });
+	const rightControl = useControl({ deviceId: rightDevice?.id ?? '' });
 
-	// Memoized callbacks for left device to prevent useControl recreation
-	const onLeftStateUpdate = useCallback(
-		(state: ControlState) => {
-			if (leftDevice) {
-				setDeviceState((prev) => ({ ...prev, [leftDevice.id]: state }));
-			}
-		},
-		[leftDevice],
-	);
+	// Map BLE state to per-device state for UI
+	useEffect(() => {
+		if (leftDevice && leftControl) {
+			setFifoPct((prev) => ({ ...prev, [leftDevice.id]: leftControl.fifoPct }));
+			setDeviceState((prev) => ({ ...prev, [leftDevice.id]: leftControl.deviceState }));
+			setSnapshotStatus((prev) => ({ ...prev, [leftDevice.id]: leftControl.snapshotStatus || { slots: [false, false, false] } }));
+		}
+	}, [leftDevice, leftControl?.fifoPct, leftControl?.deviceState, leftControl?.snapshotStatus]);
+	useEffect(() => {
+		if (rightDevice && rightControl) {
+			setFifoPct((prev) => ({ ...prev, [rightDevice.id]: rightControl.fifoPct }));
+			setDeviceState((prev) => ({ ...prev, [rightDevice.id]: rightControl.deviceState }));
+			setSnapshotStatus((prev) => ({ ...prev, [rightDevice.id]: rightControl.snapshotStatus || { slots: [false, false, false] } }));
+		}
+	}, [rightDevice, rightControl?.fifoPct, rightControl?.deviceState, rightControl?.snapshotStatus]);
 
-	const onLeftStatisticsUpdate = useCallback(
-		(stats: FIFOStatistics) => {
-			if (leftDevice) {
-				setFifoPct((prev) => ({
-					...prev,
-					[leftDevice.id]: stats.bufferCapacity > 0 ? Math.round((stats.samplesStored / stats.bufferCapacity) * 100) : null,
-				}));
-			}
-		},
-		[leftDevice],
-	);
-
-	const onLeftSnapshotUpdate = useCallback(
-		(status: { count: number; slots: boolean[] }) => {
-			if (leftDevice) {
-				setSnapshotStatus((prev) => ({ ...prev, [leftDevice.id]: { slots: status.slots } }));
-			}
-		},
-		[leftDevice],
-	);
-
-	// Memoized callbacks for right device to prevent useControl recreation
-	const onRightStateUpdate = useCallback(
-		(state: ControlState) => {
-			if (rightDevice) {
-				setDeviceState((prev) => ({ ...prev, [rightDevice.id]: state }));
-			}
-		},
-		[rightDevice],
-	);
-
-	const onRightStatisticsUpdate = useCallback(
-		(stats: FIFOStatistics) => {
-			if (rightDevice) {
-				setFifoPct((prev) => ({
-					...prev,
-					[rightDevice.id]: stats.bufferCapacity > 0 ? Math.round((stats.samplesStored / stats.bufferCapacity) * 100) : null,
-				}));
-			}
-		},
-		[rightDevice],
-	);
-
-	const onRightSnapshotUpdate = useCallback(
-		(status: { count: number; slots: boolean[] }) => {
-			if (rightDevice) {
-				setSnapshotStatus((prev) => ({ ...prev, [rightDevice.id]: { slots: status.slots } }));
-			}
-		},
-		[rightDevice],
-	);
-
-	// Memoized config objects for useControl hooks
-	const leftControlConfig = useMemo(() => {
-		return leftDevice
-			? {
-					deviceId: leftDevice.id,
-					enabled: true,
-					onStateUpdate: onLeftStateUpdate,
-					onStatisticsUpdate: onLeftStatisticsUpdate,
-					onSnapshotStatusUpdate: onLeftSnapshotUpdate,
-			  }
-			: {
-					deviceId: '',
-					enabled: false,
-					onStateUpdate: () => {},
-					onStatisticsUpdate: () => {},
-					onSnapshotStatusUpdate: () => {},
-			  };
-	}, [leftDevice, onLeftStateUpdate, onLeftStatisticsUpdate, onLeftSnapshotUpdate]);
-
-	const rightControlConfig = useMemo(() => {
-		return rightDevice
-			? {
-					deviceId: rightDevice.id,
-					enabled: true,
-					onStateUpdate: onRightStateUpdate,
-					onStatisticsUpdate: onRightStatisticsUpdate,
-					onSnapshotStatusUpdate: onRightSnapshotUpdate,
-			  }
-			: {
-					deviceId: '',
-					enabled: false,
-					onStateUpdate: () => {},
-					onStatisticsUpdate: () => {},
-					onSnapshotStatusUpdate: () => {},
-			  };
-	}, [rightDevice, onRightStateUpdate, onRightStatisticsUpdate, onRightSnapshotUpdate]);
-
-	// Top-level useControl hooks for up to two devices
-	// Always call both hooks in the same order for React rules
-	const leftControl = useControl(leftControlConfig);
-	const rightControl = useControl(rightControlConfig);
-
-	// Stable ref for controls to avoid depending on hook instances in effects
-	const controlsRef = useRef<
-		Array<{
-			deleteSnapshot?: (slot: number) => Promise<void>;
-			dumpSnapshot?: (slot: number) => Promise<void>;
-			stopAndSnapshot?: () => Promise<boolean> | void;
-			startRecording?: () => Promise<boolean> | void;
-			readStatistics?: () => Promise<FIFOStatistics | null>;
-		} | null>
-	>([null, null]);
-
-	// Update the ref each render without triggering effect deps
-	controlsRef.current[0] = leftDevice ? (leftControl as unknown as (typeof controlsRef.current)[number]) : null;
-	controlsRef.current[1] = rightDevice ? (rightControl as unknown as (typeof controlsRef.current)[number]) : null;
+	// For plan automation, collect controls in array for left/right
+	const controlsRef = useRef<any[]>([null, null]);
+	controlsRef.current[0] = leftControl;
+	controlsRef.current[1] = rightControl;
 
 	// Read initial statistics to derive STOP/RUN state on first load
 	useEffect(() => {
@@ -308,11 +217,15 @@ const TrainingSessionPanelComponent: React.FC = () => {
 		[leftDevice, rightDevice].forEach((device, i) => {
 			if (!device) return;
 			if (!waitingForFifo[device.id]) return;
+			// Guard: only command if not already commanded in this interval
+			if (snapshotCommandedRef.current.has(device.id)) return;
 			const ctl = controlsRef.current[i];
 			if (!ctl) return;
 			setWaitingForFifo((prev) => ({ ...prev, [device.id]: false }));
 			setWaitingForEmpty((prev) => ({ ...prev, [device.id]: true }));
 			if (typeof ctl.stopAndSnapshot === 'function') {
+				if (__DEV__) console.log(`[TrainingPanel] Sending STOP_SNAP to ${device.name || device.id.slice(-6)}`);
+				snapshotCommandedRef.current.add(device.id);
 				ctl.stopAndSnapshot();
 			}
 		});
@@ -334,20 +247,28 @@ const TrainingSessionPanelComponent: React.FC = () => {
 				return;
 			}
 			if (pct === 0) {
+				// Guard: only command if not already commanded in this interval
+				if (!startCommandedRef.current.has(device.id)) {
+					if (typeof ctl.startRecording === 'function') {
+						if (__DEV__) console.log(`[TrainingPanel] Sending RUN to ${device.name || device.id.slice(-6)} after FIFO empty`);
+						startCommandedRef.current.add(device.id);
+						ctl.startRecording();
+					}
+				}
 				setWaitingForEmpty((prev) => {
 					const next = { ...prev };
 					delete next[device.id];
 					return next;
 				});
-				if (typeof ctl.startRecording === 'function') {
-					ctl.startRecording();
-				}
 			} else {
 				allEmptied = false;
 			}
 		});
 		if (!allEmptied) return;
 		// Advance to next interval
+		if (__DEV__) console.log('[TrainingPanel] All devices emptied, advancing to next interval');
+		snapshotCommandedRef.current.clear();
+		startCommandedRef.current.clear();
 		setCurrentIntervalIdx((idx) => idx + 1);
 		setTimer(0);
 		accumulatedTimeRef.current = 0;
@@ -357,6 +278,8 @@ const TrainingSessionPanelComponent: React.FC = () => {
 	// Reset plan if device list changes
 	// Reset plan if device list changes
 	useEffect(() => {
+		snapshotCommandedRef.current.clear();
+		startCommandedRef.current.clear();
 		setCurrentIntervalIdx(0);
 		setTimer(0);
 		setWaitingForFifo({});
@@ -414,6 +337,8 @@ const TrainingSessionPanelComponent: React.FC = () => {
 				intervalRef.current = null;
 			}
 			// Reset timer and progress, but NOT active state
+			snapshotCommandedRef.current.clear();
+			startCommandedRef.current.clear();
 			setTimer(0);
 			setCurrentIntervalIdx(0);
 			setWaitingForFifo({});
@@ -559,8 +484,8 @@ const TrainingSessionPanelComponent: React.FC = () => {
 							{/* Snapshot indicators - 3 vertical bars for each slot */}
 							<View style={{ flexDirection: 'row', gap: 3, marginLeft: 8, alignItems: 'center' }}>
 								{[0, 1, 2].map((barIdx) => {
-									const leftFilled = leftDevice && snapshotStatus[leftDevice.id]?.slots?.[idx];
-									const rightFilled = rightDevice && snapshotStatus[rightDevice.id]?.slots?.[idx];
+									const leftFilled = leftDevice && snapshotStatus[leftDevice.id]?.slots?.[barIdx];
+									const rightFilled = rightDevice && snapshotStatus[rightDevice.id]?.slots?.[barIdx];
 									const filled = leftFilled || rightFilled;
 									return (
 										<View

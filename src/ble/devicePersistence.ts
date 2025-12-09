@@ -7,7 +7,7 @@ const KNOWN_DEVICES_KEY = 'ble_known_devices';
 export interface PersistedDeviceInfo {
 	id: string;
 	name?: string;
-	position?: 'leftFoot' | 'rightFoot' | 'racket';
+	position?: 'leftFoot' | 'rightFoot';
 	color?: string;
 	lastSeen: number;
 	macAddress?: string; // For iOS, this might be the device identifier

@@ -3,6 +3,7 @@ import { useBle } from './BleProvider';
 import type { BleError, Characteristic } from 'react-native-ble-plx';
 import { useSession } from '../session/SessionProvider';
 import { decodeSingleByte } from './base64';
+import { useBleStore } from './bleStore';
 
 // Service and characteristic UUIDs from StingRay guide
 const FATIGUE_SERVICE_UUID = '12345678-1234-5678-1234-56789abcdef0';

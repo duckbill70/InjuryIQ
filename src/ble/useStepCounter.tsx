@@ -4,6 +4,7 @@ import { useBle } from './BleProvider';
 import type { BleError, Characteristic } from 'react-native-ble-plx';
 import { decodeBase64ToBytes } from './base64';
 import { useSession } from '../session/SessionProvider';
+import { useBleStore } from './bleStore';
 
 // StingRay Step Counter Service UUIDs (from StingRay BLE Services Guide)
 const STEP_SERVICE_UUID = '1814'; // Running Speed and Cadence Service (Standard)

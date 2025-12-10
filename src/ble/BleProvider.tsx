@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useMemo, useRef, useState,
 import { Platform } from 'react-native';
 import { BleManager, Device, Characteristic, State } from 'react-native-ble-plx';
 import { useNotify } from '../notify/useNotify';
+import { useBleStore } from './bleStore';
 import { 
 	loadDevicePositions, 
 	updatePersistedDevice, 
@@ -129,10 +130,12 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 		connectedRef.current = connected;
 	}, [connected]);
 
-	// Track BLE adapter state
+	// Track BLE adapter state and publish to store
 	useEffect(() => {
 		const sub = managerRef.current.onStateChange((newState: State) => {
-			setIsPoweredOn(newState === State.PoweredOn);
+			const powered = newState === State.PoweredOn;
+			setIsPoweredOn(powered);
+			useBleStore.getState().setPoweredOn(powered);
 		}, true);
 		return () => sub.remove();
 	}, []);
@@ -168,6 +171,9 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 		initializePersistence();
 	}, []);
 
+	// Track device names from scan for full names (library limitation workaround)
+	const deviceNamesRef = useRef<Record<string, string>>({});
+
 	// Live-scan de-dupe
 	const discoveredIdsRef = useRef<Set<string>>(new Set());
 
@@ -201,6 +207,8 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 					position: undefined,
 					color: undefined,
 				}).catch(err => console.warn('[BLE] Failed to clear persisted position:', err));
+				// Publish to store
+				useBleStore.getState().unassignPosition(existingDeviceWithPosition.id);
 			}
 
 			// Assign new position to the device
@@ -216,6 +224,9 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 
 			return updates;
 		});
+
+		// Publish to store
+		useBleStore.getState().assignPosition(deviceId, position, assignedColor);
 
 		// Persist the assignment
 		try {
@@ -251,6 +262,9 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 			
 			return updated;
 		});
+
+		// Publish to store
+		useBleStore.getState().unassignPosition(deviceId);
 	}, []);
 
 	// Provide immediate access to connected devices (bypasses React state batching)
@@ -334,16 +348,32 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 			managerRef.current.stopDeviceScan();
 		} catch {}
 		setScanning(false);
+		useBleStore.getState().setScanning(false);
 	}, []);
 
 	const discoverAllForDevice = useCallback(async (device: Device) => {
 		const manager = managerRef.current;
+		
+		// Debug: Check what name we have at this point
+		const cachedName = deviceNamesRef.current[device.id];
+		if (__DEV__) {
+			console.log(`[BLE] discoverAllForDevice - Device ${device.id}:`, {
+				device_name: device.name,
+				cached_name: cachedName,
+				will_use: cachedName || device.name || 'Device',
+			});
+		}
+		
 		await manager.discoverAllServicesAndCharacteristicsForDevice(device.id);
 		const services = await manager.servicesForDevice(device.id);
+		
+		// Use the full name from scan if available, otherwise fallback to device.name
+		const fullDeviceName = deviceNamesRef.current[device.id] || device.name || 'Device';
 
 		// Debug: Log discovered services
 		if (__DEV__) {
-			console.log(`[BLE] Discovered ${services.length} services for ${device.name || device.id}:`);
+			const displayName = fullDeviceName || device.localName || device.name || device.id;
+			console.log(`[BLE] Discovered ${services.length} services for ${displayName}:`);
 			services.forEach(svc => {
 				console.log(`  - ${svc.uuid}`);
 			});
@@ -370,13 +400,13 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 
 		const autoAssignment = await autoAssignDevicePosition(
 			device.id, 
-			device.name,
+			fullDeviceName || device.localName || device.name,
 			currentAssignments
 		);
 
 		const entry: ConnectedDevice = {
 			id: device.id,
-			name: device.name,
+			name: fullDeviceName || device.localName || device.name,
 			device,
 			services: services.map((s) => s.uuid.toLowerCase()),
 			characteristicsByService,
@@ -388,16 +418,20 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 
 		setConnected((prev) => ({ ...prev, [device.id]: entry }));
 
+		// Publish to store (register device with auto-assigned position if applicable)
+		useBleStore.getState().setConnected(device.id, device, autoAssignment?.position);
+
 		// Update persistent storage
 		if (autoAssignment) {
 			await updatePersistedDevice(device.id, {
-				name: device.name || undefined,
+				name: fullDeviceName || device.localName || device.name || undefined,
 				position: autoAssignment.position,
 				color: autoAssignment.color,
 			});
 			
 			if (__DEV__) {
-				console.log(`[BLE] Auto-assigned ${device.name || device.id} to ${autoAssignment.position}`);
+				const displayName = fullDeviceName || device.localName || device.name || device.id;
+				console.log(`[BLE] Auto-assigned ${displayName} to ${autoAssignment.position}`);
 			}
 		}
 	}, []);
@@ -426,6 +460,10 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 				delete next[id];
 				return next;
 			});
+
+			// Publish to store
+			useBleStore.getState().removeDevice(id);
+
 			scheduleReconnect(id);
 		});
 	}, [notify, scheduleReconnect]); // removed connectionCallbacks from deps as it's a ref
@@ -471,7 +509,7 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 		}
 		registerDisconnectHandler(id);
 		await discoverAllForDevice(d);
-		const friendlyName = d.name || id;
+		const friendlyName = d.localName || d.name || id;
 		// Get position after device is discovered and added to connectedRef
 		const connectedDevice = connectedRef.current[id] as ConnectedDevice | undefined;
 		const position = connectedDevice?.position;
@@ -503,6 +541,8 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 			setFoundDeviceIds([]);
 		}
 		setScanning(true);
+		// Publish scan start to store
+		useBleStore.getState().setScanning(true);
 
 		const timeout = setTimeout(() => {
 		stopScan();
@@ -518,10 +558,26 @@ export const BleProvider: React.FC<React.PropsWithChildren> = ({ children }) => 
 		}
 		if (!device) return;
 
+		// Debug: Log device object during scan
+		if (__DEV__) {
+			console.log(`[BLE] Scan found device:`, {
+				id: device.id,
+				name: device.name,
+				localName: device.localName,
+			});
+		}
+
 		// Filter by STINGRAY device name pattern (case-insensitive)
 		const deviceName = device.name || device.localName;
 		if (!deviceName?.toUpperCase().startsWith('STINGRAY')) {
 			return; // Ignore non-STINGRAY devices
+		}
+		
+		// Store the full device name from scan - prioritize localName which has the unique identifier
+		const fullName = device.localName || device.name;
+		if (fullName && fullName.length > 0) {
+			deviceNamesRef.current[device.id] = fullName;
+			if (__DEV__) console.log(`[BLE] Cached device name: ${device.id} = "${fullName}"`);
 		}
 
 		const id = device.id;

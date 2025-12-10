@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import { useBle } from './BleProvider';
 import { decodeBase64ToBytes, encodeSingleByte, encodeTwoBytes } from './base64';
+import { useBleStore } from './bleStore';
 /*
  * - FIFO_STATS (9): Log FIFO statistics to RTT
  * - LOCATION (10): Show location color for 5s then restore (STOP mode only)
@@ -62,7 +63,6 @@ export interface FIFOStatistics {
 }
 
 export interface SnapshotStatus {
-  count: number;
   slots: boolean[];
 }
 
@@ -88,6 +88,14 @@ export function useControl({
   const [deviceState, setDeviceState] = useState<ControlState | null>(null);
   const [snapshotStatus, setSnapshotStatus] = useState<SnapshotStatus | null>(null);
   const [location, setLocation] = useState<SensorLocation | null>(null);
+
+  // Use refs to track last notified state to avoid triggering store updates during render
+  // Keep separate refs for each subscription source to avoid conflicts
+  const lastNotifiedControlStateRef = useRef<ControlState | null>(null);
+  const lastNotifiedStatisticStateRef = useRef<ControlState | null>(null);
+  const lastNotifiedLocationRef = useRef<SensorLocation | null>(null);
+  const lastNotifiedSnapshotRef = useRef<SnapshotStatus | null>(null);
+  const lastNotifiedFifoPctRef = useRef<number | null>(null);
 
   // Parse Statistics characteristic (16 bytes)
   const parseStatistics = (base64Data: string): FIFOStatistics | null => {
@@ -124,17 +132,39 @@ export function useControl({
           const stats = parseStatistics(characteristic.value);
           const nextPct = stats ? Math.round((stats.samplesStored / stats.bufferCapacity) * 100) : null;
           const nextState = stats ? (stats.isRecording ? ControlState.RUNNING : ControlState.STOPPED) : null;
-          setFifoPct((prev) => (prev === nextPct ? prev : nextPct));
-          setDeviceState((prev) => (prev === nextState ? prev : nextState));
-          if (stats) {
-            if (onStatisticsUpdate) onStatisticsUpdate(stats);
-            if (onStateUpdate) onStateUpdate(nextState!);
+          
+          // Only update if values actually changed
+          if (lastNotifiedFifoPctRef.current !== nextPct) {
+            lastNotifiedFifoPctRef.current = nextPct;
+            setFifoPct(nextPct);
+            
+            // Defer store update to avoid synchronous updates during render
+            if (nextPct !== null) {
+              setTimeout(() => {
+                useBleStore.getState().setFifoPct(deviceId, nextPct);
+              }, 0);
+            }
+          }
+          
+          if (lastNotifiedStatisticStateRef.current !== nextState && nextState !== null) {
+            lastNotifiedStatisticStateRef.current = nextState;
+            setDeviceState(nextState);
+            
+            if (stats && onStatisticsUpdate) onStatisticsUpdate(stats);
+            if (onStateUpdate) onStateUpdate(nextState);
+            
+            // Defer store update
+            setTimeout(() => {
+              useBleStore.getState().setIsFull(deviceId, stats?.isFull ?? false);
+            }, 0);
+          } else if (stats && onStatisticsUpdate) {
+            onStatisticsUpdate(stats);
           }
         }
       }
     );
     return () => { sub?.remove && sub.remove(); };
-  }, [device?.id]);
+  }, [device?.id, deviceId, onStatisticsUpdate, onStateUpdate]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Subscribe to Command State notifications (immediate state changes)
   useEffect(() => {
@@ -149,16 +179,61 @@ export function useControl({
             const bytes = decodeBase64ToBytes(characteristic.value);
             if (bytes.length >= 1) {
               const stateByte = bytes[0];
-              const next = stateByte === 1 ? ControlState.RUNNING : stateByte === 0 ? ControlState.STOPPED : ControlState.UNKNOWN;
-              setDeviceState((prev) => (prev === next ? prev : next));
-              if (onStateUpdate) onStateUpdate(next);
+              let next: ControlState;
+              switch (stateByte) {
+                case 0:
+                  next = ControlState.STOPPED;
+                  break;
+                case 1:
+                  next = ControlState.RUNNING;
+                  break;
+                case 2:
+                  next = ControlState.SNAPSHOTTING;
+                  break;
+                case 3:
+                  next = ControlState.DUMPING;
+                  break;
+                case 4:
+                  next = ControlState.SHOWING_LOCATION;
+                  break;
+                default:
+                  next = ControlState.UNKNOWN;
+              }
+              
+              // Only process if state actually changed
+              if (lastNotifiedControlStateRef.current !== next) {
+                lastNotifiedControlStateRef.current = next;
+                const stateNames = {
+                  [ControlState.STOPPED]: 'STOPPED',
+                  [ControlState.RUNNING]: 'RUNNING',
+                  [ControlState.SNAPSHOTTING]: 'SNAPSHOTTING',
+                  [ControlState.DUMPING]: 'DUMPING',
+                  [ControlState.SHOWING_LOCATION]: 'SHOWING_LOCATION',
+                  [ControlState.UNKNOWN]: 'UNKNOWN',
+                };
+                console.log(
+                  `[ControlState] Device ${deviceId.slice(-6)}: ${stateNames[lastNotifiedControlStateRef.current === next ? lastNotifiedControlStateRef.current : ControlState.UNKNOWN]} → ${stateNames[next]} (byte=${stateByte})`
+                );
+                
+                // Update local state
+                setDeviceState(next);
+                
+                // Call callback if provided
+                if (onStateUpdate) onStateUpdate(next);
+                
+                // Defer store update to avoid synchronous updates during render
+                // Use setTimeout with 0ms to push to next event loop
+                setTimeout(() => {
+                  useBleStore.getState().setControlState(deviceId, next);
+                }, 0);
+              }
             }
           } catch {}
         }
       }
     );
     return () => { sub?.remove && sub.remove(); };
-  }, [device?.id]);
+  }, [device?.id, deviceId, onStateUpdate]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Subscribe to Location notifications
   useEffect(() => {
@@ -173,14 +248,24 @@ export function useControl({
             const bytes = decodeBase64ToBytes(characteristic.value);
             if (bytes.length >= 1) {
               const loc = bytes[0] === 0 ? SensorLocation.RED : bytes[0] === 1 ? SensorLocation.GREEN : SensorLocation.UNKNOWN;
-              setLocation((prev) => (prev === loc ? prev : loc));
+              
+              // Only process if location actually changed
+              if (lastNotifiedLocationRef.current !== loc) {
+                lastNotifiedLocationRef.current = loc;
+                setLocation(loc);
+                
+                // Defer store update to avoid synchronous updates during render
+                setTimeout(() => {
+                  useBleStore.getState().setLocation(deviceId, loc);
+                }, 0);
+              }
             }
           } catch {}
         }
       }
     );
     return () => { sub?.remove && sub.remove(); };
-  }, [device?.id]);
+  }, [device?.id, deviceId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Subscribe to Snapshot Status notifications (bitmap)
   useEffect(() => {
@@ -194,20 +279,32 @@ export function useControl({
           try {
             const bytes = decodeBase64ToBytes(characteristic.value);
             if (bytes.length >= 1) {
-              const b = bytes[0] & 0xff;
-              const slots = [Boolean(b & 0x01), Boolean(b & 0x02), Boolean(b & 0x04)];
-              const count = (b & 0x01 ? 1 : 0) + (b & 0x02 ? 1 : 0) + (b & 0x04 ? 1 : 0);
-              setSnapshotStatus((prev) => {
-                const same = prev && prev.count === count && prev.slots[0] === slots[0] && prev.slots[1] === slots[1] && prev.slots[2] === slots[2];
-                return same ? prev : { count, slots };
-              });
+              const b = bytes[0] & 0xff; // eslint-disable-line no-bitwise
+              const slots = [Boolean(b & 0x01), Boolean(b & 0x02), Boolean(b & 0x04)]; // eslint-disable-line no-bitwise
+              
+              // Only process if snapshot status actually changed
+              const newStatus = { slots };
+              const same = lastNotifiedSnapshotRef.current && 
+                lastNotifiedSnapshotRef.current.slots[0] === slots[0] && 
+                lastNotifiedSnapshotRef.current.slots[1] === slots[1] && 
+                lastNotifiedSnapshotRef.current.slots[2] === slots[2];
+              
+              if (!same) {
+                lastNotifiedSnapshotRef.current = newStatus;
+                setSnapshotStatus(newStatus);
+                
+                // Defer store update to avoid synchronous updates during render
+                setTimeout(() => {
+                  useBleStore.getState().setSnapshotStatus(deviceId, newStatus);
+                }, 0);
+              }
             }
           } catch {}
         }
       }
     );
     return () => { sub?.remove && sub.remove(); };
-  }, [device?.id]);
+  }, [device?.id, deviceId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Read current statistics
   const readStatistics = useCallback(async (): Promise<FIFOStatistics | null> => {
@@ -276,7 +373,35 @@ export function useControl({
           if (!cancelled && cs?.value) {
             const b = decodeBase64ToBytes(cs.value);
             if (b.length >= 1) {
-              const next = b[0] === 1 ? ControlState.RUNNING : b[0] === 0 ? ControlState.STOPPED : ControlState.UNKNOWN;
+              let next: ControlState;
+              switch (b[0]) {
+                case 0:
+                  next = ControlState.STOPPED;
+                  break;
+                case 1:
+                  next = ControlState.RUNNING;
+                  break;
+                case 2:
+                  next = ControlState.SNAPSHOTTING;
+                  break;
+                case 3:
+                  next = ControlState.DUMPING;
+                  break;
+                case 4:
+                  next = ControlState.SHOWING_LOCATION;
+                  break;
+                default:
+                  next = ControlState.UNKNOWN;
+              }
+              const stateNames = {
+                [ControlState.STOPPED]: 'STOPPED',
+                [ControlState.RUNNING]: 'RUNNING',
+                [ControlState.SNAPSHOTTING]: 'SNAPSHOTTING',
+                [ControlState.DUMPING]: 'DUMPING',
+                [ControlState.SHOWING_LOCATION]: 'SHOWING_LOCATION',
+                [ControlState.UNKNOWN]: 'UNKNOWN',
+              };
+              console.log(`[ControlState] Device ${deviceId.slice(-6)}: Initial read = ${stateNames[next]} (byte=${b[0]})`);
               setDeviceState(next);
               if (onStateUpdate) onStateUpdate(next);
             }
@@ -307,10 +432,9 @@ export function useControl({
           if (!cancelled && ss?.value) {
             const b = decodeBase64ToBytes(ss.value);
             if (b.length >= 1) {
-              const bit = b[0] & 0xff;
-              const slots = [Boolean(bit & 0x01), Boolean(bit & 0x02), Boolean(bit & 0x04)];
-              const count = (bit & 0x01 ? 1 : 0) + (bit & 0x02 ? 1 : 0) + (bit & 0x04 ? 1 : 0);
-              setSnapshotStatus({ count, slots });
+              const bit = b[0] & 0xff; // eslint-disable-line no-bitwise
+              const slots = [Boolean(bit & 0x01), Boolean(bit & 0x02), Boolean(bit & 0x04)]; // eslint-disable-line no-bitwise
+              setSnapshotStatus({ slots });
             }
           }
         } catch {}
@@ -319,7 +443,7 @@ export function useControl({
     return () => {
       cancelled = true;
     };
-  }, [device, onStateUpdate]);
+  }, [device, onStateUpdate]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Send command to device directly
   const sendCommand = useCallback(async (command: ControlCommand): Promise<boolean> => {
@@ -327,12 +451,35 @@ export function useControl({
     try {
       const isConnected = await device.isConnected();
       if (!isConnected) return false;
+
+      const commandNames = {
+        [ControlCommand.STOP]: 'STOP',
+        [ControlCommand.RUN]: 'RUN',
+        [ControlCommand.STOP_SNAP]: 'STOP_SNAP',
+        [ControlCommand.RESET]: 'RESET',
+        [ControlCommand.DUMP]: 'DUMP',
+        [ControlCommand.LOC_RED]: 'LOC_RED',
+        [ControlCommand.LOC_GREEN]: 'LOC_GREEN',
+        [ControlCommand.RESET_STEPS]: 'RESET_STEPS',
+        [ControlCommand.IMU_TEST]: 'IMU_TEST',
+        [ControlCommand.FIFO_STATS]: 'FIFO_STATS',
+        [ControlCommand.LOCATION]: 'LOCATION',
+        [ControlCommand.SNAPSHOT]: 'SNAPSHOT',
+        [ControlCommand.SNAP_DELETE]: 'SNAP_DELETE',
+        [ControlCommand.SNAP_DUMP]: 'SNAP_DUMP',
+      };
+
+      console.log(`[ControlCommand] Device ${deviceId.slice(-6)}: Sending ${commandNames[command] ?? 'UNKNOWN'}(${command})`);
+
       const encoded = encodeSingleByte(command);
       await device.writeCharacteristicWithResponseForService(
         COMMAND_SERVICE_UUID,
         COMMAND_CHARACTERISTIC_UUID,
         encoded
       );
+
+      console.log(`[ControlCommand] Device ${deviceId.slice(-6)}: ${commandNames[command] ?? 'UNKNOWN'} sent successfully`);
+
       // Optimistic local updates for immediate UI feedback
       switch (command) {
         case ControlCommand.RUN:
@@ -355,10 +502,27 @@ export function useControl({
           break;
       }
       return true;
-    } catch {
+    } catch (error) {
+      const commandNames = {
+        [ControlCommand.STOP]: 'STOP',
+        [ControlCommand.RUN]: 'RUN',
+        [ControlCommand.STOP_SNAP]: 'STOP_SNAP',
+        [ControlCommand.RESET]: 'RESET',
+        [ControlCommand.DUMP]: 'DUMP',
+        [ControlCommand.LOC_RED]: 'LOC_RED',
+        [ControlCommand.LOC_GREEN]: 'LOC_GREEN',
+        [ControlCommand.RESET_STEPS]: 'RESET_STEPS',
+        [ControlCommand.IMU_TEST]: 'IMU_TEST',
+        [ControlCommand.FIFO_STATS]: 'FIFO_STATS',
+        [ControlCommand.LOCATION]: 'LOCATION',
+        [ControlCommand.SNAPSHOT]: 'SNAPSHOT',
+        [ControlCommand.SNAP_DELETE]: 'SNAP_DELETE',
+        [ControlCommand.SNAP_DUMP]: 'SNAP_DUMP',
+      };
+      console.log(`[ControlCommand] Device ${deviceId.slice(-6)}: Failed to send ${commandNames[command] ?? 'UNKNOWN'}: ${error}`);
       return false;
     }
-  }, [device]);
+  }, [device]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Send two-byte command
   const sendTwoByteCommand = useCallback(async (command: ControlCommand, param: number): Promise<boolean> => {
@@ -391,10 +555,9 @@ export function useControl({
       if (ss?.value) {
         const b = decodeBase64ToBytes(ss.value);
         if (b.length >= 1) {
-          const bit = b[0] & 0xff;
-          const slots = [Boolean(bit & 0x01), Boolean(bit & 0x02), Boolean(bit & 0x04)];
-          const count = (bit & 0x01 ? 1 : 0) + (bit & 0x02 ? 1 : 0) + (bit & 0x04 ? 1 : 0);
-          setSnapshotStatus({ count, slots });
+          const bit = b[0] & 0xff; // eslint-disable-line no-bitwise
+          const slots = [Boolean(bit & 0x01), Boolean(bit & 0x02), Boolean(bit & 0x04)]; // eslint-disable-line no-bitwise
+          setSnapshotStatus({ slots });
         }
       }
     } catch {}

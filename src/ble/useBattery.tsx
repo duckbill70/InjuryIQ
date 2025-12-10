@@ -2,6 +2,7 @@ import { useCallback, useEffect } from 'react';
 import { useBle } from './BleProvider';
 import type { BleError, Characteristic } from 'react-native-ble-plx';
 import { decodeSingleByte } from './base64';
+import { useBleStore } from './bleStore';
 
 // Standard Bluetooth Battery Service UUIDs
 const BATTERY_SERVICE_UUID = '180f';
@@ -54,13 +55,20 @@ export const useBattery = ({
 					}
 					console.error('Battery monitoring error:', error);
 					return;
-				}					if (characteristic?.value) {
-						const level = parseBatteryLevel(characteristic.value);
-						if (onBatteryUpdate) {
-							onBatteryUpdate(level);
-						}
-					}
 				}
+				if (characteristic?.value) {
+					const level = parseBatteryLevel(characteristic.value);
+					const currentBattery = useBleStore.getState().connected[deviceId]?.metrics?.battery;
+					if (currentBattery === null) {
+						if (__DEV__) console.log(`[Battery] Device ${deviceId.slice(-6)}: Initial battery = ${level}%`);
+					}
+					if (onBatteryUpdate) {
+						onBatteryUpdate(level);
+					}
+					// Publish to store
+					useBleStore.getState().setBattery(deviceId, level);
+				}
+			}
 			);
 		} catch (error) {
 			// Handle service/characteristic not found gracefully
@@ -72,7 +80,7 @@ export const useBattery = ({
 			}
 			console.error('Failed to subscribe to battery level:', error);
 		}
-	}, [device, enabled, parseBatteryLevel, onBatteryUpdate]);
+	}, [device, enabled, parseBatteryLevel, onBatteryUpdate]); // eslint-disable-line react-hooks/exhaustive-deps
 
 	// Unsubscribe from battery level notifications
 	const unsubscribe = useCallback(async () => {
@@ -123,12 +131,13 @@ export const useBattery = ({
 	// Auto-subscribe when enabled
 	useEffect(() => {
 		if (enabled && device) {
+			if (__DEV__) console.log(`[Battery] Subscribing to device ${deviceId.slice(-6)}`);
 			subscribe();
 			return () => {
 				unsubscribe();
 			};
 		}
-	}, [enabled, device, subscribe, unsubscribe]);
+	}, [enabled, device, subscribe, unsubscribe]); // eslint-disable-line react-hooks/exhaustive-deps
 
 	return {
 		subscribe,

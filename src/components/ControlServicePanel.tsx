@@ -47,7 +47,6 @@ export const ControlServicePanel: React.FC = () => {
   const { 
     readStatistics,
     readLocation,
-    readSnapshotStatus,
     startRecording,
     stopRecording,
     resetFifo,
@@ -61,7 +60,6 @@ export const ControlServicePanel: React.FC = () => {
     dumpSnapshot,
   } = useControl({
     deviceId,
-    enabled: !!deviceId,
     onStateUpdate: (state) => setCurrentState(state),
     onStatisticsUpdate: (stats) => setStatistics(stats),
     onLocationUpdate: (location) => setSensorLocation(location),
@@ -103,15 +101,10 @@ export const ControlServicePanel: React.FC = () => {
       if (!cancelled && battery !== null) {
         setBatteryLevel(battery);
       }
-
-      const snapshots = await readSnapshotStatus();
-      if (!cancelled && snapshots) {
-        setSnapshotStatus(snapshots);
-      }
     };
 
     init();
-  }, [deviceId, readStatistics, readLocation, readBatteryLevel, readSnapshotStatus]);
+  }, [deviceId, readStatistics, readLocation, readBatteryLevel]);
 
   const handleCommand = useCallback(async (commandFn: () => Promise<boolean>, commandName: string) => {
     if (!deviceId) return;
@@ -286,7 +279,7 @@ export const ControlServicePanel: React.FC = () => {
       {/* Snapshot Status (slots 0-2 via bitflags) */}
       {snapshotStatus && (
         <View style={{ backgroundColor: theme.colors.dgrey, borderRadius: 8, padding: 12, marginBottom: 12 }}>
-          <Text style={[theme.textStyles.body, { fontWeight: '600', marginBottom: 8 }]}>Snapshot Status ({snapshotStatus.count} snapshot{snapshotStatus.count !== 1 ? 's' : ''})</Text>
+          <Text style={[theme.textStyles.body, { fontWeight: '600', marginBottom: 8 }]}>Snapshot Status ({snapshotSlots.filter(s => s.occupied).length} snapshot{snapshotSlots.filter(s => s.occupied).length !== 1 ? 's' : ''})</Text>
           <View style={{ gap: 6 }}>
             {snapshotSlots.map(({ occupied, idx }) => (
               <View key={idx} style={[
@@ -335,7 +328,7 @@ export const ControlServicePanel: React.FC = () => {
       )}
 
       {/* Snapshot Commands (STOP mode only) */}
-      {snapshotStatus && snapshotStatus.count > 0 && (
+      {snapshotStatus && snapshotSlots.filter(s => s.occupied).length > 0 && (
         <>
           <Text style={[theme.textStyles.body, { fontWeight: '600', marginBottom: 8 }]}>Snapshot Commands (STOP mode only)</Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 16 }}>

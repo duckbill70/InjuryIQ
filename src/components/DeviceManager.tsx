@@ -1,11 +1,13 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { View, Pressable, Alert, AppState, AppStateStatus, Text, Button } from 'react-native';
+import { View, Pressable, Alert, AppState, AppStateStatus, Text } from 'react-native';
 
 import { useBle, DevicePosition } from '../ble/BleProvider';
 import { useTheme } from '../theme/ThemeContext';
 import { useSession } from '../session/SessionProvider';
-import { useControl, ControlState, SensorLocation } from '../ble/useControl';
-import { useBattery } from '../ble/useBattery';
+import { SensorLocation } from '../ble/useControl';
+import { useDeviceSubscriptions } from '../ble/useDeviceSubscriptions';
+import { useBleStore } from '../ble/bleStore';
+import { encodeSingleByte } from '../ble/base64';
 import FootIcon from './FootIcon';
 import BatteryIcon from './BatteryIcon';
 import ControlStateIcon from './ControlStateIcon';
@@ -23,64 +25,31 @@ const POSITION_LABELS = {
 
 // All DeviceBox logic and JSX must be inside the DeviceBoxComponent function, not at the top level.
 
-// TEMP: Define DeviceBoxState as any to unblock errors (replace with real type as needed)
-type DeviceBoxState = any;
-
 // Define the props for DeviceBoxComponent
 interface DeviceBoxComponentProps {
 	position: DevicePosition;
-	device: any; // Replace 'any' with the actual device type if available
+	device: { id: string; name?: string | null; position?: DevicePosition } | null;
 	enabled: boolean;
 	onRemoveDevice: (deviceId: string) => void;
 	onAssignDevice: (position: DevicePosition) => void;
-	showLocationRef: React.RefObject<() => Promise<boolean>>;
-	stateRef: React.RefObject<DeviceBoxState>;
-	onMetricsUpdate: React.Dispatch<React.SetStateAction<DeviceBoxState | null>>;
 }
 
-const DeviceBoxComponent: React.FC<DeviceBoxComponentProps> = ({ position, device, enabled, onRemoveDevice, onAssignDevice, showLocationRef: _showLocationRef, stateRef: _stateRef, onMetricsUpdate: _onMetricsUpdate }) => {
+const DeviceBoxComponent: React.FC<DeviceBoxComponentProps> = ({ position, device, enabled, onRemoveDevice, onAssignDevice }) => {
 	const isConnected = !!device;
 	const { theme } = useTheme();
 
-	// BLE state tracking
-	const [batteryLevel, setBatteryLevel] = useState<number>(0);
-	const [controlState, setControlState] = useState<ControlState>(ControlState.STOPPED);
-	const [fifoPct, setFifoPct] = useState<number | null>(null);
-	const [location, setLocation] = useState<SensorLocation>(SensorLocation.UNKNOWN);
-	const [snapshotStatus, setSnapshotStatus] = useState<{ slots: boolean[] } | null>(null);
+	// Read device metrics from store (reactive via Zustand selector)
+	const metrics = useBleStore((state) => device?.id ? state.connected[device.id]?.metrics : null);
+	const batteryLevel = metrics?.battery ?? 0;
+	const fifoPct = metrics?.fifoPct ?? 0;
+	const location = metrics?.location ?? SensorLocation.UNKNOWN;
+	const snapshotStatus = metrics?.snapshotStatus ?? null;
 
-	// Use BLE hooks (only when device is connected)
-	useBattery({
+	// Register all BLE subscriptions for this device (publishes to store)
+	useDeviceSubscriptions({
 		deviceId: device?.id ?? '',
-		onBatteryUpdate: setBatteryLevel,
 		enabled: isConnected,
 	});
-
-	const controlHook = useControl({
-		deviceId: device?.id ?? '',
-		onStateUpdate: setControlState,
-		onStatisticsUpdate: (stats) => {
-			if (stats) {
-				const pct = Math.round((stats.samplesStored / stats.bufferCapacity) * 100);
-				setFifoPct(pct);
-			}
-		},
-		onSnapshotStatusUpdate: setSnapshotStatus,
-	});
-
-	// Subscribe to location updates from controlHook
-	useEffect(() => {
-		if (controlHook?.location !== null && controlHook?.location !== undefined) {
-			setLocation(controlHook.location);
-		}
-	}, [controlHook?.location]);
-
-	// Update FIFO from controlHook if available
-	useEffect(() => {
-		if (controlHook?.fifoPct !== null && controlHook?.fifoPct !== undefined) {
-			setFifoPct(controlHook.fifoPct);
-		}
-	}, [controlHook?.fifoPct]);
 
 	// Determine FIFO fill color based on percentage
 	const getFifoColor = (fifo: number | null) => {
@@ -114,11 +83,11 @@ const DeviceBoxComponent: React.FC<DeviceBoxComponentProps> = ({ position, devic
 				</Pressable>
 			</View>
 
-			{/* Device Icons */}
-			<View style={{ marginVertical: 15, alignItems: 'center', justifyContent: 'space-between', flexDirection: 'row' }}>
-				<BatteryIcon level={batteryLevel} color={isConnected ? theme.colors.white : theme.colors.muted} style={{ marginLeft: 5 }} />
-				<ControlStateIcon state={controlState} color={isConnected ? theme.colors.white : theme.colors.muted} />
-				<View
+		{/* Device Icons */}
+		<View style={{ marginVertical: 15, alignItems: 'center', justifyContent: 'space-between', flexDirection: 'row' }}>
+			<BatteryIcon level={batteryLevel} color={isConnected ? theme.colors.white : theme.colors.muted} style={{ marginLeft: 5 }} />
+			<ControlStateIcon deviceId={device?.id} color={isConnected ? theme.colors.white : theme.colors.muted} />
+			<View
 					style={{
 						width: 24,
 						height: 24,
@@ -170,24 +139,43 @@ const DeviceBox = React.memo(DeviceBoxComponent, (prevProps, nextProps) => {
 DeviceBox.displayName = 'DeviceBox';
 
 const DeviceManagerComponent: React.FC<DeviceManagerProps> = () => {
-	const { connected, devicesByPosition, assignDevicePosition, unassignDevicePosition, scanning, startScan, stopScan, isPoweredOn, getConnectedDevices } = useBle();
+	const { devicesByPosition, assignDevicePosition, unassignDevicePosition, scanning, startScan, stopScan, isPoweredOn, getConnectedDevices } = useBle();
 	const { theme } = useTheme();
 
 	const { isActive } = useSession();
 
+	// Read connected state object from store (reactive)
+	const connected = useBleStore((state) => state.connected);
 	const connectedDevices = Object.values(connected);
 	const connectedCount = connectedDevices.length;
 	const allConnectedAssigned = connectedCount > 0 && connectedDevices.every((d) => !!d.position);
 	const badgeColor = allConnectedAssigned ? theme.colors.deepGreen : theme.colors.danger;
 
-	// Refs to store showLocation functions from each DeviceBox
-	const leftShowLocationRef = useRef<() => Promise<boolean>>(() => Promise.resolve(false));
-	const rightShowLocationRef = useRef<() => Promise<boolean>>(() => Promise.resolve(false));
-	// Refs to store state from each DeviceBox
-	const leftStateRef = useRef<DeviceBoxState | null>(null);
-	const rightStateRef = useRef<DeviceBoxState | null>(null);
-	const [_leftMetrics, setLeftMetrics] = useState<DeviceBoxState | null>(null);
-	const [_rightMetrics, setRightMetrics] = useState<DeviceBoxState | null>(null);
+	// Helper function to send LOCATION command to a device
+	const sendLocationCommand = useCallback(async (deviceId: string) => {
+		const device = connected[deviceId]?.device;
+		if (!device) return false;
+
+		try {
+			const isConnected = await device.isConnected();
+			if (!isConnected) return false;
+
+			// Send LOCATION command (10 in decimal, 0x0A in hex)
+			const COMMAND_SERVICE_UUID = '12345679-1234-5678-1234-56789abcdef0';
+			const COMMAND_CHARACTERISTIC_UUID = '12345679-1234-5678-1234-56789abcdef1';
+			const locationCommand = encodeSingleByte(10); // LOCATION = 10
+
+			await device.writeCharacteristicWithResponseForService(
+				COMMAND_SERVICE_UUID,
+				COMMAND_CHARACTERISTIC_UUID,
+				locationCommand
+			);
+			return true;
+		} catch (error) {
+			console.error(`Failed to send location command to ${deviceId.slice(-6)}:`, error);
+			return false;
+		}
+	}, [connected]);
 
 	// Track if we're currently scanning (for foreground re-check)
 	const isScanningRef = useRef(false);
@@ -410,9 +398,6 @@ const DeviceManagerComponent: React.FC<DeviceManagerProps> = () => {
 							enabled={!isActive}
 							onRemoveDevice={handleRemoveDevice}
 							onAssignDevice={handleAssignDevice}
-							showLocationRef={leftShowLocationRef}
-							stateRef={leftStateRef}
-							onMetricsUpdate={setLeftMetrics}
 						/>
 					);
 				})()}
@@ -519,13 +504,13 @@ const DeviceManagerComponent: React.FC<DeviceManagerProps> = () => {
 
 					const handleShowLocation = async () => {
 						if (locationDisabled) return;
-						// Send location command to both devices
 						const promises: Promise<boolean>[] = [];
-						if (left && leftShowLocationRef.current) {
-							promises.push(leftShowLocationRef.current());
+						// Send LOCATION command to both devices
+						if (left) {
+							promises.push(sendLocationCommand(left.id));
 						}
-						if (right && rightShowLocationRef.current) {
-							promises.push(rightShowLocationRef.current());
+						if (right) {
+							promises.push(sendLocationCommand(right.id));
 						}
 						if (promises.length > 0) {
 							await Promise.all(promises);
@@ -613,52 +598,8 @@ const DeviceManagerComponent: React.FC<DeviceManagerProps> = () => {
 							<RotateCcw color={theme.colors.white} size={24} />
 						</Pressable>
 					);
-				})()}
+				})()} 
 
-				{/* Snapshot Button - triggers CMD_SNAPSHOT (10) on all RUNNING + 100% devices 
-						{(() => {
-							const candidates: (() => Promise<boolean>)[] = [];
-							if (leftMetrics && leftMetrics.controlState === ControlState.RUNNING && leftMetrics.fifoFillPct !== null && leftMetrics.fifoFillPct >= FIFO_FULL_THRESHOLD) {
-								candidates.push(leftMetrics.snapshot);
-							}
-							if (rightMetrics && rightMetrics.controlState === ControlState.RUNNING && rightMetrics.fifoFillPct !== null && rightMetrics.fifoFillPct >= FIFO_FULL_THRESHOLD) {
-								candidates.push(rightMetrics.snapshot);
-							}
-							const snapshotEnabled = candidates.length > 0;
-							const handleSnapshot = async () => {
-								if (!snapshotEnabled) return;
-								await Promise.all(candidates.map((fn) => fn()));
-							};
-
-							return (
-								<Pressable
-									onPress={handleSnapshot}
-									disabled={!snapshotEnabled}
-									style={({ pressed }) => [
-										{
-											width: 60,
-											height: 60,
-											borderRadius: 30,
-											alignItems: 'center',
-											justifyContent: 'center',
-											borderWidth: 2,
-											borderColor: theme.colors.white,
-											backgroundColor: '#00BFFF',
-											shadowColor: '#00BFFF',
-											shadowOffset: { width: 0, height: 2 },
-											shadowOpacity: 0.3,
-											shadowRadius: 3,
-											elevation: 3,
-											marginTop: 10,
-										},
-										!snapshotEnabled ? { opacity: 0.4 } : undefined,
-										pressed && snapshotEnabled ? { opacity: 0.7, transform: [{ scale: 0.95 }], shadowOpacity: 0.2 } : undefined,
-									]}
-								>
-									<Camera color={theme.colors.white} size={24} />
-								</Pressable>
-							);
-						})()} */}
 			</View>
 			{/* Right */}
 			<View style={{ flex: 1 }}>
@@ -672,9 +613,6 @@ const DeviceManagerComponent: React.FC<DeviceManagerProps> = () => {
 							enabled={!isActive}
 							onRemoveDevice={handleRemoveDevice}
 							onAssignDevice={handleAssignDevice}
-							showLocationRef={rightShowLocationRef}
-							stateRef={rightStateRef}
-							onMetricsUpdate={setRightMetrics}
 						/>
 					);
 				})()}

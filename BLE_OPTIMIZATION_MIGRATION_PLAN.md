@@ -40,72 +40,196 @@ export enum ControlState {
 }
 ```
 
-#### 1.3 Create Zustand Store
+#### 1.3 Create Zustand Store (Heavy Approach - All BLE Data)
 **File**: `src/ble/bleStore.ts` (new file)
 
 ```typescript
-import create from 'zustand';
+import { create } from 'zustand';
 import { Device } from 'react-native-ble-plx';
+import { ControlState, SensorLocation } from './useControl';
 
 export type DevicePosition = 'leftFoot' | 'rightFoot';
 
-interface ConnectedDevice {
+export interface DeviceMetrics {
+  battery: number | null;
+  controlState: ControlState;
+  fifoPct: number | null;
+  isFull: boolean;
+  location: SensorLocation;
+  snapshotStatus: { slots: boolean[] } | null;
+}
+
+export interface ConnectedDevice {
+  id: string;
+  name?: string | null;
   device: Device;
-  position: DevicePosition | null;
+  position?: DevicePosition;
+  color?: string;
+  assignedAt?: Date;
+  metrics: DeviceMetrics;
 }
 
 interface BleState {
+  // Connectivity state
   connected: Record<string, ConnectedDevice>;
   scanning: boolean;
-  
-  // Actions
-  setConnected: (deviceId: string, device: Device, position: DevicePosition | null) => void;
+  isPoweredOn: boolean;
+
+  // Actions: Device lifecycle
+  setConnected: (deviceId: string, device: Device, position?: DevicePosition) => void;
   removeDevice: (deviceId: string) => void;
-  assignPosition: (deviceId: string, position: DevicePosition) => void;
+  assignPosition: (deviceId: string, position: DevicePosition, color?: string) => void;
+  unassignPosition: (deviceId: string) => void;
   setScanning: (scanning: boolean) => void;
-  
+  setPoweredOn: (isPoweredOn: boolean) => void;
+
+  // Actions: Metrics updates (from characteristic subscriptions)
+  updateMetrics: (deviceId: string, metrics: Partial<DeviceMetrics>) => void;
+  setBattery: (deviceId: string, battery: number) => void;
+  setControlState: (deviceId: string, state: ControlState) => void;
+  setFifoPct: (deviceId: string, pct: number) => void;
+  setIsFull: (deviceId: string, isFull: boolean) => void;
+  setLocation: (deviceId: string, location: SensorLocation) => void;
+  setSnapshotStatus: (deviceId: string, status: { slots: boolean[] } | null) => void;
+
   // Selectors
-  getDeviceByPosition: (position: DevicePosition) => Device | null;
+  getDeviceByPosition: (position: DevicePosition) => ConnectedDevice | null;
   getConnectedDevices: () => ConnectedDevice[];
+  getDeviceById: (deviceId: string) => ConnectedDevice | null;
+  getDevicesByPosition: () => Record<DevicePosition, ConnectedDevice | undefined>;
 }
 
+const DEFAULT_METRICS: DeviceMetrics = {
+  battery: null,
+  controlState: ControlState.STOPPED,
+  fifoPct: null,
+  isFull: false,
+  location: SensorLocation.UNKNOWN,
+  snapshotStatus: null,
+};
+
 export const useBleStore = create<BleState>((set, get) => ({
+  // Initial state
   connected: {},
   scanning: false,
-  
+  isPoweredOn: false,
+
+  // Device lifecycle actions
   setConnected: (deviceId, device, position) =>
     set((state) => ({
       connected: {
         ...state.connected,
-        [deviceId]: { device, position },
+        [deviceId]: {
+          id: deviceId,
+          name: device.name,
+          device,
+          position,
+          metrics: DEFAULT_METRICS,
+          ...state.connected[deviceId], // Preserve existing position/color if re-connecting
+        },
       },
     })),
-    
+
   removeDevice: (deviceId) =>
     set((state) => {
       const { [deviceId]: _, ...rest } = state.connected;
       return { connected: rest };
     }),
-    
-  assignPosition: (deviceId, position) =>
-    set((state) => ({
-      connected: {
-        ...state.connected,
-        [deviceId]: {
-          ...state.connected[deviceId],
-          position,
+
+  assignPosition: (deviceId, position, color) =>
+    set((state) => {
+      const device = state.connected[deviceId];
+      if (!device) return state;
+
+      // Clear position from other devices at this position
+      const updated = { ...state.connected };
+      Object.entries(updated).forEach(([id, dev]) => {
+        if (id !== deviceId && dev.position === position) {
+          updated[id] = { ...dev, position: undefined };
+        }
+      });
+
+      // Assign to this device
+      updated[deviceId] = {
+        ...device,
+        position,
+        color: color || device.color,
+        assignedAt: new Date(),
+      };
+
+      return { connected: updated };
+    }),
+
+  unassignPosition: (deviceId) =>
+    set((state) => {
+      const device = state.connected[deviceId];
+      if (!device) return state;
+      return {
+        connected: {
+          ...state.connected,
+          [deviceId]: {
+            ...device,
+            position: undefined,
+            assignedAt: undefined,
+          },
         },
-      },
-    })),
-    
+      };
+    }),
+
   setScanning: (scanning) => set({ scanning }),
-  
+  setPoweredOn: (isPoweredOn) => set({ isPoweredOn }),
+
+  // Metrics updates
+  updateMetrics: (deviceId, metrics) =>
+    set((state) => {
+      const device = state.connected[deviceId];
+      if (!device) return state;
+      return {
+        connected: {
+          ...state.connected,
+          [deviceId]: {
+            ...device,
+            metrics: { ...device.metrics, ...metrics },
+          },
+        },
+      };
+    }),
+
+  setBattery: (deviceId, battery) =>
+    get().updateMetrics(deviceId, { battery }),
+
+  setControlState: (deviceId, state) =>
+    get().updateMetrics(deviceId, { controlState: state }),
+
+  setFifoPct: (deviceId, pct) =>
+    get().updateMetrics(deviceId, { fifoPct: pct }),
+
+  setIsFull: (deviceId, isFull) =>
+    get().updateMetrics(deviceId, { isFull }),
+
+  setLocation: (deviceId, location) =>
+    get().updateMetrics(deviceId, { location }),
+
+  setSnapshotStatus: (deviceId, status) =>
+    get().updateMetrics(deviceId, { snapshotStatus: status }),
+
+  // Selectors
   getDeviceByPosition: (position) => {
     const devices = Object.values(get().connected);
-    return devices.find((d) => d.position === position)?.device ?? null;
+    return devices.find((d) => d.position === position) || null;
   },
-  
+
   getConnectedDevices: () => Object.values(get().connected),
+
+  getDeviceById: (deviceId) => get().connected[deviceId] || null,
+
+  getDevicesByPosition: () => {
+    const connected = get().connected;
+    return {
+      leftFoot: Object.values(connected).find((d) => d.position === 'leftFoot'),
+      rightFoot: Object.values(connected).find((d) => d.position === 'rightFoot'),
+    };
+  },
 }));
 ```
 
@@ -149,43 +273,66 @@ Replace:
 
 pollSnapshotStatus(); // 5 reads × 300ms each = 1.5s
 
-## Phase 2: Update Session Control Panel & Device Manager
-**Duration**: 2-3 hours  
-**Goal**: Update `SessionControlPanel` and `DeviceManager` to use Zustand and new BLE state, ensuring basic BLE usage (connect, assign, start/stop session) works. TrainingSessionPanel refactor will follow in Phase 3.
+## Phase 2: Wire BleProvider to bleStore & Update UI
+**Duration**: 3-4 hours  
+**Goal**: Update `BleProvider` to publish all BLE events (connect, disconnect, metrics) to `useBleStore`. Update `SessionControlPanel` and `DeviceManager` to read from store instead of BleProvider hook. Ensure basic BLE usage (connect, assign, start/stop session) works.
 
 ### Tasks
 
-#### 2.1 Refactor DeviceManager
+#### 2.1 Refactor BleProvider to Publish to bleStore
+**File**: `src/ble/BleProvider.tsx`
+
+- On device connect/discover: call `useBleStore.setState({ setConnected(...) })`
+- On device disconnect: call `useBleStore.setState({ removeDevice(...) })`
+- On device position assignment: call `useBleStore.setState({ assignPosition(...) })`
+- On characteristic subscriptions (Battery, Control, Statistics, Location, Snapshot):
+  - Battery update: `useBleStore.setState({ setBattery(deviceId, level) })`
+  - Control state notification: `useBleStore.setState({ setControlState(deviceId, state) })`
+  - Statistics update: `useBleStore.setState({ setFifoPct(...), setIsFull(...) })`
+  - Location notification: `useBleStore.setState({ setLocation(...) })`
+  - Snapshot status notification: `useBleStore.setState({ setSnapshotStatus(...) })`
+- Bluetooth powered state change: `useBleStore.setState({ setPoweredOn(...) })`
+- Scan start/stop: `useBleStore.setState({ setScanning(...) })`
+- Keep BleProvider exports for backward compatibility, but have them delegate to store selectors
+
+#### 2.2 Refactor DeviceManager
 **File**: `src/components/DeviceManager.tsx`
 
-- Use Zustand store (`useBleStore`) for device state and assignment
+- Replace `useBle()` for connectivity with `useBleStore` selectors (or keep hook but backed by store)
+- Read device state, battery, FIFO, location from `useBleStore` instead of individual hooks
 - Remove all references to `racket` position
 - Use new ControlState enum for device state display
 - Ensure device connect/disconnect, assignment, and state display work
 
-#### 2.2 Refactor SessionControlPanel
+#### 2.3 Refactor SessionControlPanel
 **File**: `src/components/SessionControlPanel.tsx`
 
-- Use Zustand and new BLE hooks for device control
-- Ensure start/stop session works with new BLE state
-- Remove any legacy state/ref patterns
-- UI should reflect device state and allow basic session control
+- Read `getDeviceByPosition` from `useBleStore` instead of current bleStore (now it's populated!)
+- Enable Start button when at least one device is assigned (allow single-device sessions)
+- Show warning if only one device assigned
+- Rest of logic stays same but gated on store state (which is now live)
 
-#### 2.3 Minimal Integration
+#### 2.4 Minimal Integration
 - Ensure DeviceManager and SessionControlPanel work together for basic BLE usage
-- Test connect, assign, start, stop, and disconnect flows
+- Test connect, assign, start, stop, and disconnect flows with store as source of truth
 
 ### Testing Checklist
-- [ ] DeviceManager uses Zustand for device state
-- [ ] SessionControlPanel uses Zustand and new BLE hooks
+- [ ] BleProvider publishes connect/disconnect events to store
+- [ ] BleProvider publishes all characteristic updates (battery, control, stats, location, snapshot) to store
+- [ ] DeviceManager reads all state from `useBleStore` (connectivity, metrics, positions)
+- [ ] SessionControlPanel reads device positions from `useBleStore.getDeviceByPosition()`
+- [ ] Start button enabled with at least 1 device assigned (warning shown if only 1)
 - [ ] Can connect, assign, start, and stop a session
-- [ ] Device state and assignment update in UI
+- [ ] Device state, battery, FIFO, location update in UI in real time
 - [ ] No TypeScript errors
 
 ### Acceptance Criteria
-✅ DeviceManager and SessionControlPanel fully functional with new BLE state  
-✅ Basic BLE usage (connect, assign, start/stop) works  
-✅ No references to racket or legacy state patterns
+✅ BleProvider fully wired to `useBleStore` (all lifecycle + metrics events)  
+✅ DeviceManager and SessionControlPanel read from store, not individual hooks  
+✅ All BLE data (connectivity, position, battery, control state, FIFO, location, snapshot) centralized in store  
+✅ Basic BLE usage (connect, assign, start/stop) works with single or two devices  
+✅ No references to racket or legacy state patterns  
+✅ UI updates in real time as store state changes
 
 ---
 

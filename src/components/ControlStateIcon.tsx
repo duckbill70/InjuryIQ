@@ -2,7 +2,8 @@ import React, { memo } from 'react';
 import { View, ViewStyle } from 'react-native';
 import { useTheme } from '../theme/ThemeContext';
 import { ControlState } from '../ble/useControl';
-import { Play, Square, CircleHelp } from 'lucide-react-native';
+import { useBleStore } from '../ble/bleStore';
+import { Play, Square, CircleHelp, Camera, Download, MapPin } from 'lucide-react-native';
 
 /**
  * ControlStateIcon – Icon-only indicator for device control state.
@@ -10,16 +11,21 @@ import { Play, Square, CircleHelp } from 'lucide-react-native';
  * States mapped to icons:
  * - RUNNING -> Play (triangle)
  * - STOPPED -> Square
+ * - SNAPSHOTTING -> Camera
+ * - DUMPING -> Download
+ * - SHOWING_LOCATION -> MapPin
  * - UNKNOWN -> CircleHelp
  * - null/undefined -> Grey CircleHelp placeholder
  *
  * Usage:
  * <ControlStateIcon state={ControlState.RUNNING} />
- * <ControlStateIcon state={ControlState.STOPPED} size={28} />
+ * <ControlStateIcon state={ControlState.SHOWING_LOCATION} size={28} />
  * <ControlStateIcon state={null} />
  */
 export type ControlStateIconProps = {
-  /** Control state; null/undefined renders grey OFF placeholder */
+  /** Device ID to read control state from bleStore. If provided, takes precedence over state prop. */
+  deviceId?: string;
+  /** Control state; null/undefined renders grey OFF placeholder. Used if deviceId is not provided. */
   state?: ControlState | null;
   /** Icon size in dp. Default: 24 */
   size?: number;
@@ -34,7 +40,8 @@ export type ControlStateIconProps = {
 };
 
 const ControlStateIconComponent: React.FC<ControlStateIconProps> = ({
-  state,
+  deviceId,
+  state: propState,
   size = 24,
   color,
   placeholderColor,
@@ -42,6 +49,11 @@ const ControlStateIconComponent: React.FC<ControlStateIconProps> = ({
   accessibilityLabel,
 }) => {
   const { theme } = useTheme();
+  
+  // Always call the hook (rules of hooks), but only use result if deviceId is provided
+  const storeState = useBleStore((s) => deviceId ? s.connected[deviceId]?.metrics?.controlState : undefined);
+  const state = deviceId ? storeState : propState;
+  
   const isPlaceholder = state === null || state === undefined;
   const iconColor = isPlaceholder ? (placeholderColor ?? theme.colors.muted) : (color ?? theme.colors.white);
 
@@ -51,6 +63,12 @@ const ControlStateIconComponent: React.FC<ControlStateIconProps> = ({
         return <Play size={size} color={iconColor} fill={iconColor} />;
       case ControlState.STOPPED:
         return <Square size={size} color={iconColor} fill={iconColor} />;
+      case ControlState.SNAPSHOTTING:
+        return <Camera size={size} color={iconColor} fill={iconColor} />;
+      case ControlState.DUMPING:
+        return <Download size={size} color={iconColor} />;
+      case ControlState.SHOWING_LOCATION:
+        return <MapPin size={size} color={iconColor} fill={iconColor} />;
       case ControlState.UNKNOWN:
       default:
         // Unknown / placeholder
@@ -66,7 +84,13 @@ const ControlStateIconComponent: React.FC<ControlStateIconProps> = ({
           ? 'Running'
           : state === ControlState.STOPPED
             ? 'Stopped'
-            : 'Unknown state'
+            : state === ControlState.SNAPSHOTTING
+              ? 'Snapshotting'
+              : state === ControlState.DUMPING
+                ? 'Dumping'
+                : state === ControlState.SHOWING_LOCATION
+                  ? 'Showing Location'
+                  : 'Unknown state'
     );
 
   return (

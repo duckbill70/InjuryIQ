@@ -55,9 +55,10 @@ const DeviceBoxComponent: React.FC<DeviceBoxComponentProps> = ({ position, devic
 
 	// Determine FIFO fill color based on percentage
 	const getFifoColor = (fifo: number | null) => {
-		if (fifo === null || fifo === 0) return 'black';
-		if (fifo === 100) return 'green';
-		return 'amber';
+		if (fifo === null || fifo === 0) return theme.colors.black;
+		if (fifo >= 99) return theme.colors.good;
+		if (fifo > 0 && fifo < 100) return theme.colors.warn;
+		return theme.colors.black;
 	};
 
 	// Determine FootIcon color based on device BLE location or connection status

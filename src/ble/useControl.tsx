@@ -45,6 +45,7 @@ export enum SensorLocation {
 
 interface UseControlProps {
   deviceId: string;
+  enabled?: boolean;
   onStateUpdate?: (state: ControlState) => void;
   onStatisticsUpdate?: (stats: FIFOStatistics) => void;
   onLocationUpdate?: (location: SensorLocation) => void;
@@ -76,6 +77,7 @@ const SNAPSHOT_STATUS_CHARACTERISTIC_UUID = '12345679-1234-5678-1234-56789abcdef
 // Main BLE control hook
 export function useControl({
   deviceId,
+  enabled = true,
   onStateUpdate,
   onStatisticsUpdate,
   onLocationUpdate: _onLocationUpdate,
@@ -122,15 +124,21 @@ export function useControl({
 
   // Subscribe to BLE notifications for this device (statistics only)
   useEffect(() => {
-    if (!device) return;
+    if (!device || !enabled) return;
     const sub = device.monitorCharacteristicForService(
       COMMAND_SERVICE_UUID,
       STATISTICS_CHARACTERISTIC_UUID,
       (error, characteristic) => {
-        if (error) return;
+        if (error) {
+          console.warn(`[FIFO Subscription] Error on device ${deviceId.slice(-6)}:`, error);
+          return;
+        }
         if (characteristic?.value) {
           const stats = parseStatistics(characteristic.value);
-          const nextPct = stats ? Math.round((stats.samplesStored / stats.bufferCapacity) * 100) : null;
+          
+          const nextPct = stats && stats.bufferCapacity > 0 
+            ? Math.round((stats.samplesStored / stats.bufferCapacity) * 100) 
+            : null;
           const nextState = stats ? (stats.isRecording ? ControlState.RUNNING : ControlState.STOPPED) : null;
           
           // Only update if values actually changed
@@ -142,6 +150,10 @@ export function useControl({
             if (nextPct !== null) {
               setTimeout(() => {
                 useBleStore.getState().setFifoPct(deviceId, nextPct);
+                // Only log when FIFO reaches 100%
+                if (nextPct === 100) {
+                  console.log(`[FIFO] Device ${deviceId.slice(-6)}: FULL (100%)`);
+                }
               }, 0);
             }
           }
@@ -164,11 +176,11 @@ export function useControl({
       }
     );
     return () => { sub?.remove && sub.remove(); };
-  }, [device?.id, deviceId, onStatisticsUpdate, onStateUpdate]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [device?.id, deviceId, enabled, onStatisticsUpdate, onStateUpdate]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Subscribe to Command State notifications (immediate state changes)
   useEffect(() => {
-    if (!device) return;
+    if (!device || !enabled) return;
     const sub = device.monitorCharacteristicForService(
       COMMAND_SERVICE_UUID,
       COMMAND_CHARACTERISTIC_UUID,
@@ -233,11 +245,11 @@ export function useControl({
       }
     );
     return () => { sub?.remove && sub.remove(); };
-  }, [device?.id, deviceId, onStateUpdate]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [device?.id, deviceId, enabled, onStateUpdate]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Subscribe to Location notifications
   useEffect(() => {
-    if (!device) return;
+    if (!device || !enabled) return;
     const sub = device.monitorCharacteristicForService(
       COMMAND_SERVICE_UUID,
       LOCATION_CHARACTERISTIC_UUID,
@@ -269,7 +281,7 @@ export function useControl({
 
   // Subscribe to Snapshot Status notifications (bitmap)
   useEffect(() => {
-    if (!device) return;
+    if (!device || !enabled) return;
     const sub = device.monitorCharacteristicForService(
       COMMAND_SERVICE_UUID,
       SNAPSHOT_STATUS_CHARACTERISTIC_UUID,
@@ -304,7 +316,7 @@ export function useControl({
       }
     );
     return () => { sub?.remove && sub.remove(); };
-  }, [device?.id, deviceId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [device?.id, deviceId, enabled]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Read current statistics
   const readStatistics = useCallback(async (): Promise<FIFOStatistics | null> => {
@@ -357,7 +369,7 @@ export function useControl({
 
   // One-time initial reads to populate UI before first notifications
   useEffect(() => {
-    if (!device) return;
+    if (!device || !enabled) return;
     let cancelled = false;
     (async () => {
       try {
@@ -443,7 +455,7 @@ export function useControl({
     return () => {
       cancelled = true;
     };
-  }, [device, onStateUpdate]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [device, enabled, onStateUpdate]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Send command to device directly
   const sendCommand = useCallback(async (command: ControlCommand): Promise<boolean> => {

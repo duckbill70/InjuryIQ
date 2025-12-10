@@ -1,23 +1,24 @@
 import React, { memo } from 'react';
 import { View, Text, ViewStyle } from 'react-native';
 import { useTheme } from '../theme/ThemeContext';
+import { useBleStore } from '../ble/bleStore';
 
 /**
- * FifoFillBadge – Small outlined box showing FIFO buffer fill as text.
+ * FifoFillBadge – Small outlined box showing FIFO buffer fill for a device.
  *
+ * Reads FIFO data from bleStore for the specified device.
  * - Displays "FULL" when value is 100 (or more)
  * - Otherwise displays "NN%" (clamped 0–100)
  * - Shows "--%" when value is null/undefined
  * - Outline and text default to white for good contrast over varied backgrounds
  *
  * Usage:
- * <FifoFillBadge value={42} />
- * <FifoFillBadge value={100} fontSize={12} />
- * <FifoFillBadge value={null} fontSize={10} />
+ * <FifoFillBadge deviceId={device.id} />
+ * <FifoFillBadge deviceId={device.id} fontSize={12} />
  */
 export type FifoFillBadgeProps = {
-  /** Percent full [0..100]; null renders unknown placeholder */
-  value?: number | null;
+  /** Device ID to read FIFO data from bleStore */
+  deviceId: string;
   /** Text size in dp. Default: 12 */
   fontSize?: number;
   /** Border/text color. Default: theme.colors.white */
@@ -36,7 +37,7 @@ export type FifoFillBadgeProps = {
 const clamp = (n: number) => Math.max(0, Math.min(100, Math.round(n)));
 
 const FifoFillBadgeComponent: React.FC<FifoFillBadgeProps> = ({
-  value,
+  deviceId,
   fontSize = 12,
   color,
   radius = 6,
@@ -46,9 +47,13 @@ const FifoFillBadgeComponent: React.FC<FifoFillBadgeProps> = ({
   accessibilityLabel,
 }) => {
   const { theme } = useTheme();
+  
+  // Read FIFO data from bleStore
+  const fifoPct = useBleStore((state) => state.connected[deviceId]?.metrics?.fifoPct ?? null);
+  
   const col = color ?? theme.colors.white;
-  const isUnknown = value === null || value === undefined;
-  const pct = isUnknown ? 0 : clamp(value);
+  const isUnknown = fifoPct === null || fifoPct === undefined;
+  const pct = isUnknown ? 0 : clamp(fifoPct);
 
   const label = isUnknown ? '--%' : pct >= 100 ? 'FULL' : `${pct}%`;
   const a11y =

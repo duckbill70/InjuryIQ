@@ -6,13 +6,13 @@ import { useTheme } from '../theme/ThemeContext';
 import { useSession } from '../session/SessionProvider';
 import { SensorLocation } from '../ble/useControl';
 import { useDeviceSubscriptions } from '../ble/useDeviceSubscriptions';
-import { useBleStore } from '../ble/bleStore';
+import { useBleStore, ConnectedDevice } from '../ble/bleStore';
 import { encodeSingleByte } from '../ble/base64';
 import FootIcon from './FootIcon';
 import BatteryIcon from './BatteryIcon';
 import ControlStateIcon from './ControlStateIcon';
 
-import { ArrowLeftRight, Bluetooth, MapPin, RotateCcw } from 'lucide-react-native';
+import { ArrowLeftRight, Bluetooth, MapPin } from 'lucide-react-native';
 
 interface DeviceManagerProps {
 	enabled?: boolean; // Flag to enable/disable settings (for session state)
@@ -28,13 +28,15 @@ const POSITION_LABELS = {
 // Define the props for DeviceBoxComponent
 interface DeviceBoxComponentProps {
 	position: DevicePosition;
-	device: { id: string; name?: string | null; position?: DevicePosition } | null;
+	device: { id: string; name?: string | null; position?: DevicePosition; color?: string } | null;
 	enabled: boolean;
 	onRemoveDevice: (deviceId: string) => void;
 	onAssignDevice: (position: DevicePosition) => void;
+	onUpdateDeviceColor: (deviceId: string, color: string) => void;
+	connected: Record<string, ConnectedDevice>;
 }
 
-const DeviceBoxComponent: React.FC<DeviceBoxComponentProps> = ({ position, device, enabled, onRemoveDevice, onAssignDevice }) => {
+const DeviceBoxComponent: React.FC<DeviceBoxComponentProps> = ({ position, device, enabled, onRemoveDevice, onAssignDevice, onUpdateDeviceColor, connected }) => {
 	const isConnected = !!device;
 	const { theme } = useTheme();
 
@@ -68,6 +70,67 @@ const DeviceBoxComponent: React.FC<DeviceBoxComponentProps> = ({ position, devic
 		return 'green';
 	};
 
+	// Handle long press to change device color
+	const handleLongPress = useCallback(async () => {
+		if (!isConnected || !enabled || !device) return;
+		
+		// Toggle between Red and Green based on CURRENT device state (device is authority)
+		let newColor: string;
+		let colorName: string;
+		let colorCommand: number; // BLE command: 5 = LOC_RED, 6 = LOC_GREEN
+		
+		// If currently RED, ask to change to GREEN
+		if (location === SensorLocation.RED) {
+			newColor = theme.colors.deepGreen;
+			colorName = 'Green';
+			colorCommand = 6; // LOC_GREEN
+		} else {
+			// If currently GREEN or UNKNOWN, ask to change to RED
+			newColor = theme.colors.danger;
+			colorName = 'Red';
+			colorCommand = 5; // LOC_RED
+		}
+		
+		Alert.alert(
+			'Change Device Color',
+			`Set device to ${colorName}?`,
+			[
+				{ text: 'Cancel', style: 'cancel' },
+				{
+					text: 'Set',
+					onPress: async () => {
+						// Send BLE color command
+						const deviceFromStore = connected[device.id]?.device;
+						if (deviceFromStore) {
+							try {
+								const isDeviceConnected = await deviceFromStore.isConnected();
+								if (!isDeviceConnected) return;
+
+								const COMMAND_SERVICE_UUID = '12345679-1234-5678-1234-56789abcdef0';
+								const COMMAND_CHARACTERISTIC_UUID = '12345679-1234-5678-1234-56789abcdef1';
+								const command = encodeSingleByte(colorCommand);
+
+								await deviceFromStore.writeCharacteristicWithResponseForService(
+									COMMAND_SERVICE_UUID,
+									COMMAND_CHARACTERISTIC_UUID,
+									command
+								);
+								
+								// Update local color state
+								onUpdateDeviceColor(device.id, newColor);
+								
+								if (__DEV__) console.log(`[DeviceManager] Sent ${colorName} command to ${device.id.slice(-6)}`);
+							} catch (error) {
+								console.error(`Failed to send color command to ${device.id.slice(-6)}:`, error);
+								Alert.alert('Error', `Failed to set device color to ${colorName}`);
+							}
+						}
+					},
+				},
+			]
+		);
+	}, [isConnected, enabled, device, theme, onUpdateDeviceColor, connected, location]);
+
 	return (
 		// Device Bounding Box
 		<View style={{ flexDirection: 'column', alignItems: 'stretch' }}>
@@ -76,13 +139,16 @@ const DeviceBoxComponent: React.FC<DeviceBoxComponentProps> = ({ position, devic
 				<Text style={{ marginVertical: 15, color: 'white' }}>{isConnected ? device?.name || 'Unknown Device' : 'Not Connected'}</Text>
 			</View>
 
-			{/* Device Foot Icon */}
-			<View style={{ flexDirection: position === 'leftFoot' ? 'row-reverse' : 'row', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-				<Pressable onPress={() => (isConnected ? onRemoveDevice(device.id) : onAssignDevice(position))} disabled={!enabled}>
-					<FootIcon color={getFootColor()} size={150} side={position === 'leftFoot' ? 'left' : 'right'} />
-				</Pressable>
-			</View>
-
+		{/* Device Foot Icon */}
+		<View style={{ flexDirection: position === 'leftFoot' ? 'row-reverse' : 'row', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+			<Pressable 
+				onPress={() => (isConnected ? onRemoveDevice(device.id) : onAssignDevice(position))} 
+				onLongPress={handleLongPress}
+				disabled={!enabled}
+			>
+				<FootIcon color={getFootColor()} size={150} side={position === 'leftFoot' ? 'left' : 'right'} />
+			</Pressable>
+		</View>
 		{/* Device Icons */}
 		<View style={{ marginVertical: 15, alignItems: 'center', justifyContent: 'space-between', flexDirection: 'row' }}>
 			<BatteryIcon level={batteryLevel} color={isConnected ? theme.colors.white : theme.colors.muted} style={{ marginLeft: 5 }} />
@@ -131,7 +197,8 @@ const DeviceBox = React.memo(DeviceBoxComponent, (prevProps, nextProps) => {
 		prevProps.device?.id === nextProps.device?.id &&
 		prevProps.enabled === nextProps.enabled &&
 		prevProps.device?.name === nextProps.device?.name &&
-		prevProps.device?.position === nextProps.device?.position
+		prevProps.device?.position === nextProps.device?.position &&
+		prevProps.device?.color === nextProps.device?.color
 		// Refs and callbacks are stable, no need to compare
 	);
 });
@@ -139,7 +206,7 @@ const DeviceBox = React.memo(DeviceBoxComponent, (prevProps, nextProps) => {
 DeviceBox.displayName = 'DeviceBox';
 
 const DeviceManagerComponent: React.FC<DeviceManagerProps> = () => {
-	const { devicesByPosition, assignDevicePosition, unassignDevicePosition, scanning, startScan, stopScan, isPoweredOn, getConnectedDevices } = useBle();
+	const { devicesByPosition, assignDevicePosition, unassignDevicePosition, updateDeviceColor, scanning, startScan, stopScan, isPoweredOn, getConnectedDevices } = useBle();
 	const { theme } = useTheme();
 
 	const { isActive } = useSession();
@@ -398,6 +465,8 @@ const DeviceManagerComponent: React.FC<DeviceManagerProps> = () => {
 							enabled={!isActive}
 							onRemoveDevice={handleRemoveDevice}
 							onAssignDevice={handleAssignDevice}
+							onUpdateDeviceColor={updateDeviceColor}
+							connected={connected}
 						/>
 					);
 				})()}
@@ -547,7 +616,7 @@ const DeviceManagerComponent: React.FC<DeviceManagerProps> = () => {
 					);
 				})()}
 
-				{/* Reset Position Button - clears device position assignments */}
+				{/* Reset Position Button - clears device position assignments 
 				{(() => {
 					const left = devicesByPosition.leftFoot;
 					const right = devicesByPosition.rightFoot;
@@ -598,7 +667,7 @@ const DeviceManagerComponent: React.FC<DeviceManagerProps> = () => {
 							<RotateCcw color={theme.colors.white} size={24} />
 						</Pressable>
 					);
-				})()} 
+				})()}  */}
 
 			</View>
 			{/* Right */}
@@ -613,6 +682,8 @@ const DeviceManagerComponent: React.FC<DeviceManagerProps> = () => {
 							enabled={!isActive}
 							onRemoveDevice={handleRemoveDevice}
 							onAssignDevice={handleAssignDevice}
+							onUpdateDeviceColor={updateDeviceColor}
+							connected={connected}
 						/>
 					);
 				})()}
